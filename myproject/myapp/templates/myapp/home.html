@@ -1,0 +1,145 @@
+{% load static %}  <!-- This line loads the static tag library -->
+
+<!DOCTYPE html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+
+    <link rel="stylesheet" type="text/css" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous" />
+    <link rel="stylesheet" type="text/css" href="{% static 'css/common.css' %}" />
+    <link rel="stylesheet" type="text/css" href="{% static 'css/fonts.css' %}" />
+    <link rel="stylesheet" type="text/css" href="{% static 'css/Page1.css' %}" />
+
+
+
+
+</head>
+
+<body class="flex-column">
+
+    <main class="page1 mainSection">
+        <!-- Main content of the webpage -->
+        <section class="smartDOverviewSection">
+            <!-- Header section with branding and navigation. -->
+            <div class="blockContainer">
+                <div class="flexRowContainer">
+                    <div class="brandingContainer">
+                        <img class="brandingImage" src="{% static 'assets/0fbf1a91f14780ce3fa9a491a86c9449.svg' %}" alt="alt text" />
+                        <div class="brandingTextContainer">
+                            <p class="brandingNameText">SMARTD</p>
+                            <p class="brandingStudioText">STUDIO</p>
+                        </div>
+                    </div>
+                    <div class="navigationRowContainer">
+                        <!-- Navigation menu for the site. -->
+                        <p class="navHomeText">Home</p>
+                        <p class="navPlaygroundText">Playground</p>
+                        <p class="navTutorialText">Tutorial</p>
+                        <p class="navAboutText">About</p>
+                    </div>
+                    <div class="authButtonsContainer">
+                        <!-- Container for authentication buttons -->
+                        <button class="loginBtn">
+                            <!-- TODO -->
+                            Log In
+                        </button>
+                        <button class="startTrialBtn">
+                            <!-- TODO -->
+                            Start Free Trial
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="noCodeSolutionsSection">
+            <!-- Main section discussing no-code solutions. -->
+            <!-- <div class="imageWrapper"><img class="noCodeSolutionImage" src="{% static 'assets/ee7aeb6d311780e3c2b8d71d418b2356.png' %}" alt="alt text" /></div> -->
+            <div class="solutionsContentColumn">
+                <div class="contentWrapper">
+                    <div class="solutionsHeaderWrapper">
+                        <h1 class="noCodeSolutionsHeader">No code solutions for Graph Database</h1>
+                    </div>
+                    <p class="solutionsDescriptionText">Due to the developer shortage and budget issues, low-code/no-code frameworks are gaining popularity. Visual Query Interfaces (VQIs) let users create database queries with &quot;drag-and-drop&quot; ease.</p>
+                </div>
+                <button class="linkDatabaseBtn">
+                    <!-- TODO -->
+                    Link database
+                </button>
+            </div>
+        </section>
+
+        <section class="tutorialsSection">
+            <!-- Section for tutorials. -->
+            <div class="tutorialWrapper">
+                <div class="tutorialGrid">
+                    <!-- Grid layout for tutorial items. -->
+                    <div class="tutorialItem">
+                        <!-- Individual tutorial item. -->
+                        <div class="tutorialHeaderWrapper">
+                            <h3 class="tutorialHeaderText">TutoRial</h3>
+                        </div>
+                        <div class="tutorialContentBox"></div>
+                        <!-- Container for tutorial content. -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="contactUsSection">
+            <!-- Contact us section. -->
+            <div class="contactWrapper">
+                <div class="contactDetailsColumn">
+                    <div class="contactInfoColumn">
+                        <h3 class="contactHeader">Contact us</h3>
+                        <div class="problemDescriptionText">Your problem:</div>
+                    </div>
+                    <div class="contactSendRow">
+                        <!-- Row for the contact send button. -->
+                        <div class="problemDecor"></div>
+                        <button class="contactSendBtn">
+                            <!-- TODO -->
+                            Send
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="footerSection">
+            <!-- Footer section of the page. -->
+            <div class="footerWrapper">
+                <div class="footerInfoColumn">
+                    <div class="footerBrandingRow">
+                        <div class="footerBrandingRowOne">
+                            <img class="footerBrandingImage" src="{% static 'assets/0fbf1a91f14780ce3fa9a491a86c9449.svg' %}" alt="alt text" />
+                            <div class="footerBrandingTextContainer">
+                                <p class="footerNameText">SMARTD</p>
+                                <p class="footerStudioText">STUDIO</p>
+                            </div>
+                        </div>
+                        <div class="footerNavRow">
+                            <!-- Footer navigation links. -->
+                            <p class="footerHomeText">Home</p>
+                            <p class="footerPlaygroundText">Playground</p>
+                            <p class="footerTutorialText">Tutorial</p>
+                            <p class="footerAboutText">About</p>
+                        </div>
+                        <div class="footerImagesRow">
+                            <!-- Row of additional footer images. -->
+                            <img class="footerAdditionalImageOne" src="{% static 'assets/529f44935176c4533c3052d9a61707da.svg' %}" alt="alt text" />
+                            <img class="footerAdditionalImageTwo" src="{% static 'assets/2a35811c4a3593d307bda84e000cd1a8.svg' %}" alt="alt text" />
+                            <img class="footerAdditionalImageThree" src="{% static 'assets/959bbb94b391fead793b136b3c0b6e58.svg' %}" alt="alt text" />
+                            <img class="footerAdditionalImageFour" src="{% static 'assets/95fd450a167a7e233741fa455454989a.svg' %}" alt="alt text" />
+                            <img class="footerAdditionalImageFive" src="{% static 'assets/61e7bcf2baaa8382256551aa68ed0cfe.svg' %}" alt="alt text" />
+                        </div>
+                    </div>
+                    <div class="footerCopyrightText">CompanyName @ 202X. All rights reserved.</div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+</body>
+
+</html>

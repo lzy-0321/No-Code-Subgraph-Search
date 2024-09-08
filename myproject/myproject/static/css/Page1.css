@@ -1,0 +1,418 @@
+.page1.mainSection {
+  display: flex;
+  flex-direction: column;
+  background-color: white;
+}
+.page1 .smartDOverviewSection {
+  display: flex;
+  flex-direction: column;
+  height: 6vh; /* Set the height of the header */
+  position: fixed; /* Fix the header to the top */
+  top: 0; /* Ensure it stays at the top */
+  width: 100%; /* Make sure it spans the full width */
+  z-index: 100; /* Ensure it stays above other content */
+}
+.page1 .blockContainer {
+  display: flex;
+  flex-direction: column;
+  height: 100%; /* Make blockContainer fill the full height of smartDOverviewSection */
+  background-color: white;
+  border-color: #dde1e6;
+  border-style: solid;
+  border-width: 0 0 1px;
+  justify-content: center;
+}
+.page1 .flexRowContainer {
+  display: flex;
+  justify-content: space-between;
+  gap: 0 10px;
+  width: 82.36%;
+  margin: 0 auto; /* Center it horizontally in the viewport */
+}
+.page1 .brandingContainer {
+  display: flex;
+  gap: 0 6px;
+  margin: 3px 0 0;
+  width: 107px;
+  min-width: 0;
+}
+.page1 .brandingImage {
+  margin: 4px 0 11px;
+  width: 24px;
+  min-width: 0;
+}
+.page1 .brandingTextContainer {
+  display: flex;
+  flex-direction: column;
+  width: 77px;
+  min-width: 0;
+}
+.page1 .brandingNameText {
+  margin: 0 2px 0 0;
+  font: 400 18px/1.36 Abel, Helvetica, Arial, serif;
+  color: black;
+  letter-spacing: 3.06px;
+}
+.page1 .brandingStudioText {
+  font: 400 18px/1.36 Abel, Helvetica, Arial, serif;
+  color: black;
+  letter-spacing: 4.41px;
+}
+.page1 .navigationRowContainer {
+  display: flex;
+  justify-content: space-between;
+  gap: 0 10px;
+  margin: 16px 0 21px;
+  width: 318px;
+  min-width: 0;
+}
+.page1 .navHomeText {
+  min-width: 0;
+  font: 500 16px/1 Roboto, Helvetica, Arial, serif;
+  color: #21272a;
+}
+.page1 .navPlaygroundText {
+  min-width: 0;
+  font: 500 16px/1 Roboto, Helvetica, Arial, serif;
+  color: #21272a;
+}
+.page1 .navTutorialText {
+  min-width: 0;
+  font: 500 16px/1 Roboto, Helvetica, Arial, serif;
+  color: #21272a;
+}
+.page1 .navAboutText {
+  min-width: 0;
+  font: 500 16px/1 Roboto, Helvetica, Arial, serif;
+  color: #21272a;
+}
+.page1 .authButtonsContainer {
+  display: flex;
+  gap: 0 16px;
+  margin: 0 0 5px;
+  width: 288px;
+  min-width: 0;
+}
+.page1 .loginBtn {
+  display: flex;
+  justify-content: center;
+  min-width: 103px;
+  font: 500 16px/1 Roboto, Helvetica, Arial, serif;
+  color: #0f62fe;
+  text-align: center;
+  padding: 16px 28px;
+  outline: 2px solid #0f62fe;
+  outline-offset: -2px;
+  letter-spacing: 0.4px;
+}
+.page1 .startTrialBtn {
+  display: flex;
+  justify-content: center;
+  min-width: 169px;
+  font: 500 16px/1 Roboto, Helvetica, Arial, serif;
+  color: white;
+  text-align: center;
+  background-color: #0f62fe;
+  padding: 16px 28px;
+  outline: 2px solid #0f62fe;
+  outline-offset: -2px;
+  letter-spacing: 0.4px;
+}
+.page1 .noCodeSolutionsSection {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  margin-top: 6vh; /* Adjust the top margin to prevent overlap with the header */
+  height: 94vh; /* The remaining height for the section */
+  justify-content: center;
+  align-items: center; /* Horizontally center the content */
+  background-color: #f2f4f8;
+}
+.page1 .solutionsContentColumn {
+  position: absolute;
+  left: 80px;
+  display: flex;
+  flex-direction: column;
+  gap: 63px 0;
+  width: 640px;
+  height: 395px;
+}
+.page1 .contentWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 48px 0;
+}
+.page1 .solutionsHeaderWrapper {
+  display: flex;
+  flex-direction: column;
+}
+.page1 .noCodeSolutionsHeader {
+  width: 640px;
+  height: 152px;
+  font: 400 64px/1.18 Rubik, Helvetica, Arial, serif;
+  color: #21272a;
+}
+.page1 .solutionsDescriptionText {
+  font: 400 18px/1.39 Roboto, Helvetica, Arial, serif;
+  color: #21272a;
+}
+.page1 .linkDatabaseBtn {
+  display: flex;
+  justify-content: center;
+  width: 195px;
+  max-width: 100%;
+  font: 500 20px/1 Roboto, Helvetica, Arial, serif;
+  color: white;
+  text-align: center;
+  background-color: #0f62fe;
+  padding: 18px 32px;
+  outline: 2px solid #0f62fe;
+  outline-offset: -2px;
+  letter-spacing: 0.4px;
+}
+.page1 .tutorialsSection {
+  display: flex;
+  flex-direction: column;
+  min-height: 664px;
+  height: 64vh; /* The remaining height for the section */
+  background-color: #f2f4f8;
+}
+.page1 .tutorialWrapper {
+  display: flex;
+  flex-direction: column;
+  background-color: #f2f4f8;
+}
+.page1 .tutorialGrid {
+  display: grid;
+  align-content: start;
+  -moz-column-gap: 24px;
+  column-gap: 24px;
+  margin: 80px auto;
+  width: 88.89%;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+@media (min-width: 1920px) and (max-width: 99999px) {
+  .page1 .tutorialGrid {
+    row-gap: 0;
+  }
+}
+@media (max-width: 1919px) {
+  .page1 .tutorialGrid {
+    row-gap: 0;
+  }
+}
+.page1 .tutorialItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 64px 0;
+  grid-row: span 1;
+  grid-column: span 3;
+}
+.page1 .tutorialHeaderWrapper {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-height: 20px;
+}
+.page1 .tutorialHeaderText {
+  display: flex;
+  justify-content: center;
+  margin: 0 auto;
+  font: 700 20px/1 Roboto, Helvetica, Arial, serif;
+  color: #001d6c;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.page1 .tutorialContentBox {
+  display: flex;
+  gap: 0 16px;
+  width: 96.25%;
+  min-height: 420px;
+}
+.page1 .contactUsSection {
+  display: flex;
+  flex-direction: column;
+  min-height: 272px;
+  height: 15vh; /* The remaining height for the section */
+  background-color: #f2f4f8;
+}
+.page1 .contactWrapper {
+  display: flex;
+  flex-direction: column;
+  background-color: #f2f4f8;
+}
+.page1 .contactDetailsColumn {
+  display: flex;
+  flex-direction: column;
+  margin: 80px auto 64px;
+  width: 89.17%;
+}
+.page1 .contactInfoColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 8px 0;
+  margin: 0 0 0 4px;
+  width: 131px;
+}
+.page1 .contactHeader {
+  font: 700 20px/1 Roboto, Helvetica, Arial, serif;
+  color: #001d6c;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.page1 .problemDescriptionText {
+  font: 700 14px/1.1 Roboto, Helvetica, Arial, serif;
+  color: #21272a;
+}
+.page1 .contactSendRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 0 10px;
+}
+.page1 .problemDecor {
+  display: block;
+  margin: 23px 0 0;
+  width: 1083px;
+  min-width: 0;
+  min-height: 61px;
+  background-color: #f2f4f8;
+  border-radius: 10px;
+  outline: 1px solid black;
+  outline-offset: -1px;
+}
+.page1 .contactSendBtn {
+  display: flex;
+  justify-content: center;
+  flex: 0 0 auto;
+  margin: 23px 0 28px;
+  min-width: 111px;
+  font: 500 20px/1 Roboto, Helvetica, Arial, serif;
+  color: white;
+  text-align: center;
+  background-color: #0f62fe;
+  padding: 18px 30px;
+  outline: 2px solid #0f62fe;
+  outline-offset: -2px;
+  letter-spacing: 0.5px;
+  word-break: normal;
+}
+.page1 .footerSection {
+  display: flex;
+  flex-direction: column;
+  min-height: 183px;
+  height: 15vh; /* Keep the height as 15% of the viewport height */
+}
+.page1 .footerWrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100%; /* Make footerWrapper take up the full height of footerSection */
+  background-color: #697077;
+}
+.page1 .footerInfoColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 40px 0;
+  margin: 25px auto 48px;
+  width: 82.36%;
+  height: 100%; /* Make footerInfoColumn take up the full height of footerWrapper */
+  justify-content: space-between; /* Space content evenly within the column */
+}
+.page1 .footerBrandingRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 0 10px;
+}
+.page1 .footerBrandingRowOne {
+  display: flex;
+  gap: 0 6px;
+  width: 107px;
+  min-width: 0;
+}
+.page1 .footerBrandingImage {
+  margin: 3px 0 12px;
+  width: 24px;
+  min-width: 0;
+}
+.page1 .footerBrandingTextContainer {
+  display: flex;
+  flex-direction: column;
+  width: 77px;
+  min-width: 0;
+}
+.page1 .footerNameText {
+  margin: 0 2px 0 0;
+  font: 400 18px/1.36 Abel, Helvetica, Arial, serif;
+  color: black;
+  letter-spacing: 3.06px;
+}
+.page1 .footerStudioText {
+  font: 400 18px/1.36 Abel, Helvetica, Arial, serif;
+  color: black;
+  letter-spacing: 4.41px;
+}
+.page1 .footerNavRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 0 10px;
+  margin: 13px 0 21px;
+  width: 318px;
+  min-width: 0;
+}
+.page1 .footerHomeText {
+  min-width: 0;
+  font: 500 16px/1 Roboto, Helvetica, Arial, serif;
+  color: white;
+}
+.page1 .footerPlaygroundText {
+  min-width: 0;
+  font: 500 16px/1 Roboto, Helvetica, Arial, serif;
+  color: white;
+}
+.page1 .footerTutorialText {
+  min-width: 0;
+  font: 500 16px/1 Roboto, Helvetica, Arial, serif;
+  color: white;
+}
+.page1 .footerAboutText {
+  min-width: 0;
+  font: 500 16px/1 Roboto, Helvetica, Arial, serif;
+  color: white;
+}
+.page1 .footerImagesRow {
+  display: flex;
+  gap: 0 16px;
+  margin: 9px 0 17px;
+  width: 184px;
+  min-width: 0;
+}
+.page1 .footerAdditionalImageOne {
+  width: 24px;
+  min-width: 0;
+}
+.page1 .footerAdditionalImageTwo {
+  width: 24px;
+  min-width: 0;
+}
+.page1 .footerAdditionalImageThree {
+  width: 24px;
+  min-width: 0;
+}
+.page1 .footerAdditionalImageFour {
+  width: 24px;
+  min-width: 0;
+}
+.page1 .footerAdditionalImageFive {
+  width: 24px;
+  min-width: 0;
+}
+.page1 .footerCopyrightText {
+  display: flex;
+  justify-content: center;
+  margin: 0 0 0 34.57%;
+  width: 272px;
+  font: 400 14px/1.39 Roboto, Helvetica, Arial, serif;
+  color: white;
+  text-align: center;
+}

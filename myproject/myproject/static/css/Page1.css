@@ -173,23 +173,8 @@
 .page1 .tutorialsSection {
   display: flex;
   flex-direction: column;
-  min-height: 664px;
   height: 64vh; /* The remaining height for the section */
   background-color: #f2f4f8;
-}
-.page1 .tutorialWrapper {
-  display: flex;
-  flex-direction: column;
-  background-color: #f2f4f8;
-}
-.page1 .tutorialGrid {
-  display: grid;
-  align-content: start;
-  -moz-column-gap: 24px;
-  column-gap: 24px;
-  margin: 80px auto;
-  width: 88.89%;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 @media (min-width: 1920px) and (max-width: 99999px) {
   .page1 .tutorialGrid {
@@ -205,9 +190,8 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 64px 0;
-  grid-row: span 1;
-  grid-column: span 3;
+  flex-grow: 1; /* Make the tutorialItem grow to fill the available space */
+  width: 100%; /* Make sure it takes the full width of the section */
 }
 .page1 .tutorialHeaderWrapper {
   display: flex;
@@ -218,7 +202,7 @@
 .page1 .tutorialHeaderText {
   display: flex;
   justify-content: center;
-  margin: 0 auto;
+  margin: 20px auto 0 auto; /* Add top margin to move it down */
   font: 700 20px/1 Roboto, Helvetica, Arial, serif;
   color: #001d6c;
   text-align: center;
@@ -230,12 +214,12 @@
   gap: 0 16px;
   width: 96.25%;
   min-height: 420px;
+  flex-grow: 1; /* Ensure the content box also grows to fill space */
 }
 .page1 .contactUsSection {
   display: flex;
   flex-direction: column;
-  min-height: 272px;
-  height: 15vh; /* The remaining height for the section */
+  height: 23vh; /* The remaining height for the section */
   background-color: #f2f4f8;
 }
 .page1 .contactWrapper {
@@ -301,8 +285,7 @@
 .page1 .footerSection {
   display: flex;
   flex-direction: column;
-  min-height: 183px;
-  height: 15vh; /* Keep the height as 15% of the viewport height */
+  height: 7vh; /* Keep the height as 15% of the viewport height */
 }
 .page1 .footerWrapper {
   display: flex;
@@ -407,12 +390,142 @@
   width: 24px;
   min-width: 0;
 }
-.page1 .footerCopyrightText {
-  display: flex;
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
   justify-content: center;
-  margin: 0 0 0 34.57%;
-  width: 272px;
-  font: 400 14px/1.39 Roboto, Helvetica, Arial, serif;
-  color: white;
+  align-items: center;
+}
+.modalContent {
+  background-color: #fff;
+  padding: 30px; /* 增加 padding 使内容有更多内边距 */
+  border: 1px solid #888;
+  width: 600px; /* 增加宽度 */
+  max-width: 80%; /* 保持响应式设计，最大宽度不超过屏幕的80% */
+  height: auto; /* 设置为自动高度 */
   text-align: center;
+  border-radius: 8px;
+}
+.header-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px; /* Add padding to ensure space around elements */
+  border-bottom: 1px solid #ddd;
+  margin-bottom: 20px;
+  border-radius: 8px 8px 0 0; /* Rounded top corners */
+}
+
+.closeBtn {
+  font-size: 28px;
+  font-weight: bold;
+  cursor: pointer;
+  color: #aaa;
+  margin-left: 10px; /* Add margin to push away from the left edge */
+}
+
+.closeBtn:hover {
+  color: black;
+}
+
+.tabs {
+  display: flex;
+  justify-content: space-between;
+  flex-grow: 1;
+  width: 100%; /* Make the tabs container take up the full width */
+  background-color: #f9f9f9;
+}
+
+.tab-button {
+  flex: 1; /* Ensure each tab-button takes up equal space */
+  text-align: center; /* Center the text inside the button */
+  padding: 10px;
+  border: none;
+  background-color: transparent;
+  cursor: pointer;
+}
+
+.tab-button.active {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.tab-button:first-child {
+  border-radius: 8px 0 0 8px;
+}
+
+.tab-button:last-child {
+  border-radius: 0 8px 8px 0;
+}
+
+.tab-content {
+  display: none;
+}
+
+.tab-content.active {
+  display: block;
+}
+.input-group {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15px;
+}
+.input-group label {
+  flex: 0 0 120px; /* Label的固定宽度 */
+  margin-bottom: 0;
+  font-weight: bold;
+}
+.input-group input,
+.input-group select {
+  padding: 12px; /* 增加输入框内边距，使其看起来更高 */
+  font-size: 16px; /* 增大字体 */
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+.input-flex {
+  display: flex;
+  flex-grow: 1; /* input-flex 占据父容器的所有剩余空间 */
+}
+.input-flex select {
+  flex-basis: 30%; /* Select 框占 30% 的宽度 */
+}
+.input-flex {
+  display: flex;
+  flex-grow: 1;
+}
+.input-group input {
+  flex-grow: 1; /* 确保其他输入框占据剩余的宽度 */
+}
+.submit-btn {
+  width: 100%;
+  padding: 15px; /* 增加按钮内边距 */
+  font-size: 18px; /* 增大按钮字体 */
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.submit-btn:hover {
+  background-color: #0056b3;
+}
+.remember-me {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  margin-bottom: 15px;
+}
+.remember-me input {
+  margin-right: 5px; /* 缩小复选框和文字之间的距离 */
+}
+.remember-me label {
+  font-size: 14px; /* 保持文字大小 */
+  cursor: pointer; /* 鼠标移动到文本上时显示为点击手势 */
 }

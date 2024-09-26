@@ -22,8 +22,10 @@ from django.urls import path
 from myapp import views  # 确保导入路径正确
 
 urlpatterns = [
-    path('admin/', admin.site.urls),    # Django 管理员页面
-    path('', views.home, name='home'),  # 首页
-    path('login/', views.login_view, name='login'),  # 登录页面
-    path('playground/', views.playground, name='playground'),  # Playground 页面
+    path('admin/', admin.site.urls),
+    path('home/', views.home, name='home'),
+    path('playground/', views.playground, name='playground'),
+    path('', views.home_redirect, name='home_redirect'),
+    path('test_neo4j_and_signup/', views.test_neo4j_and_signup, name='test_neo4j_and_signup'),
+    path('test_neo4j_and_login/', views.login_view, name='test_neo4j_and_login'),  # Login view
 ]

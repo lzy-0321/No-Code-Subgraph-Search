@@ -1,0 +1,118 @@
+{% load static %}  <!-- This line loads the static tag library -->
+<!DOCTYPE html>
+
+<html>
+
+  <head>
+
+    <meta charset="utf-8" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+
+    <link rel="stylesheet" type="text/css" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous" />
+
+    <!-- Please DO NOT remove this line, all link and script tags will be merged to here -->
+
+    <link rel="stylesheet" type="text/css" href="{% static '/css/common1.css' %}" />
+
+    <link rel="stylesheet" type="text/css" href="{% static '/css/fonts.css' %}" />
+
+    <link rel="stylesheet" type="text/css" href="{% static '/css/playground.css' %}" />
+
+  </head>
+
+  <body class="flex-column">
+
+    <section class="playground mainContentSection">
+      <!-- Main content section that contains the site header and features. -->
+      <div class="contentBoxGroup">
+        <div class="flexRowHeader">
+          <!-- Flex container for the header items. -->
+          <div class="flexRowLogo">
+            <img class="logoImage" src="{% static '/assets/f03aaac6d73469ef458c264147aaf83c.svg' %}" alt="alt text" />
+            <div class="flexColumnLogoText">
+              <p class="headerTextSmartD">SMARTD</p>
+              <p class="headerTextStudio">STUDIO</p>
+            </div>
+          </div>
+          <a href="{% url 'home' %}" class="navItemHome">Home</a>
+          <a href="{% url 'playground' %}" class="navItemPlayground">Playground</a>
+          <p class="navItemTutorial">Tutorial</p>
+          <p class="navItemAbout">About</p>
+        </div>
+      </div>
+      <div class="featureGroup">
+        <div class="flexRowFeatures">
+          <div class="featureContentBox">
+            <div class="featureColumnBox">
+              <div class="flexRowInfoDatabase">
+                <div class="flexRowDatabaseImages">
+                  <img class="imageDatabase" src="{% static '/assets/b8cc5f09c290b9922de3d8a93473af01.svg' %}" alt="alt text" />
+                  <p class="featureTextUseDatabase">use database</p>
+                  <img class="imageDatabaseExtra" src="{% static '/assets/c1122939168fb69f50f3e2f253333e62.svg' %}" alt="alt text" />
+                </div>
+              </div>
+              <div class="searchFeatureContentBox">
+                <div class="flexRowSearchFeature">
+                  <img class="imageSearchFeature" src="{% static '/assets/5ef24176ffb1a63d056fe2471d9a3805.svg' %}" alt="alt text" />
+                  <p class="featureTextSearchFor">Search for...</p>
+                </div>
+              </div>
+              <div class="flexRowGraphInfo">
+                <img class="imageGraphInfo" src="{% static '/assets/93f66d49f8cec41f326c7bb705c4363e.svg' %}" alt="alt text" />
+                <p class="featureTextInGraph">In Graph</p>
+              </div>
+              <div class="nodeLabelContentBox">
+                <div class="flexColumnNodeLabels">
+                  <div class="flexRowNodeImage">
+                    <img class="imageNode" src="{% static '/assets/5c7bc533b46918472c06b5da9e3111a7.svg' %}" alt="alt text" />
+                    <div class="infoNodeCount">Node (0)</div>
+                  </div>
+                  <div class="flexRowRelationshipInfo">
+                    <img class="imageRelationship" src="{% static '/assets/461cd4b84fab404232553c25b46adbe5.svg' %}" alt="alt text" />
+                    <div class="infoRelationshipCount">Relationship (0)</div>
+                  </div>
+                </div>
+              </div>
+              <div class="nodeLabelsContentBox">
+                <div class="flexRowNodeLabels">
+                  <img class="imageNodeLabels" src="{% static '/assets/f39953aa98cdd54cef71b5b81673864d.svg' %}" alt="alt text" />
+                  <p class="featureTextNodeLabels">Node labels</p>
+                  <img class="imageNodeLabelsExtra" src="{% static '/assets/c1122939168fb69f50f3e2f253333e62.svg' %}" alt="alt text" />
+                </div>
+              </div>
+              <div class="relationshipTypesContentBox">
+                <div class="flexRowRelationshipTypes">
+                  <img class="imageRelationshipTypes" src="{% static '/assets/af00d02696e9f28253626de3f4913e06.svg' %}" alt="alt text" />
+                  <p class="featureTextRelationshipTypes">Relationship types</p>
+                  <img class="imageRelationshipTypesExtra" src="{% static '/assets/c1122939168fb69f50f3e2f253333e62.svg' %}" alt="alt text" />
+                </div>
+              </div>
+              <div class="propertyKeysContentBox">
+                <div class="flexRowPropertyKeys">
+                  <img class="imagePropertyKeys" src="{% static '/assets/d819e70012ea9e1d2487b007aec7b35b.svg' %}" alt="alt text" />
+                  <p class="featureTextPropertyKeys">Property keys</p>
+                  <img class="imagePropertyKeysExtra" src="{% static '/assets/c1122939168fb69f50f3e2f253333e62.svg' %}" alt="alt text" />
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="galleryContainer">
+            <!-- Any other gallery-related content can go here -->
+          </div>
+        </div>
+        <div class="flexRowGalleryImages">
+          <img class="imageGallery1" src="{% static '/assets/1a56e8e208ac2c0c653ced0adf8f94e4.svg' %}" alt="alt text" />
+          <img class="imageGallery2" src="{% static '/assets/a905b1857bdcb12b37a25f21999ed4b6.svg' %}" alt="alt text" />
+          <img class="imageGallery3" src="{% static '/assets/c4c5271e3a965c1947519f3d1043ca07.svg' %}" alt="alt text" />
+          <img class="imageGallery4" src="{% static '/assets/da4eefaf0a92648334ca6ec4b0a024bb.svg' %}" alt="alt text" />
+        </div>
+        <img class="imageGallery5" src="{% static '/assets/c1e0f400b1ed9085e7051a447b48c9d8.svg' %}" alt="alt text" />
+      </div>
+      </div>
+    </section>
+
+
+  </body>
+
+</html>

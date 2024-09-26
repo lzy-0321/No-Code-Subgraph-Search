@@ -1,0 +1,362 @@
+/* Ensure body takes up the full viewport height */
+html, body {
+  height: 100%; /* This is important for flex containers to take the full height */
+  margin: 0;
+  padding: 0;
+}
+
+/* Ensure .playground takes up the full viewport height */
+.playground {
+  display: flex;
+  flex-direction: column;
+  height: 100vh; /* Full height of the viewport */
+}
+
+.playground.mainContentSection {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1; /* Ensure this section expands */
+  background-color: #f2f4f8;
+}
+.playground .contentBoxGroup {
+  display: flex;
+  flex-direction: column;
+  border-color: #dde1e6;
+  border-style: solid;
+  border-width: 0 0 1px;
+  height: 6vh; /* Set height to 6% of the viewport height */
+}
+.playground .flexRowHeader {
+  display: flex;
+  gap: 0 28px;
+  margin: 16px 34px 8px;
+}
+.playground .flexRowLogo {
+  display: flex;
+  gap: 0 6px;
+  width: 107px;
+  min-width: 0;
+}
+.playground .logoImage {
+  margin: 4px 0 11px;
+  width: 24px;
+  min-width: 0;
+}
+.playground .flexColumnLogoText {
+  display: flex;
+  flex-direction: column;
+  width: 77px;
+  min-width: 0;
+}
+.playground .headerTextSmartD {
+  margin: 0 2px 0 0;
+  font: 400 18px/1.36 Abel, Helvetica, Arial, serif;
+  color: black;
+  letter-spacing: 3.06px;
+}
+.playground .headerTextStudio {
+  font: 400 18px/1.36 Abel, Helvetica, Arial, serif;
+  color: black;
+  letter-spacing: 4.41px;
+}
+.playground .navItemHome {
+  margin: 14px 0 20px;
+  min-width: 0;
+  font: 500 16px/1 Roboto, Helvetica, Arial, serif;
+  color: #21272a;
+}
+.playground .navItemPlayground {
+  margin: 14px 0 20px;
+  min-width: 0;
+  font: 500 16px/1 Roboto, Helvetica, Arial, serif;
+  color: #21272a;
+}
+.playground .navItemTutorial {
+  margin: 14px 0 20px;
+  min-width: 0;
+  font: 500 16px/1 Roboto, Helvetica, Arial, serif;
+  color: #21272a;
+}
+.playground .navItemAbout {
+  margin: 14px 0 20px;
+  min-width: 0;
+  font: 500 16px/1 Roboto, Helvetica, Arial, serif;
+  color: #21272a;
+}
+.playground .featureGroup {
+  display: flex;
+  flex-direction: row; /* This remains the parent of the rows */
+  flex-grow: 1; /* Make this container take up the remaining height */
+  width: 100%;
+  position: relative;
+}
+.playground .flexRowFeatures {
+  display: flex;
+  flex-direction: row; /* Horizontal alignment for its children */
+  justify-content: space-between; /* Space out the .featureContentBox and .galleryContainer */
+  align-items: flex-start; /* Align items to the top */
+  width: 100%; /* Take full width */
+  height: 100%;
+}
+.playground .featureContentBox {
+  display: flex;
+  flex-direction: column; /* Vertical arrangement within the box */
+  width: 15%;
+  background-color: white;
+  border-color: #dde1e6;
+  border-style: solid;
+  border-width: 0 1px;
+  height: 100%;
+}
+.playground .featureColumnBox {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 9px 15px 414px 16px;
+}
+.playground .flexRowInfoDatabase {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  border-color: #1e1e1e;
+  border-style: solid;
+  border-width: 0 0 1px;
+}
+.playground .flexRowDatabaseImages {
+  display: flex;
+  justify-content: space-between;
+  gap: 0 10px;
+  margin: 12px 8px;
+}
+.playground .imageDatabase {
+  width: 24px;
+  min-width: 0;
+}
+.playground .featureTextUseDatabase {
+  margin: 4px 0;
+  min-width: 0;
+  font: 500 16px/1 Roboto, Helvetica, Arial, serif;
+  color: #21272a;
+}
+.playground .imageDatabaseExtra {
+  width: 24px;
+  min-width: 0;
+}
+.playground .searchFeatureContentBox {
+  display: flex;
+  flex-direction: column;
+  margin: 17px 0 0;
+  width: 100%;
+  background-color: #f2f4f8;
+  border-radius: 10px;
+  border-color: #c1c7cd;
+  border-style: solid;
+  border-width: 0 0 1px;
+}
+.playground .flexRowSearchFeature {
+  display: flex;
+  gap: 0 8px;
+  margin: 12px 16px;
+}
+.playground .imageSearchFeature {
+  width: 24px;
+  min-width: 0;
+}
+.playground .featureTextSearchFor {
+  margin: 1px 0 0;
+  min-width: 0;
+  font: 400 16px/1.39 Roboto, Helvetica, Arial, serif;
+  color: #697077;
+}
+.playground .flexRowGraphInfo {
+  display: flex;
+  gap: 0 8px;
+  margin: 17px 0 0;
+  width: 92.86%;
+}
+.playground .imageGraphInfo {
+  width: 24px;
+  min-width: 0;
+}
+.playground .featureTextInGraph {
+  margin: 4px 0;
+  min-width: 0;
+  font: 500 16px/1 Roboto, Helvetica, Arial, serif;
+  color: #21272a;
+}
+.playground .nodeLabelContentBox {
+  display: flex;
+  flex-direction: column;
+  margin: 5px 0 0;
+  width: 100%;
+  background-color: #f2f4f8;
+  border-radius: 10px;
+  border-color: #c1c7cd;
+  border-style: solid;
+  border-width: 0 0 1px;
+}
+.playground .flexColumnNodeLabels {
+  display: flex;
+  flex-direction: column;
+  gap: 9px 0;
+  margin: 7px 0 10px 8px;
+  width: 98px;
+}
+.playground .flexRowNodeImage {
+  display: flex;
+  gap: 0 4px;
+}
+.playground .imageNode {
+  width: 16px;
+  min-width: 0;
+}
+.playground .infoNodeCount {
+  margin: 4px 0 2px;
+  min-width: 0;
+  font: 500 11px/1 Roboto, Helvetica, Arial, serif;
+  color: #21272a;
+}
+.playground .flexRowRelationshipInfo {
+  display: flex;
+  gap: 0 6px;
+}
+.playground .imageRelationship {
+  width: 14px;
+  min-width: 0;
+}
+.playground .infoRelationshipCount {
+  margin: 2px 0;
+  min-width: 0;
+  font: 500 11px/1 Roboto, Helvetica, Arial, serif;
+  color: #21272a;
+}
+/* Node labels */
+.playground .nodeLabelsContentBox {
+  display: flex;
+  flex-direction: column;
+  margin: 17px 0 0;
+  width: 100%;
+  border-color: #f2f4f8;
+  border-style: solid;
+  border-width: 0 0 2px;
+}
+.playground .flexRowNodeLabels {
+  display: flex;
+  justify-content: space-between; /* Ensures space between text and the right image */
+  align-items: center; /* Align items vertically */
+  margin: 12px 8px;
+  width: 100%; /* Ensure full width */
+}
+.playground .imageNodeLabels {
+  width: 23px;
+  min-width: 0;
+}
+.playground .featureTextNodeLabels {
+  margin: 4px 0;
+  font: 500 16px/1 Roboto, Helvetica, Arial, serif;
+  color: #21272a;
+  flex-grow: 1; /* Allow the text to grow and fill space between images */
+  text-align: left; /* Align text to the left */
+  padding-left: 30px; /* Optional: Add space between icon and text */
+}
+.playground .imageNodeLabelsExtra {
+  width: 24px;
+  min-width: 0;
+  margin-left: auto; /* Pushes the extra image to the right */
+  margin-right: 15px; /* Move extra image slightly to the left */
+}
+/* Relationship types */
+.playground .relationshipTypesContentBox {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  border-color: #f2f4f8;
+  border-style: solid;
+  border-width: 0 0 2px;
+}
+.playground .flexRowRelationshipTypes {
+  display: flex;
+  justify-content: space-between; /* Ensures space between text and the right image */
+  align-items: center; /* Align items vertically */
+  margin: 12px 8px;
+  width: 100%; /* Ensure full width */
+}
+.playground .imageRelationshipTypes {
+  width: 23px;
+  min-width: 0;
+}
+.playground .featureTextRelationshipTypes {
+  margin: 4px 0;
+  font: 500 16px/1 Roboto, Helvetica, Arial, serif;
+  color: #21272a;
+  flex-grow: 1; /* Allow the text to grow and fill space between images */
+  text-align: left; /* Align text to the left */
+  padding-left: 10px; /* Optional: Add space between icon and text */
+  padding-left: 30px; /* Optional: Add space between icon and text */
+}
+.playground .imageRelationshipTypesExtra {
+  width: 24px;
+  min-width: 0;
+  margin-left: auto; /* Pushes the extra image to the right */
+  margin-right: 15px; /* Move extra image slightly to the left */
+}
+/* Property keys */
+.playground .propertyKeysContentBox {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  border-color: #f2f4f8;
+  border-style: solid;
+  border-width: 0 0 2px;
+}
+.playground .flexRowPropertyKeys {
+  display: flex;
+  justify-content: space-between; /* Ensures space between text and the right image */
+  align-items: center; /* Align items vertically */
+  margin: 12px 8px;
+  width: 100%; /* Ensure full width */
+}
+.playground .imagePropertyKeys {
+  width: 23px;
+  min-width: 0;
+}
+.playground .featureTextPropertyKeys {
+  margin: 4px 0;
+  font: 500 16px/1 Roboto, Helvetica, Arial, serif;
+  color: #21272a;
+  flex-grow: 1; /* Allow the text to grow and fill space between images */
+  text-align: left; /* Align text to the left */
+  padding-left: 10px; /* Optional: Add space between icon and text */
+  padding-left: 30px; /* Optional: Add space between icon and text */
+}
+.playground .imagePropertyKeysExtra {
+  width: 24px;
+  min-width: 0;
+  margin-left: auto; /* Pushes the extra image to the right */
+  margin-right: 15px; /* Move extra image slightly to the left */
+}
+.playground .galleryContainer {
+  flex-grow: 1; /* Allow this container to grow and fill the remaining space */
+  width: 75%;
+  background-color: #f2f4f8; /* Set the background if needed */
+}
+.playground .flexRowGalleryImages {
+  position: fixed; /* Fixes the position relative to the viewport */
+  bottom: 20px; /* Adjust the distance from the bottom */
+  right: 20px; /* Adjust the distance from the right */
+  display: flex;
+  gap: 17px; /* Spacing between gallery images */
+}
+/* Image sizes for gallery */
+.playground .imageGallery1,
+.playground .imageGallery2,
+.playground .imageGallery3,
+.playground .imageGallery4 {
+  width: 46px;
+}
+.playground .imageGallery5 {
+  position: absolute;
+  top: 105px;
+  right: 2px;
+  width: 38px;
+}

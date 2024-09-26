@@ -29,9 +29,9 @@
                     </div>
                     <div class="navigationRowContainer">
                         <!-- Navigation menu for the site. -->
-                        <p class="navHomeText">Home</p>
-                        <p class="navPlaygroundText">Playground</p>
-                        <p class="navTutorialText">Tutorial</p>
+                        <a href="{% url 'home' %}" class="navHomeText">Home</a>
+                        <a href="{% url 'playground' %}" class="navPlaygroundText">Playground</a>
+                        <a href="#tutorialsSection" class="navTutorialText">Tutorial</a>
                         <p class="navAboutText">About</p>
                     </div>
                     <div class="authButtonsContainer">
@@ -112,9 +112,9 @@
                         </div>
                         <div class="footerNavRow">
                             <!-- Footer navigation links. -->
-                            <p class="footerHomeText">Home</p>
-                            <p class="footerPlaygroundText">Playground</p>
-                            <p class="footerTutorialText">Tutorial</p>
+                            <a href="{% url 'home' %}" class="footerHomeText">Home</a>
+                            <a href="{% url 'playground' %}" class="footerPlaygroundText">Playground</a>
+                            <a href="#tutorialsSection" class="footerTutorialText">Tutorial</a>
                             <p class="footerAboutText">About</p>
                         </div>
                         <div class="footerImagesRow">
@@ -147,16 +147,20 @@
                  <div id="registerForm" class="tab-content">
                     <form id="registerFormSubmit">
                         <div class="input-group">
-                            <label for="registerConnectUrl">Connect URL</label>
+                            <label for="registerProtocol">Connect URL</label>
                             <div class="input-flex">
-                              <select id="registerProtocol">
-                                <option value="neo4j://">neo4j://</option>
-                                <option value="bolt://">bolt://</option>
-                                <option value="neo4j+s://" selected>neo4j+s://</option>
-                                <option value="bolt+s://">bolt+s://</option>
-                              </select>
-                              <input type="text" id="registerConnectUrl" placeholder="192.168.0.54:7687">
+                                <select id="registerProtocol">
+                                    <option value="neo4j://">neo4j://</option>
+                                    <option value="bolt://" selected>bolt://</option>
+                                    <option value="neo4j+s://">neo4j+s://</option>
+                                    <option value="bolt+s://">bolt+s://</option>
+                                </select>
+                                <input type="text" id="registerConnectUrl" placeholder="192.168.0.54:7687">
                             </div>
+                        </div>
+                        <div class="input-group">
+                            <label for="registerServerUsername">Server Username</label>
+                            <input type="text" id="registerServerUsername" placeholder="Enter server username" required>
                         </div>
                         <div class="input-group">
                             <label for="registerServerPassword">Server Password</label>
@@ -164,11 +168,11 @@
                         </div>
                         <div class="input-group">
                             <label for="registerUsername">Username</label>
-                            <input type="text" id="registerUsername" placeholder="Enter username">
+                            <input type="text" id="registerUsername" placeholder="Enter username" required>
                         </div>
                         <div class="input-group">
                             <label for="registerPassword">Password</label>
-                            <input type="password" id="registerPassword" placeholder="Enter password">
+                            <input type="password" id="registerPassword" placeholder="Enter password" required>
                         </div>
                         <button type="submit" class="submit-btn">Sign Up</button>
                     </form>
@@ -181,8 +185,8 @@
                             <div class="input-flex">
                                 <select id="loginProtocol">
                                     <option value="neo4j://">neo4j://</option>
-                                    <option value="bolt://">bolt://</option>
-                                    <option value="neo4j+s://" selected>neo4j+s://</option>
+                                    <option value="bolt://" selected>bolt://</option>
+                                    <option value="neo4j+s://">neo4j+s://</option>
                                     <option value="bolt+s://">bolt+s://</option>
                                 </select>
                                 <input type="text" id="loginConnectUrl" placeholder="192.168.0.54:7687">
@@ -276,6 +280,87 @@
             });
         </script>
 
+        <!-- 注册 -->
+        <script>
+            document.getElementById('registerFormSubmit').addEventListener('submit', function(e) {
+                e.preventDefault(); // 防止表单默认提交
+        
+                // 获取表单数据
+                const protocol = document.getElementById('registerProtocol').value;  // 选择的协议（如 neo4j://）
+                const url = document.getElementById('registerConnectUrl').value;  // 用户输入的URL部分
+                const fullUrl = protocol + url;  // 生成完整的URL
+        
+                const serverUsername = document.getElementById('registerServerUsername').value;  // 获取服务器用户名
+                const serverPassword = document.getElementById('registerServerPassword').value;
+                const username = document.getElementById('registerUsername').value;
+                const password = document.getElementById('registerPassword').value;
+        
+                // 通过 AJAX 将表单数据发送到后端
+                fetch('{% url "test_neo4j_and_signup" %}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'  // 确保包含 CSRF 令牌
+                    },
+                    body: JSON.stringify({
+                        protocol: protocol,
+                        url: url,
+                        fullUrl: fullUrl,  // 发送完整的 URL
+                        serverUsername: serverUsername,  // 添加服务器用户名
+                        serverPassword: serverPassword,
+                        username: username,
+                        password: password
+                    })
+                }).then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Registration successful!');
+                        window.location.href = '{% url "home" %}';  // 注册成功后跳转到主页
+                    } else {
+                        alert('Error: ' + data.error);  // 显示错误信息
+                    }
+                }).catch(error => console.error('Error:', error));
+            });
+        </script>
+
+        <!-- 登录 -->
+        <script>
+            document.getElementById('loginFormSubmit').addEventListener('submit', function(e) {
+                e.preventDefault(); // Prevent default form submission
+
+                // Get form data
+                const protocol = document.getElementById('loginProtocol').value;
+                const url = document.getElementById('loginConnectUrl').value;
+                const fullUrl = protocol + url;  // Combine protocol and URL
+
+                const username = document.getElementById('loginUsername').value;
+                const password = document.getElementById('loginPassword').value;
+
+                // Send data via AJAX to the back-end
+                fetch('{% url "test_neo4j_and_login" %}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'  // Include CSRF token
+                    },
+                    body: JSON.stringify({
+                        fullUrl: fullUrl,
+                        username: username,
+                        password: password
+                    })
+                }).then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Login successful!');
+                        window.location.href = '{% url "home" %}';  // Redirect to home after successful login
+                    } else {
+                        alert('Error: ' + data.error);  // Display error message
+                    }
+                }).catch(error => console.error('Error:', error));
+            });
+        </script>
+
+        <!-- 滚动逻辑 -->
         <script>
             let isAutoScrolling = false; // To prevent multiple auto-scroll triggers
             let lastScrollPosition = window.scrollY; // Track the last scroll position

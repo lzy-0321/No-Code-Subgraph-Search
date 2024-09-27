@@ -88,6 +88,8 @@
 }
 .page1 .authButtonsContainer {
   display: flex;
+  justify-content: center;  /* 水平居中对齐 */
+  align-items: center;  /* 垂直居中对齐 */
   gap: 0 16px;
   margin: 0 0 5px;
   width: 288px;
@@ -117,6 +119,44 @@
   outline: 2px solid #0f62fe;
   outline-offset: -2px;
   letter-spacing: 0.4px;
+}
+.userAvatarBox {
+  position: relative;
+  border: 1px solid #333;
+  padding: 10px;
+  border-radius: 15%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 40px;
+  height: 40px;
+  background-color: #f0f0f0;
+  cursor: pointer;
+}
+.userMenu button {
+  border: none;
+  background-color: #fff;
+  cursor: pointer;
+}
+.userMenu button:hover {
+  background-color: #f0f0f0;
+}
+.userMenu {
+  position: absolute;
+  top: 50px;
+  left: 0px;  /* 子菜单出现在头像框右侧 */
+  background-color: white;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  display: none;  /* 默认隐藏 */
+  padding: 10px;
+  min-width: 150px;  /* 设置最小宽度 */
+  max-width: 300px;  /* 设置最大宽度 */
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+}
+.userName {
+  font-size: 14px;
+  color: #333;
 }
 .page1 .noCodeSolutionsSection {
   position: relative;

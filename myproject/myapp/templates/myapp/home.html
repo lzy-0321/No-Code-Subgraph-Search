@@ -30,20 +30,24 @@
                     <div class="navigationRowContainer">
                         <!-- Navigation menu for the site. -->
                         <a href="{% url 'home' %}" class="navHomeText">Home</a>
-                        <a href="{% url 'playground' %}" class="navPlaygroundText">Playground</a>
+                        <a href="javascript:void(0);" class="navPlaygroundText" id="playgroundLink">Playground</a>
                         <a href="#tutorialsSection" class="navTutorialText">Tutorial</a>
                         <p class="navAboutText">About</p>
                     </div>
                     <div class="authButtonsContainer">
-                        <!-- Container for authentication buttons -->
-                        <button class="loginBtn">
-                            <!-- TODO -->
-                            Log In
-                        </button>
-                        <button class="startTrialBtn">
-                            <!-- TODO -->
-                            Start Free Trial
-                        </button>
+                        {% if not user.is_authenticated %}
+                            <button class="loginBtn">Log In</button>
+                            <button class="startTrialBtn">Start Free Trial</button>
+                        {% else %}
+                            <!-- 如果用户已登录，显示用户名 -->
+                            <div class="userAvatarBox">
+                                <span class="userName">{{ user.username }}</span>  <!-- 显示当前登录的用户名 -->
+                                <!-- 隐藏的子菜单 -->
+                                <div class="userMenu" id="userMenu">
+                                    <button class="logoutBtn" id="logoutBtn">Log Out</button>
+                                </div>
+                            </div>
+                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -59,10 +63,7 @@
                     </div>
                     <p class="solutionsDescriptionText">Due to the developer shortage and budget issues, low-code/no-code frameworks are gaining popularity. Visual Query Interfaces (VQIs) let users create database queries with &quot;drag-and-drop&quot; ease.</p>
                 </div>
-                <button class="linkDatabaseBtn">
-                    <!-- TODO -->
-                    Link database
-                </button>
+                <button class="linkDatabaseBtn"> Link database </button>
             </div>
         </section>
 
@@ -89,10 +90,7 @@
                     <div class="contactSendRow">
                         <!-- Row for the contact send button. -->
                         <div class="problemDecor"></div>
-                        <button class="contactSendBtn">
-                            <!-- TODO -->
-                            Send
-                        </button>
+                        <button class="contactSendBtn"> Send </button>
                     </div>
                 </div>
             </div>
@@ -174,6 +172,10 @@
                             <label for="registerPassword">Password</label>
                             <input type="password" id="registerPassword" placeholder="Enter password" required>
                         </div>
+                        <div class="remember-me">
+                            <input type="checkbox" id="registerRememberMe">
+                            <label for="registerRememberMe">Remember Me</label>
+                        </div>
                         <button type="submit" class="submit-btn">Sign Up</button>
                     </form>
                 </div>
@@ -201,8 +203,8 @@
                             <input type="password" id="loginPassword" placeholder="Enter password">
                         </div>
                         <div class="remember-me">
-                            <input type="checkbox" id="rememberMe">
-                            <label for="rememberMe">Remember Me</label>
+                            <input type="checkbox" id="loginRememberMe">
+                            <label for="loginRememberMe">Remember Me</label>
                         </div>
                         <button type="submit" class="submit-btn">Log In</button>
                     </form>
@@ -210,6 +212,7 @@
             </div>
         </div>
 
+        <!-- 登录注册菜单逻辑 -->
         <script>
             // 获取元素
             const authModal = document.getElementById("authModal");
@@ -280,84 +283,149 @@
             });
         </script>
 
-        <!-- 注册 -->
+        <!-- url输入逻辑 -->
         <script>
+            const defaultValue = "192.168.0.54:7687";
+
+            // 通用函数：处理表单提交时的默认值逻辑
+            function applyDefaultOnSubmit(inputId, formId) {
+                const inputField = document.getElementById(inputId);
+                const form = document.getElementById(formId);
+
+                form.addEventListener("submit", function(e) {
+                if (!inputField.value) {
+                    inputField.value = defaultValue;
+                }
+                });
+
+                // 双击时填充默认值
+                inputField.addEventListener("dblclick", function() {
+                inputField.value = defaultValue;
+                });
+            }
+
+            // 为注册表单和登录表单应用通用逻辑
+            applyDefaultOnSubmit("registerConnectUrl", "registerFormSubmit");
+            applyDefaultOnSubmit("loginConnectUrl", "loginFormSubmit");
+        </script>
+
+        <!-- 注册 登录 登出-->
+        <script>
+            // 注册表单提交处理
             document.getElementById('registerFormSubmit').addEventListener('submit', function(e) {
                 e.preventDefault(); // 防止表单默认提交
-        
+
                 // 获取表单数据
-                const protocol = document.getElementById('registerProtocol').value;  // 选择的协议（如 neo4j://）
-                const url = document.getElementById('registerConnectUrl').value;  // 用户输入的URL部分
-                const fullUrl = protocol + url;  // 生成完整的URL
-        
-                const serverUsername = document.getElementById('registerServerUsername').value;  // 获取服务器用户名
-                const serverPassword = document.getElementById('registerServerPassword').value;
+                const protocol = document.getElementById('registerProtocol').value;
+                const url = document.getElementById('registerConnectUrl').value;
+                const fullUrl = protocol + url;
                 const username = document.getElementById('registerUsername').value;
                 const password = document.getElementById('registerPassword').value;
-        
-                // 通过 AJAX 将表单数据发送到后端
+
+                // 发送注册请求到后端
                 fetch('{% url "test_neo4j_and_signup" %}', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-CSRFToken': '{{ csrf_token }}'  // 确保包含 CSRF 令牌
+                        'X-CSRFToken': '{{ csrf_token }}'
                     },
                     body: JSON.stringify({
-                        protocol: protocol,
-                        url: url,
-                        fullUrl: fullUrl,  // 发送完整的 URL
-                        serverUsername: serverUsername,  // 添加服务器用户名
-                        serverPassword: serverPassword,
+                        fullUrl: fullUrl,
                         username: username,
-                        password: password
+                        password: password,
+                        rememberMe: rememberMe  // 传递注册时的Remember Me状态
                     })
                 }).then(response => response.json())
                 .then(data => {
                     if (data.success) {
                         alert('Registration successful!');
-                        window.location.href = '{% url "home" %}';  // 注册成功后跳转到主页
+                        window.location.href = '{% url "playground" %}';
                     } else {
-                        alert('Error: ' + data.error);  // 显示错误信息
+                        alert('Error: ' + data.error);
                     }
                 }).catch(error => console.error('Error:', error));
             });
-        </script>
 
-        <!-- 登录 -->
-        <script>
+            // 登录表单提交处理
             document.getElementById('loginFormSubmit').addEventListener('submit', function(e) {
-                e.preventDefault(); // Prevent default form submission
+                e.preventDefault(); // 防止表单默认提交
 
-                // Get form data
+                // 获取表单数据
                 const protocol = document.getElementById('loginProtocol').value;
                 const url = document.getElementById('loginConnectUrl').value;
-                const fullUrl = protocol + url;  // Combine protocol and URL
-
+                const fullUrl = protocol + url;
                 const username = document.getElementById('loginUsername').value;
                 const password = document.getElementById('loginPassword').value;
+                const rememberMe = document.getElementById('loginRememberMe').checked;
 
-                // Send data via AJAX to the back-end
+                // 发送登录请求到后端
                 fetch('{% url "test_neo4j_and_login" %}', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-CSRFToken': '{{ csrf_token }}'  // Include CSRF token
+                        'X-CSRFToken': '{{ csrf_token }}'
                     },
                     body: JSON.stringify({
                         fullUrl: fullUrl,
                         username: username,
-                        password: password
+                        password: password,
+                        rememberMe: rememberMe  // 传递登录时的Remember Me状态
                     })
                 }).then(response => response.json())
                 .then(data => {
                     if (data.success) {
                         alert('Login successful!');
-                        window.location.href = '{% url "home" %}';  // Redirect to home after successful login
+                        window.location.href = '{% url "playground" %}';
                     } else {
-                        alert('Error: ' + data.error);  // Display error message
+                        alert('Error: ' + data.error);
                     }
                 }).catch(error => console.error('Error:', error));
             });
+
+            // 登出表单提交处理
+            document.getElementById('logoutBtn').addEventListener('click', function() {
+                fetch('{% url "logout" %}', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}'  // 确保发送 CSRF 令牌
+                    }
+                }).then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // 登出成功后重定向到首页
+                        window.location.href = '/';
+                    } else {
+                        alert('Error: ' + data.error);
+                    }
+                }).catch(error => console.error('Error:', error));
+            });
+        </script>
+
+        <!-- 登出和user子菜单逻辑 -->
+        <script>
+            window.onload = function() {
+                // 选择 userAvatarBox 元素
+                var userAvatarBox = document.querySelector('.userAvatarBox');
+                var userMenu = document.getElementById('userMenu');
+
+                // 确保只有在 userAvatarBox 存在时绑定事件
+                if (userAvatarBox) {
+                    userAvatarBox.addEventListener('click', function(event) {
+                        event.stopPropagation();  // 阻止点击冒泡，避免触发外部点击事件
+                        if (userMenu) {
+                            // 切换显示和隐藏菜单
+                            userMenu.style.display = (userMenu.style.display === 'block') ? 'none' : 'block';
+                        }
+                    });
+
+                    // 点击页面其他地方时隐藏菜单
+                    document.addEventListener('click', function() {
+                        if (userMenu && userMenu.style.display === 'block') {
+                            userMenu.style.display = 'none';
+                        }
+                    });
+                }
+            };
         </script>
 
         <!-- 滚动逻辑 -->
@@ -440,6 +508,25 @@
                     }
 
                 }, debounceDelay); // Set the debounce delay
+            });
+        </script>
+
+        <!-- 在页面底部添加这个脚本 -->
+        <script>
+            // 获取Playground链接元素
+            const playgroundLink = document.getElementById("playgroundLink");
+
+            playgroundLink.addEventListener("click", function() {
+                // 检查用户是否已登录
+                const isAuthenticated = {{ user.is_authenticated|yesno:"true,false" }};  // Django模板标记
+
+                if (isAuthenticated) {
+                    // 用户已登录，跳转到Playground页面
+                    window.location.href = "{% url 'playground' %}";
+                } else {
+                    // 用户未登录，打开登录/注册模态框
+                    openModal('login');  // 打开模态框，显示登录表单
+                }
             });
         </script>
 

@@ -13,7 +13,7 @@
 
     <!-- Please DO NOT remove this line, all link and script tags will be merged to here -->
 
-    <link rel="stylesheet" type="text/css" href="{% static '/css/common1.css' %}" />
+    <link rel="stylesheet" type="text/css" href="{% static '/css/common.css' %}" />
 
     <link rel="stylesheet" type="text/css" href="{% static '/css/fonts.css' %}" />
 
@@ -28,11 +28,11 @@
       <div class="contentBoxGroup">
         <div class="flexRowHeader">
           <!-- Flex container for the header items. -->
-          <div class="flexRowLogo">
-            <img class="logoImage" src="{% static '/assets/f03aaac6d73469ef458c264147aaf83c.svg' %}" alt="alt text" />
-            <div class="flexColumnLogoText">
-              <p class="headerTextSmartD">SMARTD</p>
-              <p class="headerTextStudio">STUDIO</p>
+          <div class="brandingContainer">
+            <img class="brandingImage" src="{% static 'assets/0fbf1a91f14780ce3fa9a491a86c9449.svg' %}" alt="alt text" />
+            <div class="brandingTextContainer">
+                <p class="brandingNameText">SMARTD</p>
+                <p class="brandingStudioText">STUDIO</p>
             </div>
           </div>
           <a href="{% url 'home' %}" class="navItemHome">Home</a>
@@ -41,6 +41,7 @@
           <p class="navItemAbout">About</p>
         </div>
       </div>
+
       <div class="featureGroup">
         <div class="flexRowFeatures">
           <div class="featureContentBox">
@@ -49,7 +50,53 @@
                 <div class="flexRowDatabaseImages">
                   <img class="imageDatabase" src="{% static '/assets/b8cc5f09c290b9922de3d8a93473af01.svg' %}" alt="alt text" />
                   <p class="featureTextUseDatabase">use database</p>
-                  <img class="imageDatabaseExtra" src="{% static '/assets/c1122939168fb69f50f3e2f253333e62.svg' %}" alt="alt text" />
+                  <img class="imageDatabaseExtra toggleArrow" src="{% static '/assets/c1122939168fb69f50f3e2f253333e62.svg' %}" alt="extra options" />
+                </div>
+
+                <!-- 隐藏的数据库列表，点击时显示 -->
+                <div class="databaseMenu hidden" id="databaseMenu">
+                  <!-- 增加 Database 按钮和文字 -->
+                  <div class="addDatabaseSection">
+                    <button id="addDatabaseBtn" class="addDatabaseBtn">+ Add New Database</button>
+                  </div>
+
+                  <!-- 弹出的表单 (初始隐藏) -->
+                  <div class="modal hidden" id="addDatabaseModal">
+                    <div class="modal-content">
+                        <span class="closeBtn" id="closeModal">&times;</span>
+                        <form id="addDatabaseForm">
+                            <div class="input-group">
+                                <label for="addDatabaseProtocol">Connect URL</label>
+                                <div class="input-flex">
+                                    <select id="addDatabaseProtocol">
+                                        <option value="neo4j://">neo4j://</option>
+                                        <option value="bolt://" selected>bolt://</option>
+                                        <option value="neo4j+s://">neo4j+s://</option>
+                                        <option value="bolt+s://">bolt+s://</option>
+                                    </select>
+                                    <input type="text" id="addDatabaseConnectUrl" placeholder="192.168.0.54:7687" required>
+                                </div>
+                            </div>
+                            <div class="input-group">
+                                <label for="addDatabaseServerUsername">Server Username</label>
+                                <input type="text" id="addDatabaseServerUsername" placeholder="Enter server username" required>
+                            </div>
+                            <div class="input-group">
+                                <label for="addDatabaseServerPassword">Server Password</label>
+                                <input type="password" id="addDatabaseServerPassword" placeholder="Enter server password" required>
+                            </div>
+                            <button type="submit" class="submit-btn">Connect Database</button>
+                        </form>
+                    </div>
+                  </div>
+
+                  <!-- 动态显示的数据库列表 -->
+                  {% for db in databases %}
+                      <div class="databaseItem">
+                        <p>{{ db.url|cut:"neo4j://"|cut:"bolt://" }}</p>  <!-- 删除协议部分 -->
+                        <i class="fas fa-cog settings-icon"></i>
+                      </div>
+                  {% endfor %}
                 </div>
               </div>
               <div class="searchFeatureContentBox">
@@ -112,6 +159,77 @@
       </div>
     </section>
 
+    <script>
+      // database隐藏菜单监控
+      document.querySelector('.flexRowDatabaseImages').addEventListener('click', function() {
+        const menu = document.getElementById('databaseMenu');
+        const arrow = document.querySelector('.toggleArrow');
+
+        // 切换显示/隐藏
+        if (menu.classList.contains('hidden')) {
+            menu.classList.remove('hidden');
+            menu.classList.add('show');
+            arrow.classList.add('rotate');
+        } else {
+            menu.classList.remove('show');
+            menu.classList.add('hidden');
+            arrow.classList.remove('rotate');
+        }
+      });
+
+      document.getElementById('addDatabaseBtn').addEventListener('click', function() {
+        // 显示模态框
+        document.getElementById('addDatabaseModal').style.display = 'block';
+    });
+
+    document.getElementById('closeModal').addEventListener('click', function() {
+        // 关闭模态框
+        document.getElementById('addDatabaseModal').style.display = 'none';
+    });
+
+    // 点击窗口外部时关闭模态框
+    window.addEventListener('click', function(event) {
+        const modal = document.getElementById('addDatabaseModal');
+        if (event.target == modal) {
+            modal.style.display = 'none';
+        }
+    });
+
+    // 处理表单提交并发送请求
+    document.getElementById('addDatabaseForm').addEventListener('submit', function(e) {
+        e.preventDefault(); // 防止页面刷新
+
+        // 获取表单数据
+        const protocol = document.getElementById('addDatabaseProtocol').value;
+        const url = document.getElementById('addDatabaseConnectUrl').value;
+        const fullUrl = protocol + url;
+        const serverUsername = document.getElementById('addDatabaseServerUsername').value;
+        const serverPassword = document.getElementById('addDatabaseServerPassword').value;
+
+        // 发送添加数据库请求到后端
+        fetch('{% url "add_database" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({
+                fullUrl: fullUrl,
+                serverUsername: serverUsername,
+                serverPassword: serverPassword
+            })
+        }).then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Database added successfully!');
+                window.location.reload(); // 刷新页面以显示新的数据库
+            } else {
+                alert('Error: ' + data.error);
+            }
+        }).catch(error => console.error('Error:', error));
+      });
+
+    </script>
 
   </body>
 

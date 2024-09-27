@@ -28,4 +28,6 @@ urlpatterns = [
     path('', views.home_redirect, name='home_redirect'),
     path('test_neo4j_and_signup/', views.test_neo4j_and_signup, name='test_neo4j_and_signup'),
     path('test_neo4j_and_login/', views.login_view, name='test_neo4j_and_login'),  # Login view
+    path('logout/', views.logout_view, name='logout'),
+    path('add_database/', views.add_database, name='add_database'),  # Add database view
 ]

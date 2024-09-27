@@ -109,6 +109,7 @@ html, body {
   display: flex;
   flex-direction: column; /* Vertical arrangement within the box */
   width: 15%;
+  min-width: 200px;  /* 最小宽度设置为 200px */
   background-color: white;
   border-color: #dde1e6;
   border-style: solid;
@@ -136,19 +137,49 @@ html, body {
   gap: 0 10px;
   margin: 12px 8px;
 }
-.playground .imageDatabase {
-  width: 24px;
+.playground .imageDatabase,
+.playground .imageNodeLabels,
+.playground .imageRelationshipTypes,
+.playground .imagePropertyKeys {
+  width: 23px;
   min-width: 0;
+  flex-shrink: 0; /* 防止缩小 */
+  flex-grow: 0;   /* 防止放大 */
 }
-.playground .featureTextUseDatabase {
+
+.playground .featureTextUseDatabase,
+.playground .featureTextNodeLabels,
+.playground .featureTextRelationshipTypes,
+.playground .featureTextPropertyKeys {
   margin: 4px 0;
-  min-width: 0;
   font: 500 16px/1 Roboto, Helvetica, Arial, serif;
   color: #21272a;
+  flex-grow: 1; /* 允许文本占据可用空间 */
+  text-align: left; /* 确保文本左对齐 */
+  padding-left: 10px; /* 增加图标与文字之间的间距 */
 }
-.playground .imageDatabaseExtra {
+
+.playground .imageDatabaseExtra,
+.playground .imageNodeLabelsExtra,
+.playground .imageRelationshipTypesExtra,
+.playground .imagePropertyKeysExtra {
   width: 24px;
+  height: 24px;
   min-width: 0;
+  flex-shrink: 0;  /* 防止缩小 */
+  flex-grow: 0;    /* 防止放大 */
+  margin-left: auto;  /* 确保图标在容器右侧对齐 */
+  margin-right: 10px;  /* 给图标与文字留一些空间 */
+  align-self: center;  /* 垂直居中对齐 */
+}
+
+.playground .flexRowDatabaseImages,
+.playground .flexRowNodeLabels {
+  display: flex;
+  justify-content: space-between;
+  align-items: center; /* 确保所有内容垂直居中 */
+  width: 100%; /* 占据父容器的全宽 */
+  padding: 10px 0; /* 可选: 增加一些内边距 */
 }
 .playground .searchFeatureContentBox {
   display: flex;
@@ -255,26 +286,6 @@ html, body {
   margin: 12px 8px;
   width: 100%; /* Ensure full width */
 }
-.playground .imageNodeLabels {
-  width: 23px;
-  min-width: 0;
-  flex-shrink: 0; /* 防止缩小 */
-  flex-grow: 0;   /* 防止放大 */
-}
-.playground .featureTextNodeLabels {
-  margin: 4px 0;
-  font: 500 16px/1 Roboto, Helvetica, Arial, serif;
-  color: #21272a;
-  flex-grow: 1; /* Allow the text to grow and fill space between images */
-  text-align: left; /* Align text to the left */
-  padding-left: 30px; /* Optional: Add space between icon and text */
-}
-.playground .imageNodeLabelsExtra {
-  width: 24px;
-  min-width: 0;
-  margin-left: auto; /* Pushes the extra image to the right */
-  margin-right: 15px; /* Move extra image slightly to the left */
-}
 /* Relationship types */
 .playground .relationshipTypesContentBox {
   display: flex;
@@ -291,27 +302,6 @@ html, body {
   margin: 12px 8px;
   width: 100%; /* Ensure full width */
 }
-.playground .imageRelationshipTypes {
-  width: 23px;
-  min-width: 0;
-  flex-shrink: 0; /* 防止缩小 */
-  flex-grow: 0;   /* 防止放大 */
-}
-.playground .featureTextRelationshipTypes {
-  margin: 4px 0;
-  font: 500 16px/1 Roboto, Helvetica, Arial, serif;
-  color: #21272a;
-  flex-grow: 1; /* Allow the text to grow and fill space between images */
-  text-align: left; /* Align text to the left */
-  padding-left: 10px; /* Optional: Add space between icon and text */
-  padding-left: 30px; /* Optional: Add space between icon and text */
-}
-.playground .imageRelationshipTypesExtra {
-  width: 24px;
-  min-width: 0;
-  margin-left: auto; /* Pushes the extra image to the right */
-  margin-right: 15px; /* Move extra image slightly to the left */
-}
 /* Property keys */
 .playground .propertyKeysContentBox {
   display: flex;
@@ -327,27 +317,6 @@ html, body {
   align-items: center; /* Align items vertically */
   margin: 12px 8px;
   width: 100%; /* Ensure full width */
-}
-.playground .imagePropertyKeys {
-  width: 23px;
-  min-width: 0;
-  flex-shrink: 0; /* 防止缩小 */
-  flex-grow: 0;   /* 防止放大 */
-}
-.playground .featureTextPropertyKeys {
-  margin: 4px 0;
-  font: 500 16px/1 Roboto, Helvetica, Arial, serif;
-  color: #21272a;
-  flex-grow: 1; /* Allow the text to grow and fill space between images */
-  text-align: left; /* Align text to the left */
-  padding-left: 10px; /* Optional: Add space between icon and text */
-  padding-left: 30px; /* Optional: Add space between icon and text */
-}
-.playground .imagePropertyKeysExtra {
-  width: 24px;
-  min-width: 0;
-  margin-left: auto; /* Pushes the extra image to the right */
-  margin-right: 15px; /* Move extra image slightly to the left */
 }
 .playground .galleryContainer {
   flex-grow: 1; /* Allow this container to grow and fill the remaining space */

@@ -49,7 +49,7 @@
               <div class="flexRowInfoDatabase">
                 <div class="flexRowDatabaseImages">
                   <img class="imageDatabase" src="{% static '/assets/b8cc5f09c290b9922de3d8a93473af01.svg' %}" alt="alt text" />
-                  <p class="featureTextUseDatabase">use database</p>
+                  <p class="featureTextUseDatabase">Use database</p>
                   <img class="imageDatabaseExtra toggleArrow" src="{% static '/assets/c1122939168fb69f50f3e2f253333e62.svg' %}" alt="extra options" />
                 </div>
 
@@ -91,6 +91,9 @@
                   </div>
 
                   <!-- 动态显示的数据库列表 -->
+                  {% comment %} todo: 增加修改密码和删除，增加状态检查，增加删除database功能 {% endcomment %}
+                  {% comment %} todo: 增加database时没有检查连接 {% endcomment %}
+                  {% comment %} todo: neo4j-connector中保存逻辑有bug，既检查当前连接的database需要注意 {% endcomment %}
                   {% for db in databases %}
                       <div class="databaseItem">
                         <p>{{ db.url|cut:"neo4j://"|cut:"bolt://" }}</p>  <!-- 删除协议部分 -->

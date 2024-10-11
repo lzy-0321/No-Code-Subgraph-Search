@@ -95,11 +95,32 @@
                   {% comment %} todo: 增加database时没有检查连接 {% endcomment %}
                   {% comment %} todo: neo4j-connector中保存逻辑有bug，既检查当前连接的database需要注意 {% endcomment %}
                   {% for db in databases %}
-                      <div class="databaseItem">
-                        <p>{{ db.url|cut:"neo4j://"|cut:"bolt://" }}</p>  <!-- 删除协议部分 -->
-                        <i class="fas fa-cog settings-icon"></i>
+                      <div class="databaseItem" data-url="{{ db.url }}">
+                          <span class="selectedLabel hidden">
+                            <img class="fas fa-check-circle" src="{% static 'assets/asd953aa98cdd54cef71b5b8167386wa.svg' %}" alt="alt text" />
+                          </span>
+                          <!-- Display the URL without protocol -->
+                          <p>{{ db.url|cut:"neo4j://"|cut:"bolt://" }}</p>
+
+                          <!-- Hidden input to store the full URL -->
+                          <input type="hidden" class="fullUrl" value="{{ db.url }}">
+                          <img class="fas fa-cog settings-icon" src="{% static 'assets/e21aaacasc3469ef458c264147aer45c.svg' %}" alt="alt text" />
+
+                          <div class="settingsMenu hidden">
+                              <button class="settingsMenuItem" id="deleteDatabaseBtn">Delete Database</button>
+                          </div>
+
                       </div>
                   {% endfor %}
+
+                  <!-- Modal for confirming the database selection -->
+                  <div id="databaseSelectionModal" class="modal hidden">
+                      <div class="modal-content1">
+                          <span class="closeBtn">&times;</span>
+                          <p id="modalText">You have selected:</p>
+                          <button id="confirmDatabaseBtn" class="confirmDatabaseBtn">Confirm Selection</button>
+                      </div>
+                  </div>
                 </div>
               </div>
               <div class="searchFeatureContentBox">
@@ -130,6 +151,9 @@
                   <p class="featureTextNodeLabels">Node labels</p>
                   <img class="imageNodeLabelsExtra" src="{% static '/assets/c1122939168fb69f50f3e2f253333e62.svg' %}" alt="alt text" />
                 </div>
+                <div id="nodeLabelsList" class="hidden"> <!-- 隐藏的标签列表 -->
+                  <!-- 动态加载 node labels  -->
+                </div>
               </div>
               <div class="relationshipTypesContentBox">
                 <div class="flexRowRelationshipTypes">
@@ -137,12 +161,18 @@
                   <p class="featureTextRelationshipTypes">Relationship types</p>
                   <img class="imageRelationshipTypesExtra" src="{% static '/assets/c1122939168fb69f50f3e2f253333e62.svg' %}" alt="alt text" />
                 </div>
+                <div id="relationshipTypesList" class="hidden"> <!-- 隐藏的关系类型列表 -->
+                  <!-- 动态加载 relationship types  -->
+                </div>
               </div>
               <div class="propertyKeysContentBox">
                 <div class="flexRowPropertyKeys">
                   <img class="imagePropertyKeys" src="{% static '/assets/d819e70012ea9e1d2487b007aec7b35b.svg' %}" alt="alt text" />
                   <p class="featureTextPropertyKeys">Property keys</p>
                   <img class="imagePropertyKeysExtra" src="{% static '/assets/c1122939168fb69f50f3e2f253333e62.svg' %}" alt="alt text" />
+                </div>
+                <div id="propertyKeysList" class="hidden"> <!-- 隐藏的属性键列表 -->
+                  <!-- 动态加载 property keys  -->
                 </div>
               </div>
             </div>
@@ -164,11 +194,12 @@
 
     <script>
       // database隐藏菜单监控
+      // Handle toggle for databases
       document.querySelector('.flexRowDatabaseImages').addEventListener('click', function() {
         const menu = document.getElementById('databaseMenu');
-        const arrow = document.querySelector('.toggleArrow');
+        const arrow = document.querySelector('.imageDatabaseExtra');  // Correct arrow selector
 
-        // 切换显示/隐藏
+        // Toggle display of the database menu
         if (menu.classList.contains('hidden')) {
             menu.classList.remove('hidden');
             menu.classList.add('show');
@@ -183,23 +214,23 @@
       document.getElementById('addDatabaseBtn').addEventListener('click', function() {
         // 显示模态框
         document.getElementById('addDatabaseModal').style.display = 'block';
-    });
+      });
 
-    document.getElementById('closeModal').addEventListener('click', function() {
-        // 关闭模态框
-        document.getElementById('addDatabaseModal').style.display = 'none';
-    });
+      document.getElementById('closeModal').addEventListener('click', function() {
+          // 关闭模态框
+          document.getElementById('addDatabaseModal').style.display = 'none';
+      });
 
-    // 点击窗口外部时关闭模态框
-    window.addEventListener('click', function(event) {
-        const modal = document.getElementById('addDatabaseModal');
-        if (event.target == modal) {
-            modal.style.display = 'none';
-        }
-    });
+      // 点击窗口外部时关闭模态框
+      window.addEventListener('click', function(event) {
+          const modal = document.getElementById('addDatabaseModal');
+          if (event.target == modal) {
+              modal.style.display = 'none';
+          }
+      });
 
-    // 处理表单提交并发送请求
-    document.getElementById('addDatabaseForm').addEventListener('submit', function(e) {
+      // 处理表单提交并发送请求
+      document.getElementById('addDatabaseForm').addEventListener('submit', function(e) {
         e.preventDefault(); // 防止页面刷新
 
         // 获取表单数据
@@ -230,6 +261,216 @@
                 alert('Error: ' + data.error);
             }
         }).catch(error => console.error('Error:', error));
+      });
+
+      // 为每个 settings-icon 添加点击事件
+      document.querySelectorAll('.settings-icon').forEach(function(icon) {
+        icon.addEventListener('click', function(event) {
+          event.stopPropagation();  // 阻止事件冒泡，避免触发关闭菜单的逻辑
+          const menu = this.nextElementSibling;  // 获取图标后面的子菜单
+          menu.classList.toggle('show');  // 切换菜单的显示状态
+
+          // 关闭其他菜单
+          document.querySelectorAll('.settingsMenu').forEach(function(otherMenu) {
+            if (otherMenu !== menu) {
+              otherMenu.classList.remove('show');
+            }
+          });
+        });
+      });
+
+      // 点击页面其他地方时，隐藏子菜单
+      window.addEventListener('click', function() {
+        document.querySelectorAll('.settingsMenu').forEach(function(menu) {
+          menu.classList.remove('show');
+        });
+      });
+
+      //删除数据库
+      document.querySelectorAll('.settingsMenuItem').forEach(function(item) {
+        item.addEventListener('click', function() {
+          // 获取完整的 URL
+          const fullUrl = this.closest('.databaseItem').querySelector('.fullUrl').value;
+
+          // 发送删除请求
+          fetch('{% url "delete_database" %}', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({ 'url': fullUrl })  // 发送完整的 URL
+          }).then(response => response.json())
+            .then(data => {
+              if (data.success) {
+                alert('Database deleted successfully!');
+                window.location.reload();  // 刷新页面以更新列表
+              } else {
+                alert('Error: ' + data.error);
+              }
+            }).catch(error => console.error('Error:', error));
+        });
+      });
+
+      // Select all database items and the modal elements
+      const databaseItems = document.querySelectorAll('.databaseItem');
+      const modal = document.getElementById('databaseSelectionModal');
+      const modalText = document.getElementById('modalText');
+      const confirmBtn = document.getElementById('confirmDatabaseBtn');
+      const closeModalBtn = document.querySelector('.closeBtn');
+      let selectedUrl = '';
+      let selectedDatabaseItem = null; // Track the selected database item
+
+      // Add click event listeners to each database item
+      databaseItems.forEach(item => {
+          item.addEventListener('click', function() {
+              // Get the selected database URL
+              selectedUrl = this.getAttribute('data-url');
+              selectedDatabaseItem = this; // Track the clicked item
+
+              // Update the modal text
+              modalText.textContent = 'You have selected: ' + selectedUrl;
+
+              // Display the modal
+              modal.style.display = 'block';
+          });
+      });
+
+      // Close the modal when the close button is clicked
+      closeModalBtn.addEventListener('click', function() {
+          modal.style.display = 'none';
+      });
+
+      // Handle the confirmation of the selected database
+      confirmBtn.addEventListener('click', function() {
+        // Send the selected database URL to the server
+        fetch('{% url "select_database" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({
+                selectedUrl: selectedUrl
+            })
+        }).then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                modal.style.display = 'none'; // Close the modal
+
+                // Visually update the selected database item
+                databaseItems.forEach(item => item.classList.remove('selected')); // Remove selection from all items
+                selectedDatabaseItem.classList.add('selected'); // Highlight the selected item
+
+                // 调用函数刷新 node labels、relationship types 和 property keys
+                fetchDatabaseInfo();  // 在选择数据库后立即刷新相关数据
+            } else {
+                alert('Error: ' + data.error);
+            }
+        }).catch(error => console.error('Error:', error));
+    });
+
+      // Close the modal if the user clicks outside of it
+      window.addEventListener('click', function(event) {
+          if (event.target === modal) {
+              modal.style.display = 'none';
+          }
+      });
+
+      // Function to fetch node labels, relationship types, and property keys from the back-end
+      function fetchDatabaseInfo() {
+        fetch('{% url "get_database_info" %}', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Update Node Labels
+                const nodeLabelsList = document.getElementById('nodeLabelsList');
+                nodeLabelsList.innerHTML = ''; // Clear old content
+                data.labels.forEach(label => {
+                    const labelItem = document.createElement('p');
+                    labelItem.textContent = label;
+                    nodeLabelsList.appendChild(labelItem);
+                });
+
+                // Update Relationship Types
+                const relationshipTypesList = document.getElementById('relationshipTypesList');
+                relationshipTypesList.innerHTML = ''; // Clear old content
+                data.relationship_types.forEach(type => {
+                    const typeItem = document.createElement('p');
+                    typeItem.textContent = type;
+                    relationshipTypesList.appendChild(typeItem);
+                });
+
+                // Update Property Keys
+                const propertyKeysList = document.getElementById('propertyKeysList');
+                propertyKeysList.innerHTML = ''; // Clear old content
+                data.property_keys.forEach(key => {
+                    const keyItem = document.createElement('p');
+                    keyItem.textContent = key;
+                    propertyKeysList.appendChild(keyItem);
+                });
+            } else {
+                alert('Error: ' + data.error);
+            }
+        })
+        .catch(error => console.error('Error:', error));
+      }
+
+      // Handle toggle for node labels
+      document.querySelector('.flexRowNodeLabels').addEventListener('click', function() {
+        const nodeLabelsList = document.getElementById('nodeLabelsList');
+        const arrow = document.querySelector('.imageNodeLabelsExtra');  // Correct arrow selector
+
+        // Toggle the display of the node labels list
+        if (nodeLabelsList.classList.contains('hidden')) {
+            nodeLabelsList.classList.remove('hidden');
+            nodeLabelsList.classList.add('show');
+            arrow.classList.add('rotate');  // Rotate the arrow
+        } else {
+            nodeLabelsList.classList.remove('show');
+            nodeLabelsList.classList.add('hidden');
+            arrow.classList.remove('rotate');  // Reset the arrow
+        }
+      });
+
+      // Handle toggle for relationship types
+      document.querySelector('.flexRowRelationshipTypes').addEventListener('click', function() {
+        const relationshipTypesList = document.getElementById('relationshipTypesList');
+        const arrow = document.querySelector('.imageRelationshipTypesExtra');
+
+        // Toggle the display of the relationship types list
+        if (relationshipTypesList.classList.contains('hidden')) {
+            relationshipTypesList.classList.remove('hidden');
+            relationshipTypesList.classList.add('show');
+            arrow.classList.add('rotate');
+        } else {
+            relationshipTypesList.classList.remove('show');
+            relationshipTypesList.classList.add('hidden');
+            arrow.classList.remove('rotate');
+        }
+      });
+
+      // Handle toggle for property keys
+      document.querySelector('.flexRowPropertyKeys').addEventListener('click', function() {
+        const propertyKeysList = document.getElementById('propertyKeysList');
+        const arrow = document.querySelector('.imagePropertyKeysExtra');
+
+        // Toggle the display of the property keys list
+        if (propertyKeysList.classList.contains('hidden')) {
+            propertyKeysList.classList.remove('hidden');
+            propertyKeysList.classList.add('show');
+            arrow.classList.add('rotate');
+        } else {
+            propertyKeysList.classList.remove('show');
+            propertyKeysList.classList.add('hidden');
+            arrow.classList.remove('rotate');
+        }
       });
 
     </script>

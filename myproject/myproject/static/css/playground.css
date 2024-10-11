@@ -1,15 +1,15 @@
 /* Ensure body takes up the full viewport height */
 html, body {
-  height: 100%; /* This is important for flex containers to take the full height */
+  height: 100%; /* Full height of the viewport */
   margin: 0;
   padding: 0;
 }
 
-/* Ensure .playground takes up the full viewport height */
+/* Ensure the main container takes up the full viewport height */
 .playground {
   display: flex;
   flex-direction: column;
-  height: 100vh; /* Full height of the viewport */
+  height: 100vh; /* Viewport height */
 }
 
 .playground.mainContentSection {
@@ -17,6 +17,7 @@ html, body {
   flex-direction: column;
   flex-grow: 1; /* Ensure this section expands */
   background-color: #f2f4f8;
+  max-height: 100vh; /* Prevent exceeding the viewport height */
 }
 .playground .contentBoxGroup {
   display: flex;
@@ -92,36 +93,39 @@ html, body {
 }
 .playground .featureGroup {
   display: flex;
-  flex-direction: row; /* This remains the parent of the rows */
-  flex-grow: 1; /* Make this container take up the remaining height */
+  flex-direction: row;
+  flex-grow: 1;
   width: 100%;
-  position: relative;
+  height: 100%; /* Ensure it takes up the full height of the viewport */
+  overflow: hidden; /* Prevent scrolling on the feature group */
 }
 .playground .flexRowFeatures {
   display: flex;
-  flex-direction: row; /* Horizontal alignment for its children */
-  justify-content: space-between; /* Space out the .featureContentBox and .galleryContainer */
-  align-items: flex-start; /* Align items to the top */
-  width: 100%; /* Take full width */
-  height: 100%;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: flex-start;
+  width: 100%;
+  height: 100%; /* Full height to fill the parent container */
 }
 .playground .featureContentBox {
   display: flex;
-  flex-direction: column; /* Vertical arrangement within the box */
-  width: 15%;
-  min-width: 200px;  /* 最小宽度设置为 200px */
+  flex-direction: column;
+  min-width: 240px;  /* Minimum width */
+  max-width: 320px;
+  width: 15%; /* Set the desired width */
   background-color: white;
   border-color: #dde1e6;
   border-style: solid;
   border-width: 0 1px;
-  width: 15%;
-  height: 100%;
+  min-height: 100%; /* Ensure it fills the parent container's height */
+  max-height: 100%; /* Prevent it from growing beyond its container */
+  overflow-y: auto; /* Allow internal scrolling if content exceeds the height */
 }
 .playground .featureColumnBox {
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin: 9px 15px 414px 16px;
+  margin: 9px 15px 40px 16px;
 }
 .playground .flexRowInfoDatabase {
   display: flex;
@@ -270,24 +274,10 @@ html, body {
   color: #21272a;
 }
 /* Node labels */
-.playground .nodeLabelsContentBox {
-  display: flex;
-  flex-direction: column;
-  margin: 17px 0 0;
-  width: 100%;
-  border-color: #f2f4f8;
-  border-style: solid;
-  border-width: 0 0 2px;
-}
-.playground .flexRowNodeLabels {
-  display: flex;
-  justify-content: space-between; /* Ensures space between text and the right image */
-  align-items: center; /* Align items vertically */
-  margin: 12px 8px;
-  width: 100%; /* Ensure full width */
-}
-/* Relationship types */
-.playground .relationshipTypesContentBox {
+.playground .nodeLabelsContentBox,
+.playground .relationshipTypesContentBox,
+.playground .propertyKeysContentBox
+{
   display: flex;
   flex-direction: column;
   width: 100%;
@@ -295,33 +285,80 @@ html, body {
   border-style: solid;
   border-width: 0 0 2px;
 }
-.playground .flexRowRelationshipTypes {
+.playground .flexRowNodeLabels,
+.playground .flexRowRelationshipTypes,
+.playground .flexRowPropertyKeys
+ {
   display: flex;
   justify-content: space-between; /* Ensures space between text and the right image */
   align-items: center; /* Align items vertically */
   margin: 12px 8px;
   width: 100%; /* Ensure full width */
 }
-/* Property keys */
-.playground .propertyKeysContentBox {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  border-color: #f2f4f8;
-  border-style: solid;
-  border-width: 0 0 2px;
+/* Rotate the arrow icon when the node labels are shown */
+.playground .imageNodeLabelsExtra.rotate,
+.playground .imageRelationshipTypesExtra.rotate,
+.playground .imagePropertyKeysExtra.rotate
+{
+  transform: rotate(180deg); /* Rotate the arrow 180 degrees */
 }
-.playground .flexRowPropertyKeys {
-  display: flex;
-  justify-content: space-between; /* Ensures space between text and the right image */
-  align-items: center; /* Align items vertically */
-  margin: 12px 8px;
-  width: 100%; /* Ensure full width */
+
+/* Node labels list styles (initially hidden) */
+#nodeLabelsList {
+  display: none;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  padding: 10px;
+  margin-top: 10px;
+  max-height: 140px; /* Set a max height for the list */
+  overflow-y: auto; /* Scroll if the list exceeds the max height */
 }
+
+
+#relationshipTypesList,
+#propertyKeysList {
+  display: none;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  padding: 10px;
+  margin-top: 10px;
+  max-height: 220; /* Set a max height for the list */
+  overflow-y: auto; /* Scroll if the list exceeds the max height */
+}
+
+/* Shown state for the node labels list */
+#nodeLabelsList.show,
+#relationshipTypesList.show,
+#propertyKeysList.show {
+  display: block; /* Display the list when toggled */
+}
+
+/* Style individual node label items */
+#nodeLabelsList p,
+#relationshipTypesList p,
+#propertyKeysList p {
+  margin: 5px 0;
+  padding: 5px 10px;
+  font: 500 14px/1.5 Roboto, Helvetica, Arial, sans-serif;
+  background-color: #f9f9f9;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+#nodeLabelsList p:hover,
+#relationshipTypesList p:hover,
+#propertyKeysList p:hover
+{
+  background-color: #e0e0e0; /* Highlight label on hover */
+}
+
 .playground .galleryContainer {
   flex-grow: 1; /* Allow this container to grow and fill the remaining space */
   width: 75%;
   background-color: #f2f4f8; /* Set the background if needed */
+  overflow-y: auto; /* Allow scrolling if content exceeds the height */
 }
 .playground .flexRowGalleryImages {
   position: fixed; /* Fixes the position relative to the viewport */
@@ -363,6 +400,8 @@ html, body {
   background-color: #fff;
   border: 1px solid #ddd;
   border-radius: 5px;
+  justify-content: center;  /* 水平居中 */
+  align-items: center;  /* 垂直居中 */
 }
 .addDatabaseSection {
   margin: 0;  /* 去掉上下间距 */
@@ -400,7 +439,7 @@ html, body {
   margin: 15% auto;
   padding: 15px;
   border: 1px solid #888;
-  width: 600px; /* 增加宽度 */
+  width: 500px; /* 增加宽度 */
   max-width: 80%; /* 保持响应式设计，最大宽度不超过屏幕的80% */
   border-radius: 8px;
   position: relative;
@@ -484,49 +523,140 @@ html, body {
   font: 500 16px/1 Roboto, Helvetica, Arial, serif;
   border-bottom: 1px solid #ddd;
   background-color: #fff;
+  justify-content: center;  /* 水平居中 */
+  align-items: center;  /* 垂直居中 */
 }
-
 .databaseMenu .databaseItem p {
   margin-right: 10px; /* 让文字和图标之间有一定间距 */
 }
-
 .settings-icon {
   margin-left: 10px; /* 让图标与文字之间有一定间距 */
   font-size: 18px;   /* 设置图标大小，适配文字 */
   cursor: pointer;   /* 鼠标移上去显示为点击手型 */
 }
-
 .databaseMenu .databaseItem:last-child {
   border-bottom: none;
 }
-
 /* 如果显示菜单，移除 hidden 类 */
 .databaseMenu.show {
   display: block;
 }
-
 .icon {
   width: 20px;
   height: 20px;
 }
-
 .toggleArrow {
   width: 15px;
   height: 15px;
   transition: transform 0.3s;
 }
-
 .toggleArrow.rotate {
   transform: rotate(180deg);  /* 当菜单展开时箭头旋转 */
 }
 .hidden {
   display: none;
 }
-
 .show {
   display: block;
 }
-
 .rotate {
   transform: rotate(180deg);  /* 当菜单展开时，箭头图标旋转 */
+}
+.databaseItem {
+  position: relative; /* 确保子菜单相对于这个容器定位 */
+}
+.settingsMenu {
+  display: none;
+  position: absolute;
+  right: -10px;  /* 根据图标的宽度进行微调 */
+  top: 30px;  /* 将菜单显示在图标下方 */
+  background-color: white;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  padding: 10px;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+  z-index: 1000;  /* 确保子菜单显示在其他元素的上方 */
+}
+/* 子菜单中的按钮样式 */
+.settingsMenuItem {
+  display: block;
+  padding: 10px;
+  text-align: left;
+  background-color: #fff;
+  border: none;
+  cursor: pointer;
+  width: 100%;
+}
+.settingsMenuItem:hover {
+  background-color: #f0f0f0;
+}
+/* 显示菜单 */
+.settingsMenu.show {
+  display: block;
+}
+.selected {
+  background-color: #d1e7dd; /* A light green background for selected database */
+  font-weight: bold; /* Make the text bold to indicate selection */
+}
+.databaseUrl {
+  cursor: pointer; /* Indicate clickable links */
+}
+/* Add a class for the selected database */
+.databaseItem.selected {
+  font-weight: bold;
+}
+.selectedLabel {
+  display: inline-block;
+  color: #28a745; /* Green color for the checkmark */
+  margin-right: 10px; /* Add space between checkmark and text */
+}
+.hidden {
+  display: none;
+}
+/* Show the label when selected */
+.databaseItem.selected .selectedLabel {
+  display: inline-block;
+}
+.fas.fa-check-circle,
+.settings-icon  {
+  width: 20px; /* Set the desired width */
+  height: 20px; /* Set the desired height */
+  display: inline-block; /* Ensure the image behaves like an inline element */
+  vertical-align: middle; /* Align it vertically with surrounding text */
+}
+.modal-content1 {
+  background-color: #fff;
+  margin: 15% auto;
+  padding: 20px; /* Increase padding for a cleaner look */
+  border: 1px solid #888;
+  width: 400px; /* Adjust width to be more compact */
+  max-width: 80%; /* Maintain responsiveness */
+  border-radius: 10px; /* Slightly more rounded corners */
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* Vertically center content */
+  text-align: center; /* Horizontally center all text */
+}
+
+#modalText {
+  font-size: 16px; /* Adjust font size for better readability */
+  margin-bottom: 20px; /* Add space between the text and the button */
+  text-align: center; /* Ensure the text is centered horizontally */
+}
+
+.confirmDatabaseBtn {
+  width: 60%; /* Make the button width smaller for a better fit */
+  padding: 10px 20px; /* Adjust padding for better proportions */
+  font-size: 16px; /* Slightly reduce font size */
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 6px; /* Increase border radius for smoother edges */
+  cursor: pointer;
+  margin: 0 auto; /* Center the button horizontally */
+}
+
+.confirmDatabaseBtn:hover {
+  background-color: #0056b3; /* Darker color on hover for effect */
 }

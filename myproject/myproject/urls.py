@@ -30,4 +30,7 @@ urlpatterns = [
     path('test_neo4j_and_login/', views.login_view, name='test_neo4j_and_login'),  # Login view
     path('logout/', views.logout_view, name='logout'),
     path('add_database/', views.add_database, name='add_database'),  # Add database view
+    path('delete_database/', views.delete_database, name='delete_database'), # delete database view
+    path('select-database/', views.select_database, name='select_database'),
+    path('get_database_info/', views.get_database_info, name='get_database_info'),  # get database info
 ]

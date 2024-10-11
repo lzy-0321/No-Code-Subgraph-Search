@@ -9,6 +9,8 @@
     <link rel="stylesheet" type="text/css" href="{% static 'css/common.css' %}" />
     <link rel="stylesheet" type="text/css" href="{% static 'css/fonts.css' %}" />
     <link rel="stylesheet" type="text/css" href="{% static 'css/Page1.css' %}" />
+    <script src="{% static 'js/bundle.js' %}"></script>
+    <script src="{% static 'index.js' %}"></script>
 
 </head>
 
@@ -74,12 +76,14 @@
                 <div class="tutorialHeaderWrapper">
                     <h3 class="tutorialHeaderText">TutoRial</h3>
                 </div>
-                <div class="tutorialContentBox"></div>
+                <div class="tutorialContentBox" id="tutorialContentBox">
                 <!-- Container for tutorial content. -->
+
+                </div>
             </div>
         </section>
 
-        <section class="contactUsSection">
+        {% comment %} <section class="contactUsSection">
             <!-- Contact us section. -->
             <div class="contactWrapper">
                 <div class="contactDetailsColumn">
@@ -94,7 +98,7 @@
                     </div>
                 </div>
             </div>
-        </section>
+        </section> {% endcomment %}
 
         <section class="footerSection">
             <!-- Footer section of the page. -->
@@ -182,7 +186,7 @@
                 <!-- 登录表单 -->
                 <div id="loginForm" class="tab-content active">
                     <form id="loginFormSubmit">
-                        <div class="input-group">
+                        {% comment %} <div class="input-group">
                             <label for="loginConnectUrl">Connect URL</label>
                             <div class="input-flex">
                                 <select id="loginProtocol">
@@ -193,7 +197,7 @@
                                 </select>
                                 <input type="text" id="loginConnectUrl" placeholder="192.168.0.54:7687">
                             </div>
-                        </div>
+                        </div> {% endcomment %}
                         <div class="input-group">
                             <label for="loginUsername">Username</label>
                             <input type="text" id="loginUsername" placeholder="Enter username">
@@ -319,6 +323,8 @@
                 const protocol = document.getElementById('registerProtocol').value;
                 const url = document.getElementById('registerConnectUrl').value;
                 const fullUrl = protocol + url;
+                const serverUser = document.getElementById('registerServerUsername').value;
+                const serverPassword = document.getElementById('registerServerPassword').value;
                 const username = document.getElementById('registerUsername').value;
                 const password = document.getElementById('registerPassword').value;
 
@@ -331,9 +337,10 @@
                     },
                     body: JSON.stringify({
                         fullUrl: fullUrl,
-                        username: username,
-                        password: password,
-                        rememberMe: rememberMe  // 传递注册时的Remember Me状态
+                        serverUser: serverUser,  // 传递数据库的用户名
+                        serverPassword: serverPassword,  // 传递数据库的密码
+                        username: username,  // 本网站的用户名
+                        password: password   // 本网站的密码
                     })
                 }).then(response => response.json())
                 .then(data => {
@@ -351,33 +358,29 @@
                 e.preventDefault(); // 防止表单默认提交
 
                 // 获取表单数据
-                const protocol = document.getElementById('loginProtocol').value;
-                const url = document.getElementById('loginConnectUrl').value;
-                const fullUrl = protocol + url;
                 const username = document.getElementById('loginUsername').value;
                 const password = document.getElementById('loginPassword').value;
                 const rememberMe = document.getElementById('loginRememberMe').checked;
 
                 // 发送登录请求到后端
-                fetch('{% url "test_neo4j_and_login" %}', {
+                fetch('{% url "test_neo4j_and_login" %}', {  // Ensure this URL points to your Django login view
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'X-CSRFToken': '{{ csrf_token }}'
                     },
                     body: JSON.stringify({
-                        fullUrl: fullUrl,
                         username: username,
                         password: password,
-                        rememberMe: rememberMe  // 传递登录时的Remember Me状态
+                        rememberMe: rememberMe  // 传递Remember Me的状态
                     })
                 }).then(response => response.json())
                 .then(data => {
                     if (data.success) {
                         alert('Login successful!');
-                        window.location.href = '{% url "playground" %}';
+                        window.location.href = '{% url "playground" %}';  // Redirect upon successful login
                     } else {
-                        alert('Error: ' + data.error);
+                        alert('Error: ' + data.error);  // Display error message from the backend
                     }
                 }).catch(error => console.error('Error:', error));
             });
@@ -477,9 +480,9 @@
                             top: offsetPosition,
                             behavior: 'smooth'
                         });
-                        console.log("noCodeRect.top:", noCodeRect.top);
-                        console.log("tutorialSection.top:", tutorialSection.getBoundingClientRect().top);
-                        console.log("headerHeight:", headerHeight);
+                        // console.log("noCodeRect.top:", noCodeRect.top);
+                        // console.log("tutorialSection.top:", tutorialSection.getBoundingClientRect().top);
+                        // console.log("headerHeight:", headerHeight);
 
                         // Reset auto-scrolling after the scroll completes
                         window.setTimeout(() => {
@@ -496,9 +499,9 @@
                             top: offsetPosition,
                             behavior: 'smooth'
                         });
-                        console.log("tutorialRect.top:", tutorialRect.top);
-                        console.log("noCodeSection.top:", noCodeSection.getBoundingClientRect().top);
-                        console.log("headerHeight:", headerHeight);
+                        // console.log("tutorialRect.top:", tutorialRect.top);
+                        // console.log("noCodeSection.top:", noCodeSection.getBoundingClientRect().top);
+                        // console.log("headerHeight:", headerHeight);
 
                         // Reset auto-scrolling after the scroll completes
                         window.setTimeout(() => {

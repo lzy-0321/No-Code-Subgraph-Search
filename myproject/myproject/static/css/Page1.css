@@ -1,7 +1,7 @@
 .page1.mainSection {
-  display: flex;
+  position: relative;
   flex-direction: column;
-  background-color: white;
+  background-color: #f2f4f8;
 }
 .page1 .smartDOverviewSection {
   display: flex;
@@ -213,7 +213,8 @@
 .page1 .tutorialsSection {
   display: flex;
   flex-direction: column;
-  height: 64vh; /* The remaining height for the section */
+  /* height: 64vh; */
+  height: 87vh;
   background-color: #f2f4f8;
 }
 @media (min-width: 1920px) and (max-width: 99999px) {
@@ -232,6 +233,7 @@
   align-items: center;
   flex-grow: 1; /* Make the tutorialItem grow to fill the available space */
   width: 100%; /* Make sure it takes the full width of the section */
+  height: 100%;
 }
 .page1 .tutorialHeaderWrapper {
   display: flex;
@@ -242,7 +244,7 @@
 .page1 .tutorialHeaderText {
   display: flex;
   justify-content: center;
-  margin: 20px auto 0 auto; /* Add top margin to move it down */
+  margin: 20px auto 20px auto; /* Add top margin to move it down */
   font: 700 20px/1 Roboto, Helvetica, Arial, serif;
   color: #001d6c;
   text-align: center;
@@ -251,27 +253,34 @@
 }
 .page1 .tutorialContentBox {
   display: flex;
-  gap: 0 16px;
-  width: 96.25%;
-  min-height: 420px;
-  flex-grow: 1; /* Ensure the content box also grows to fill space */
+  flex-direction: column;
+  gap: 20px;
+  padding: 20px;
+  background-color: #f2f4f8;
+  width: 100%;
+  min-height: 500px;
 }
 .page1 .contactUsSection {
   display: flex;
   flex-direction: column;
   height: 23vh; /* The remaining height for the section */
   background-color: #f2f4f8;
+  margin-bottom: 20px;
 }
 .page1 .contactWrapper {
   display: flex;
   flex-direction: column;
+  justify-content: center; /* Vertically centers the content */
   background-color: #f2f4f8;
+  height: 100%;  /* 确保占满整个 contactUsSection 的高度 */
+  min-height: auto;
 }
 .page1 .contactDetailsColumn {
   display: flex;
   flex-direction: column;
   margin: 80px auto 64px;
   width: 89.17%;
+  justify-content: center;  /* 垂直居中 */
 }
 .page1 .contactInfoColumn {
   display: flex;
@@ -326,21 +335,22 @@
   display: flex;
   flex-direction: column;
   height: 7vh; /* Keep the height as 15% of the viewport height */
+  min-height: 7vh; /* Set the minimum height for the footer */
 }
 .page1 .footerWrapper {
   display: flex;
-  flex-direction: column;
-  height: 100%; /* Make footerWrapper take up the full height of footerSection */
+  justify-content: center;  /* 水平居中 */
+  align-items: center;  /* 垂直居中 */
+  height: 100%;  /* 确保占满整个 footerSection 的高度 */
   background-color: #697077;
 }
 .page1 .footerInfoColumn {
   display: flex;
   flex-direction: column;
   gap: 40px 0;
-  margin: 25px auto 48px;
   width: 82.36%;
   height: 100%; /* Make footerInfoColumn take up the full height of footerWrapper */
-  justify-content: space-between; /* Space content evenly within the column */
+  justify-content: center;  /* 垂直居中 */
 }
 .page1 .footerBrandingRow {
   display: flex;

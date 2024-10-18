@@ -1,0 +1,526 @@
+{% load static %}  <!-- This line loads the static tag library -->
+
+<!DOCTYPE html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+
+    <link rel="stylesheet" type="text/css" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous" />
+    <!-- CSS links -->
+    <link rel="stylesheet" type="text/css" href="{% static 'css/common.css' %}" />
+    <link rel="stylesheet" type="text/css" href="{% static 'css/fonts.css' %}" />
+    <link rel="stylesheet" type="text/css" href="{% static 'css/Page1.css' %}" />
+    <script src="{% static 'js/bundle.js' %}"></script>
+    <script src="{% static 'index.js' %}"></script>
+
+</head>
+
+<body class="flex-column">
+
+    <main class="page1 mainSection">
+        <!-- Main content of the webpage -->
+        <section class="smartDOverviewSection">
+            <!-- Header section with branding and navigation. -->
+            <div class="blockContainer">
+                <div class="flexRowContainer">
+                    <div class="brandingContainer">
+                        <img class="brandingImage" src="{% static 'assets/0fbf1a91f14780ce3fa9a491a86c9449.svg' %}" alt="alt text" />
+                        <div class="brandingTextContainer">
+                            <p class="brandingNameText">SMARTD</p>
+                            <p class="brandingStudioText">STUDIO</p>
+                        </div>
+                    </div>
+                    <div class="navigationRowContainer">
+                        <!-- Navigation menu for the site. -->
+                        <a href="{% url 'home' %}" class="navHomeText">Home</a>
+                        <a href="javascript:void(0);" class="navPlaygroundText" id="playgroundLink">Playground</a>
+                        <a href="#tutorialsSection" class="navTutorialText">Tutorial</a>
+                        <p class="navAboutText">About</p>
+                    </div>
+                    <div class="authButtonsContainer">
+                        {% if not user.is_authenticated %}
+                            <button class="loginBtn">Log In</button>
+                            <button class="startTrialBtn">Start Free Trial</button>
+                        {% else %}
+                            <!-- 如果用户已登录，显示用户名 -->
+                            <div class="userAvatarBox">
+                                <span class="userName">{{ user.username }}</span>  <!-- 显示当前登录的用户名 -->
+                                <!-- 隐藏的子菜单 -->
+                                <div class="userMenu" id="userMenu">
+                                    <button class="logoutBtn" id="logoutBtn">Log Out</button>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="noCodeSolutionsSection" class="noCodeSolutionsSection">
+            <!-- Main section discussing no-code solutions. -->
+            <!-- <div class="imageWrapper"><img class="noCodeSolutionImage" src="{% static 'assets/ee7aeb6d311780e3c2b8d71d418b2356.png' %}" alt="alt text" /></div> -->
+            <div class="solutionsContentColumn">
+                <div class="contentWrapper">
+                    <div class="solutionsHeaderWrapper">
+                        <h1 class="noCodeSolutionsHeader">No code solutions for Graph Database</h1>
+                    </div>
+                    <p class="solutionsDescriptionText">Due to the developer shortage and budget issues, low-code/no-code frameworks are gaining popularity. Visual Query Interfaces (VQIs) let users create database queries with &quot;drag-and-drop&quot; ease.</p>
+                </div>
+                <button class="linkDatabaseBtn"> Link database </button>
+            </div>
+        </section>
+
+        <section id="tutorialsSection" class="tutorialsSection">
+            <!-- Section for tutorials. -->
+            <div class="tutorialItem">
+                <!-- Individual tutorial item. -->
+                <div class="tutorialHeaderWrapper">
+                    <h3 class="tutorialHeaderText">TutoRial</h3>
+                </div>
+                <div class="tutorialContentBox" id="tutorialContentBox">
+                <!-- Container for tutorial content. -->
+
+                </div>
+            </div>
+        </section>
+
+        {% comment %} <section class="contactUsSection">
+            <!-- Contact us section. -->
+            <div class="contactWrapper">
+                <div class="contactDetailsColumn">
+                    <div class="contactInfoColumn">
+                        <h3 class="contactHeader">Contact us</h3>
+                        <div class="problemDescriptionText">Your problem:</div>
+                    </div>
+                    <div class="contactSendRow">
+                        <!-- Row for the contact send button. -->
+                        <div class="problemDecor"></div>
+                        <button class="contactSendBtn"> Send </button>
+                    </div>
+                </div>
+            </div>
+        </section> {% endcomment %}
+
+        <section class="footerSection">
+            <!-- Footer section of the page. -->
+            <div class="footerWrapper">
+                <div class="footerInfoColumn">
+                    <div class="footerBrandingRow">
+                        <div class="footerBrandingRowOne">
+                            <img class="footerBrandingImage" src="{% static 'assets/0fbf1a91f14780ce3fa9a491a86c9449.svg' %}" alt="alt text" />
+                            <div class="footerBrandingTextContainer">
+                                <p class="footerNameText">SMARTD</p>
+                                <p class="footerStudioText">STUDIO</p>
+                            </div>
+                        </div>
+                        <div class="footerNavRow">
+                            <!-- Footer navigation links. -->
+                            <a href="{% url 'home' %}" class="footerHomeText">Home</a>
+                            <a href="{% url 'playground' %}" class="footerPlaygroundText">Playground</a>
+                            <a href="#tutorialsSection" class="footerTutorialText">Tutorial</a>
+                            <p class="footerAboutText">About</p>
+                        </div>
+                        <div class="footerImagesRow">
+                            <!-- Row of additional footer images. -->
+                            <img class="footerAdditionalImageOne" src="{% static 'assets/529f44935176c4533c3052d9a61707da.svg' %}" alt="alt text" />
+                            <img class="footerAdditionalImageTwo" src="{% static 'assets/2a35811c4a3593d307bda84e000cd1a8.svg' %}" alt="alt text" />
+                            <img class="footerAdditionalImageThree" src="{% static 'assets/959bbb94b391fead793b136b3c0b6e58.svg' %}" alt="alt text" />
+                            <img class="footerAdditionalImageFour" src="{% static 'assets/95fd450a167a7e233741fa455454989a.svg' %}" alt="alt text" />
+                            <img class="footerAdditionalImageFive" src="{% static 'assets/61e7bcf2baaa8382256551aa68ed0cfe.svg' %}" alt="alt text" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+        <!-- Modal Structure -->
+        <div id="authModal" class="modal">
+            <div class="modalContent">
+                <div class="header-container">
+                    <!-- 选项卡 -->
+                    <div class="tabs">
+                        <button class="tab-button active" id="loginTab">Log In</button>
+                        <button class="tab-button" id="registerTab">Sign Up</button>
+                    </div>
+                    <span id="closeModal" class="closeBtn">&times;</span>
+                </div>
+                 <!-- 注册表单 -->
+                 <div id="registerForm" class="tab-content">
+                    <form id="registerFormSubmit">
+                        <div class="input-group">
+                            <label for="registerProtocol">Connect URL</label>
+                            <div class="input-flex">
+                                <select id="registerProtocol">
+                                    <option value="neo4j://">neo4j://</option>
+                                    <option value="bolt://" selected>bolt://</option>
+                                    <option value="neo4j+s://">neo4j+s://</option>
+                                    <option value="bolt+s://">bolt+s://</option>
+                                </select>
+                                <input type="text" id="registerConnectUrl" placeholder="192.168.0.54:7687">
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <label for="registerServerUsername">Server Username</label>
+                            <input type="text" id="registerServerUsername" placeholder="Enter server username" required>
+                        </div>
+                        <div class="input-group">
+                            <label for="registerServerPassword">Server Password</label>
+                            <input type="password" id="registerServerPassword" placeholder="Enter server password">
+                        </div>
+                        <div class="input-group">
+                            <label for="registerUsername">Username</label>
+                            <input type="text" id="registerUsername" placeholder="Enter username" required>
+                        </div>
+                        <div class="input-group">
+                            <label for="registerPassword">Password</label>
+                            <input type="password" id="registerPassword" placeholder="Enter password" required>
+                        </div>
+                        <div class="remember-me">
+                            <input type="checkbox" id="registerRememberMe">
+                            <label for="registerRememberMe">Remember Me</label>
+                        </div>
+                        <button type="submit" class="submit-btn">Sign Up</button>
+                    </form>
+                </div>
+                <!-- 登录表单 -->
+                <div id="loginForm" class="tab-content active">
+                    <form id="loginFormSubmit">
+                        <div class="input-group">
+                            <label for="loginUsername">Username</label>
+                            <input type="text" id="loginUsername" placeholder="Enter username">
+                        </div>
+                        <div class="input-group">
+                            <label for="loginPassword">Password</label>
+                            <input type="password" id="loginPassword" placeholder="Enter password">
+                        </div>
+                        <div class="remember-me">
+                            <input type="checkbox" id="loginRememberMe">
+                            <label for="loginRememberMe">Remember Me</label>
+                        </div>
+                        <button type="submit" class="submit-btn">Log In</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- 登录注册菜单逻辑 -->
+        <script>
+            // 获取元素
+            const authModal = document.getElementById("authModal");
+            const closeModalBtn = document.getElementById("closeModal");
+            const loginTab = document.getElementById("loginTab");
+            const registerTab = document.getElementById("registerTab");
+            const loginForm = document.getElementById("loginForm");
+            const registerForm = document.getElementById("registerForm");
+
+            // 获取按钮
+            const linkDatabaseBtn = document.querySelector(".linkDatabaseBtn");
+            const loginBtn = document.querySelector(".loginBtn");
+            const startTrialBtn = document.querySelector(".startTrialBtn");
+
+            // 点击按钮，显示模态框并进入对应表单
+            linkDatabaseBtn.addEventListener("click", function() {
+                openModal('register');
+            });
+            startTrialBtn.addEventListener("click", function() {
+                openModal('register');
+            });
+            loginBtn.addEventListener("click", function() {
+                openModal('login');
+            });
+
+            function openModal(formType) {
+                authModal.style.display = "flex";  // 显示模态框
+
+                // 根据传递的参数显示对应的表单
+                if (formType === 'register') {
+                    registerForm.classList.add("active");
+                    loginForm.classList.remove("active");
+                    registerTab.classList.add("active");
+                    loginTab.classList.remove("active");
+                } else if (formType === 'login') {
+                    loginForm.classList.add("active");
+                    registerForm.classList.remove("active");
+                    loginTab.classList.add("active");
+                    registerTab.classList.remove("active");
+                }
+            }
+
+            // 关闭模态框
+            closeModalBtn.addEventListener("click", function() {
+                authModal.style.display = "none";
+            });
+
+            // 点击页面其他地方时，关闭模态框
+            window.addEventListener("click", function(event) {
+                if (event.target == authModal) {
+                    authModal.style.display = "none";
+                }
+            });
+
+            // 登录和注册表单之间的切换
+            loginTab.addEventListener("click", function() {
+                loginForm.classList.add("active");
+                registerForm.classList.remove("active");
+                loginTab.classList.add("active");
+                registerTab.classList.remove("active");
+            });
+
+            registerTab.addEventListener("click", function() {
+                registerForm.classList.add("active");
+                loginForm.classList.remove("active");
+                registerTab.classList.add("active");
+                loginTab.classList.remove("active");
+            });
+        </script>
+
+        <!-- url输入逻辑 -->
+        <script>
+            const defaultValue = "192.168.0.54:7687";
+
+            // 通用函数：处理表单提交时的默认值逻辑
+            function applyDefaultOnSubmit(inputId, formId) {
+                const inputField = document.getElementById(inputId);
+                const form = document.getElementById(formId);
+
+                form.addEventListener("submit", function(e) {
+                if (!inputField.value) {
+                    inputField.value = defaultValue;
+                }
+                });
+
+                // 双击时填充默认值
+                inputField.addEventListener("dblclick", function() {
+                inputField.value = defaultValue;
+                });
+            }
+
+            // 为注册表单和登录表单应用通用逻辑
+            applyDefaultOnSubmit("registerConnectUrl", "registerFormSubmit");
+            applyDefaultOnSubmit("loginConnectUrl", "loginFormSubmit");
+        </script>
+
+        <!-- 注册 登录 登出-->
+        <script>
+            // 注册表单提交处理
+            document.getElementById('registerFormSubmit').addEventListener('submit', function(e) {
+                e.preventDefault(); // 防止表单默认提交
+
+                // 获取表单数据
+                const protocol = document.getElementById('registerProtocol').value;
+                const url = document.getElementById('registerConnectUrl').value;
+                const fullUrl = protocol + url;
+                const serverUser = document.getElementById('registerServerUsername').value;
+                const serverPassword = document.getElementById('registerServerPassword').value;
+                const username = document.getElementById('registerUsername').value;
+                const password = document.getElementById('registerPassword').value;
+
+                // 发送注册请求到后端
+                fetch('{% url "test_neo4j_and_signup" %}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: JSON.stringify({
+                        fullUrl: fullUrl,
+                        serverUser: serverUser,  // 传递数据库的用户名
+                        serverPassword: serverPassword,  // 传递数据库的密码
+                        username: username,  // 本网站的用户名
+                        password: password   // 本网站的密码
+                    })
+                }).then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Registration successful!');
+                        window.location.href = '{% url "playground" %}';
+                    } else {
+                        alert('Error: ' + data.error);
+                    }
+                }).catch(error => console.error('Error:', error));
+            });
+
+            // 登录表单提交处理
+            document.getElementById('loginFormSubmit').addEventListener('submit', function(e) {
+                e.preventDefault(); // 防止表单默认提交
+
+                // 获取表单数据
+                const username = document.getElementById('loginUsername').value;
+                const password = document.getElementById('loginPassword').value;
+                const rememberMe = document.getElementById('loginRememberMe').checked;
+
+                // 发送登录请求到后端
+                fetch('{% url "test_neo4j_and_login" %}', {  // Ensure this URL points to your Django login view
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: JSON.stringify({
+                        username: username,
+                        password: password,
+                        rememberMe: rememberMe  // 传递Remember Me的状态
+                    })
+                }).then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Login successful!');
+                        window.location.href = '{% url "playground" %}';  // Redirect upon successful login
+                    } else {
+                        alert('Error: ' + data.error);  // Display error message from the backend
+                    }
+                }).catch(error => console.error('Error:', error));
+            });
+
+            // 登出表单提交处理
+            document.getElementById('logoutBtn').addEventListener('click', function() {
+                fetch('{% url "logout" %}', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}'  // 确保发送 CSRF 令牌
+                    }
+                }).then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // 登出成功后重定向到首页
+                        window.location.href = '/';
+                    } else {
+                        alert('Error: ' + data.error);
+                    }
+                }).catch(error => console.error('Error:', error));
+            });
+        </script>
+
+        <!-- 登出和user子菜单逻辑 -->
+        <script>
+            window.onload = function() {
+                // 选择 userAvatarBox 元素
+                var userAvatarBox = document.querySelector('.userAvatarBox');
+                var userMenu = document.getElementById('userMenu');
+
+                // 确保只有在 userAvatarBox 存在时绑定事件
+                if (userAvatarBox) {
+                    userAvatarBox.addEventListener('click', function(event) {
+                        event.stopPropagation();  // 阻止点击冒泡，避免触发外部点击事件
+                        if (userMenu) {
+                            // 切换显示和隐藏菜单
+                            userMenu.style.display = (userMenu.style.display === 'block') ? 'none' : 'block';
+                        }
+                    });
+
+                    // 点击页面其他地方时隐藏菜单
+                    document.addEventListener('click', function() {
+                        if (userMenu && userMenu.style.display === 'block') {
+                            userMenu.style.display = 'none';
+                        }
+                    });
+                }
+            };
+        </script>
+
+        <!-- 滚动逻辑 -->
+        <script>
+            let isAutoScrolling = false; // To prevent multiple auto-scroll triggers
+            let lastScrollPosition = window.scrollY; // Track the last scroll position
+            let debounceTimeout; // Variable to hold the debounce timeout
+            let fastScrollDisabled = false; // To disable auto-scrolling during fast scrolling
+            const fastScrollThreshold = 100; // Scroll delta threshold (px) for disabling auto-scrolling
+            const debounceDelay = 2; // Set delay for debounce in milliseconds
+
+            window.addEventListener('scroll', function() {
+                const currentScrollPosition = window.scrollY;
+                const scrollDelta = Math.abs(currentScrollPosition - lastScrollPosition); // Calculate the scroll speed
+                const isScrollingDown = currentScrollPosition > lastScrollPosition; // Detect scroll direction
+                lastScrollPosition = currentScrollPosition;
+
+                // Disable auto-scroll when the user scrolls quickly
+                if (scrollDelta > fastScrollThreshold) {
+                    fastScrollDisabled = true;
+                    clearTimeout(debounceTimeout);
+                    debounceTimeout = setTimeout(() => fastScrollDisabled = false, 500); // Re-enable auto-scroll after 500ms
+                    return;
+                }
+
+                if (fastScrollDisabled) {
+                    return; // Skip auto-scrolling if fast scrolling is detected
+                }
+
+                clearTimeout(debounceTimeout); // Clear previous debounce timeout if scroll event occurs again
+
+                debounceTimeout = setTimeout(function() {
+                    const noCodeSection = document.getElementById('noCodeSolutionsSection');
+                    const tutorialSection = document.getElementById('tutorialsSection');
+                    const footerSection = document.querySelector('.footerSection');
+                    const headerSection = document.querySelector('.smartDOverviewSection');
+                    const headerHeight = headerSection.offsetHeight;  // Get the height of the fixed header
+                    const tolerance = 5; // Allow a difference of ±5 pixels
+
+                    const noCodeRect = noCodeSection.getBoundingClientRect();
+                    const tutorialRect = tutorialSection.getBoundingClientRect();
+                    const footerRect = footerSection.getBoundingClientRect();
+
+                    // Scenario 1: Scrolling down in noCodeSolutionsSection -> Auto-scroll to tutorialsSection
+                    if (Math.abs(noCodeRect.top - headerHeight) <= tolerance && isScrollingDown && !isAutoScrolling) {
+                        isAutoScrolling = true; // Set auto-scrolling flag
+                        const offsetPosition = tutorialSection.getBoundingClientRect().top + window.scrollY - headerHeight;
+                        window.scrollTo({
+                            top: offsetPosition,
+                            behavior: 'smooth'
+                        });
+                        // console.log("noCodeRect.top:", noCodeRect.top);
+                        // console.log("tutorialSection.top:", tutorialSection.getBoundingClientRect().top);
+                        // console.log("headerHeight:", headerHeight);
+
+                        // Reset auto-scrolling after the scroll completes
+                        window.setTimeout(() => {
+                            isAutoScrolling = false;
+                        }, 1000); // Adjust timeout if needed
+                        return; // Stop further actions until this scroll completes
+                    }
+
+                    // Scenario 2: Scrolling up in tutorialsSection -> Auto-scroll to noCodeSolutionsSection
+                    if (Math.abs(tutorialRect.top - headerHeight) <= tolerance && !isScrollingDown && !isAutoScrolling) {
+                        isAutoScrolling = true; // Set auto-scrolling flag
+                        const offsetPosition = noCodeSection.getBoundingClientRect().top + window.scrollY - headerHeight;
+                        window.scrollTo({
+                            top: offsetPosition,
+                            behavior: 'smooth'
+                        });
+                        // console.log("tutorialRect.top:", tutorialRect.top);
+                        // console.log("noCodeSection.top:", noCodeSection.getBoundingClientRect().top);
+                        // console.log("headerHeight:", headerHeight);
+
+                        // Reset auto-scrolling after the scroll completes
+                        window.setTimeout(() => {
+                            isAutoScrolling = false;
+                        }, 1000); // Adjust timeout if needed
+                        return; // Stop further actions until this scroll completes
+                    }
+
+                }, debounceDelay); // Set the debounce delay
+            });
+        </script>
+
+        <!-- 在页面底部添加这个脚本 -->
+        <script>
+            // 获取Playground链接元素
+            const playgroundLink = document.getElementById("playgroundLink");
+
+            playgroundLink.addEventListener("click", function() {
+                // 检查用户是否已登录
+                const isAuthenticated = {{ user.is_authenticated|yesno:"true,false" }};  // Django模板标记
+
+                if (isAuthenticated) {
+                    // 用户已登录，跳转到Playground页面
+                    window.location.href = "{% url 'playground' %}";
+                } else {
+                    // 用户未登录，打开登录/注册模态框
+                    openModal('login');  // 打开模态框，显示登录表单
+                }
+            });
+        </script>
+
+</body>
+
+</html>

@@ -90,10 +90,6 @@
                     </div>
                   </div>
 
-                  <!-- 动态显示的数据库列表 -->
-                  {% comment %} todo: 增加修改密码和删除，增加状态检查，增加删除database功能 {% endcomment %}
-                  {% comment %} todo: 增加database时没有检查连接 {% endcomment %}
-                  {% comment %} todo: neo4j-connector中保存逻辑有bug，既检查当前连接的database需要注意 {% endcomment %}
                   {% for db in databases %}
                       <div class="databaseItem" data-url="{{ db.url }}">
                           <span class="selectedLabel hidden">

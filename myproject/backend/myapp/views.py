@@ -124,6 +124,25 @@ def logout_view(request):
     return JsonResponse({'success': False, 'error': 'Invalid request method'})
 
 @ensure_csrf_cookie
+def get_user_databases(request):
+    if request.method == 'GET' and request.user.is_authenticated:
+        try:
+            # Fetch all databases associated with the authenticated user
+            databases = Neo4jServer.objects.filter(user=request.user)
+            database_list = [
+                {
+                    'url': db.url,
+                    'server_username': db.server_username,
+                    'server_password': db.server_password,
+                }
+                for db in databases
+            ]
+            return JsonResponse({'success': True, 'databases': database_list})
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)}, status=500)
+    return JsonResponse({'success': False, 'error': 'Unauthorized or invalid request'}, status=400)
+
+@ensure_csrf_cookie
 def add_database(request):
     if request.method == 'POST' and request.user.is_authenticated:
         data = json.loads(request.body)

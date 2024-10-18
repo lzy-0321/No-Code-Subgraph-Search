@@ -13,7 +13,7 @@ trap terminate SIGINT
 # Start Django backend on port 8080
 echo "Starting Django backend..."
 cd backend || exit 1  # Enter backend directory
-python3 manage.py runserver 8080 &  # Run Django on port 8080 in the background
+python3 manage.py runserver 8000 &  # Run Django on port 8080 in the background
 DJANGO_PID=$!  # Capture Django's process ID
 
 # Start Next.js frontend

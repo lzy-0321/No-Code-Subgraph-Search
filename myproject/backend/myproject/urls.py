@@ -35,4 +35,6 @@ urlpatterns = [
     path('delete_database/', views.delete_database, name='delete_database'),
     path('select_database/', views.select_database, name='select_database'),
     path('get_database_info/', views.get_database_info, name='get_database_info'),  # get database info
+    path('get_nodeEntities/', views.get_nodeEntities, name='get_nodeEntities'),
+    path('get_relationshipEntities/', views.get_relationshipEntities, name='get_relationshipEntities'),
 ]

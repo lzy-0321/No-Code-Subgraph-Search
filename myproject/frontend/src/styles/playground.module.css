@@ -15,48 +15,49 @@
 .playground .contentBoxGroup {
   display: flex;
   flex-direction: column;
-  height: 100%; /* Make blockContainer fill the full height of smartDOverviewSection */
+  height: 6vh; /* Same height as smartDOverviewSection */
+  width: 100%; /* Ensure it spans the full width */
   background-color: white;
   border-color: #dde1e6;
   border-style: solid;
   border-width: 0 0 1px;
   justify-content: center;
-  height: 6vh; /* Set the height of the header */
 }
 .playground .flexRowHeader {
   display: flex;
-  gap: 0 28px;
+  gap: 0 30px;
   width: 82.36%;
   margin: 0 auto; /* Center it horizontally in the viewport */
   margin-left: 20px;
+  height: 100%;
+  align-items: center;
 }
 .playground .brandingContainer {
   display: flex;
-  flex-direction: row;
-  gap: 0 6px;
-  margin: 3px 0 0;
-  width: 107px;
-  min-width: 0;
+  gap: 10px; /* Adjust to match */
+  align-items: center;
 }
+
 .playground .brandingImage {
-  margin: 4px 0 11px;
-  width: 24px;
-  min-width: 0;
+  margin: 0; /* Consistent margin */
+  width: 24px; /* Consistent size */
 }
+
 .playground .brandingTextContainer {
   display: flex;
   flex-direction: column;
+  justify-content: center;
   width: 77px;
   min-width: 0;
 }
 .playground .brandingNameText {
   margin: 0 2px 0 0;
-  font: 400 18px/1.36 Abel, Helvetica, Arial, serif;
+  font: 500 16px/1 Roboto, Helvetica, Arial, serif;
   color: black;
   letter-spacing: 3.06px;
 }
 .playground .brandingStudioText {
-  font: 400 18px/1.36 Abel, Helvetica, Arial, serif;
+  font: 500 16px/1 Roboto, Helvetica, Arial, serif;
   color: black;
   letter-spacing: 4.41px;
 }
@@ -198,6 +199,13 @@
   width: 24px;
   min-width: 0;
 }
+.playground .searchInput {
+  margin-left: 10px;
+  padding: 5px;
+  font-size: 14px;
+  width: 100%;
+  background-color: #f2f4f8;
+}
 .playground .featureTextSearchFor {
   margin: 1px 0 0;
   min-width: 0;
@@ -298,40 +306,87 @@
 {
   transform: rotate(180deg); /* Rotate the arrow 180 degrees */
 }
-
-/* Node labels list styles (initially hidden) */
-.playground .nodeLabelsList {
+.playground .labelItemContainer {
+  display: flex;
+  flex-direction: column;
+}
+.playground .labelItem {
+  margin: 5px 0;
+  padding: 0px 10px;
+  font: 500 14px/1.5 Roboto, Helvetica, Arial, sans-serif;
+  background-color: #f9f9f9;
+  border-radius: 4px;
+  cursor: pointer;
+  height: 40px; /* Set a minimum height if needed */
+  display: flex; /* Use flexbox */
+  align-items: center; /* Vertically center the text */
+  width: 100%; /* Ensure full width */
+}
+.playground .entityItemContainer {
+  display: flex;
+  flex-direction: row;
+  align-items: center; /* Aligns items vertically */
+  justify-content: space-between; /* Ensures the button is to the right of the text */
+  width: 100%; /* Full width */
+  gap: 15px; /* Adds space between entityItem and addButton */
+}
+.playground .entityGroup {
+  display: flex;
+  flex-direction: column;
+}
+.playground .relationshipEntityItemContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Aligns items vertically */
+  width: 100%; /* Full width */
+}
+.playground .entityList {
   display: block;
   background-color: #fff;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  padding: 10px;
-  margin-top: 10px;
-  max-height: 140px; /* Set a max height for the list */
-  overflow-y: auto; /* Scroll if the list exceeds the max height */
+  border: none; /* Remove border */
+  padding: 0px;
+  width: 95%;
 }
-
+.playground .entityItem {
+  display: flex;
+  padding: 5px 0;
+  font-size: 14px;
+  color: #414040;
+  width: 75%;
+}
+.playground .addButton {
+  cursor: pointer;
+}
+.playground .separator {
+  width: 100%;
+  height: 1px;
+  background-color: #ddd;
+  margin-top: 10px;
+}
+.playground .nodeLabelsList,
 .playground .relationshipTypesList,
 .playground .propertyKeysList {
   display: block;
   background-color: #fff;
-  border: 1px solid #ddd;
+  border: none; /* Remove border */
   border-radius: 5px;
-  padding: 10px;
-  margin-top: 10px;
-  max-height: 220; /* Set a max height for the list */
-  overflow-y: auto; /* Scroll if the list exceeds the max height */
+  padding: 0px;
 }
+/* useless!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! */
 /* Style individual node label items */
 .playground .nodeLabelsList p,
 .playground .relationshipTypesList p,
 .playground .propertyKeysList p {
   margin: 5px 0;
-  padding: 5px 10px;
+  padding: 0px 10px;
   font: 500 14px/1.5 Roboto, Helvetica, Arial, sans-serif;
   background-color: #f9f9f9;
   border-radius: 4px;
   cursor: pointer;
+  height: 40px; /* Set a minimum height if needed */
+  display: flex; /* Use flexbox */
+  align-items: center; /* Vertically center the text */
+  width: 100%; /* Ensure full width */
 }
 
 .playground .nodeLabelsList p:hover,
@@ -575,10 +630,6 @@
 .settingsMenu.show {
   display: block;
 }
-.selected {
-  background-color: #d1e7dd; /* A light green background for selected database */
-  font-weight: bold; /* Make the text bold to indicate selection */
-}
 .databaseUrl {
   cursor: pointer; /* Indicate clickable links */
 }
@@ -590,6 +641,9 @@
   display: inline-block;
   color: #28a745; /* Green color for the checkmark */
   margin-right: 10px; /* Add space between checkmark and text */
+  width: 20px; /* Set a fixed width */
+  height: 20px; /* Set a fixed height */
+  flex-shrink: 0; /* Prevent shrinking */
 }
 .hidden {
   display: none;
@@ -619,13 +673,11 @@
   justify-content: center; /* Vertically center content */
   text-align: center; /* Horizontally center all text */
 }
-
 #modalText {
   font-size: 16px; /* Adjust font size for better readability */
   margin-bottom: 20px; /* Add space between the text and the button */
   text-align: center; /* Ensure the text is centered horizontally */
 }
-
 .confirmDatabaseBtn {
   width: 60%; /* Make the button width smaller for a better fit */
   padding: 10px 20px; /* Adjust padding for better proportions */
@@ -637,7 +689,6 @@
   cursor: pointer;
   margin: 0 auto; /* Center the button horizontally */
 }
-
 .confirmDatabaseBtn:hover {
   background-color: #0056b3; /* Darker color on hover for effect */
 }

@@ -75,3 +75,112 @@ class Neo4jConnector:
         except Exception as e:
             print(f"Error fetching property keys: {e}")
             return []
+
+    def get_node_entities(self, label):
+        """
+        Retrieves representative entities for the specified label, selecting specific properties based on the label type.
+
+        Parameters:
+        label (str): The label of the nodes to retrieve.
+
+        Returns:
+        list of str: A sorted list of representative property values for each node of the specified label.
+        """
+        # Define a mapping of labels to their representative property keys
+    def get_node_entities(self, label):
+        """
+        Retrieves entities (nodes) for the specified label from the Neo4j database,
+        prioritizing properties that best represent each node.
+
+        Parameters:
+        label (str): The label of the nodes to retrieve.
+
+        Returns:
+        list of str: A sorted list containing the prioritized property value for each node.
+        """
+        # Define a list of properties to prioritize
+        priority_properties = ["name", "title", "id"]
+
+        try:
+            with self.driver.session() as session:
+                # Query to match nodes with the specified label and return their properties
+                query = f"MATCH (n:{label}) RETURN properties(n) AS properties LIMIT 100"
+                result = session.run(query)
+
+                # Extract prioritized property from each node
+                entities = []
+                for record in result:
+                    properties = record["properties"]
+                    if properties:
+                        # Find the first available priority property
+                        selected_property = next(
+                            (properties[prop] for prop in priority_properties if prop in properties),
+                            None
+                        )
+                        # Default to the first available property if no priority property is found
+                        if selected_property is None and properties:
+                            selected_property = list(properties.values())[0]
+                        entities.append(selected_property)
+
+                # Sort entities alphabetically
+                entities.sort()
+            return entities
+        except Exception as e:
+            print(f"Error fetching entities for label {label}: {e}")
+            return []
+
+    def get_relationship_entities(self, label):
+        """
+        Retrieves relationships for the specified label from the Neo4j database,
+        prioritizing properties that best represent each relationship.
+
+        Parameters:
+        label (str): The label of the relationships to retrieve.
+
+        Returns:
+        list of lists: A sorted list containing pairs of start and end node properties.
+                       Each entry is formatted as [[start_property, end_property], ...]
+        """
+        # Define a list of properties to prioritize
+        priority_properties = ["type", "name", "title", "id"]
+
+        try:
+            with self.driver.session() as session:
+                # Query to match relationships with the specified label and return start and end nodes
+                query = (
+                    f"MATCH (start)-[r:{label}]->(end) "
+                    "RETURN start, end, properties(r) AS relationship_properties LIMIT 100"
+                )
+                result = session.run(query)
+
+                # Extract relationships as start and end node property pairs
+                relationships = []
+                for record in result:
+                    start_node = record["start"]
+                    end_node = record["end"]
+                    relationship_properties = record["relationship_properties"]
+
+                    # Select the prioritized property for start and end nodes
+                    start_property = next(
+                        (start_node.get(prop) for prop in priority_properties if prop in start_node),
+                        None
+                    )
+                    end_property = next(
+                        (end_node.get(prop) for prop in priority_properties if prop in end_node),
+                        None
+                    )
+
+                    # Use a fallback property if no prioritized properties are found
+                    if start_property is None:
+                        start_property = list(start_node.values())[0] if start_node else None
+                    if end_property is None:
+                        end_property = list(end_node.values())[0] if end_node else None
+
+                    relationships.append([start_property, end_property])
+
+                # Sort relationships by start and end properties alphabetically
+                relationships.sort(key=lambda x: (x[0], x[1]))
+            return relationships
+        except Exception as e:
+            print(f"Error fetching relationships for label {label}: {e}")
+            return []

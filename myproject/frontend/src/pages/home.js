@@ -5,7 +5,9 @@ import Link from 'next/link';
 import Login from './login';  // 导入登录组件
 import Register from './register';  // 导入注册组件
 import styles from '../styles/Page1.module.css';
+import dynamic from 'next/dynamic';
 import { tutorialCard } from '../components/tutorialCard';
+const GraphComponent = dynamic(() => import('../components/GraphComponent'), { ssr: false });
 
 export default function Home() {
   const [user, setUser] = useState(null);  // 用户状态
@@ -14,6 +16,17 @@ export default function Home() {
   const [activeForm, setActiveForm] = useState('login');  // 当前激活的表单 ('login' or 'register')
   const [tutorialContent, setTutorialContent] = useState(null); // Add state to hold the tutorial content
   const router = useRouter();
+
+  const graphNodes = [
+    { id: '1', properties: { name: 'Alice', age: 30 } },
+    { id: '2', properties: { name: 'Bob', age: 25 } },
+    { id: '3', properties: { title: 'Graph Database', type: 'Tutorial' } },
+  ];
+
+  const graphRelationships = [
+    { startNode: '1', endNode: '2', type: 'FRIEND', properties: { since: '2020' } },
+    { startNode: '2', endNode: '3', type: 'LEARNED', properties: { date: '2021' } },
+  ];
 
   useEffect(() => {
     const fetchTutorialContent = async () => {
@@ -193,17 +206,23 @@ export default function Home() {
 
       {/* No-Code Solutions Section */}
       <section id="noCodeSolutionsSection" className={styles.noCodeSolutionsSection}>
-        <div className={styles.solutionsContentColumn}>
-          <div className={styles.contentWrapper}>
-            <div className={styles.solutionsHeaderWrapper}>
-              <h1 className={styles.noCodeSolutionsHeader}>No code solutions for Graph Database</h1>
+        <div className={styles.solutionsContentRow}>
+          <div className={styles.solutionsContentColumn}>
+            <div className={styles.contentWrapper}>
+              <div className={styles.solutionsHeaderWrapper}>
+                <h1 className={styles.noCodeSolutionsHeader}>No code solutions for Graph Database</h1>
+              </div>
+              <p className={styles.solutionsDescriptionText}>
+                Due to the developer shortage and budget issues, low-code/no-code frameworks are gaining popularity.
+                Visual Query Interfaces (VQIs) let users create database queries with "drag-and-drop" ease.
+              </p>
             </div>
-            <p className={styles.solutionsDescriptionText}>
-              Due to the developer shortage and budget issues, low-code/no-code frameworks are gaining popularity.
-              Visual Query Interfaces (VQIs) let users create database queries with "drag-and-drop" ease.
-            </p>
+            <button className={styles.linkDatabaseBtn}>Link database</button>
           </div>
-          <button className={styles.linkDatabaseBtn}>Link database</button>
+          <div className={styles.graph}>
+            <h1>Graph Visualization</h1>
+            <GraphComponent nodes={graphNodes} relationships={graphRelationships} />
+          </div>
         </div>
       </section>
 

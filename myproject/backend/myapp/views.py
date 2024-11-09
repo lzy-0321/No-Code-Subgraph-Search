@@ -253,6 +253,58 @@ def get_database_info(request):
 
     return JsonResponse({'success': False, 'error': 'Unauthorized or invalid request'}, status=400)
 
+@csrf_exempt
+@ensure_csrf_cookie
+def get_nodeEntities(request):
+    if request.method == 'POST' and request.user.is_authenticated:
+        try:
+            data = json.loads(request.body)
+            label = data.get('label')
+            if not label:
+                return JsonResponse({'success': False, 'error': 'Label is required'}, status=400)
+
+            connector = neo4j_session_manager.get_session()
+            if not connector:
+                return JsonResponse({'success': False, 'error': 'No active Neo4j session found for the user'}, status=500)
+
+            # Fetch entities for the specified label
+            node_entities = connector.get_node_entities(label)
+            return JsonResponse({'success': True, 'nodeEntities': node_entities})
+
+        except Exception as e:
+            print(f"Error fetching node entities: {e}")
+            return JsonResponse({'success': False, 'error': 'Server error'}, status=500)
+
+    return JsonResponse({'success': False, 'error': 'Unauthorized or invalid request'}, status=400)
+
+@csrf_exempt
+@ensure_csrf_cookie
+def get_relationshipEntities(request):
+    if request.method == 'POST':
+        try:
+            # Parse JSON body and get `type`
+            data = json.loads(request.body)
+            relationship_type = data.get('type')
+
+            if not relationship_type:
+                return JsonResponse({'success': False, 'error': 'Relationship type is required'}, status=400)
+
+            # Assuming `get_relationship_entities` function fetches the relationships for the given type
+            connector = neo4j_session_manager.get_session()
+            if not connector:
+                return JsonResponse({'success': False, 'error': 'No active Neo4j session found for the user'}, status=500)
+
+            relationships = connector.get_relationship_entities(relationship_type)
+            return JsonResponse({'success': True, 'relationshipEntities': relationships})
+
+        except json.JSONDecodeError:
+            return JsonResponse({'success': False, 'error': 'Invalid JSON format'}, status=400)
+        except Exception as e:
+            print(f"Error fetching relationships for type {relationship_type}: {e}")
+            return JsonResponse({'success': False, 'error': 'Server error'}, status=500)
+
+    return JsonResponse({'success': False, 'error': 'Invalid request method'}, status=400)
+
 def playground(request):
     if request.user.is_authenticated:
         # 获取当前用户的所有 Neo4j 服务器

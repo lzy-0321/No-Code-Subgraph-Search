@@ -1,10 +1,10 @@
 # test_neo4j_connection.py
 from neo4j_connector import Neo4jConnector
 
-# 定义测试的 Neo4j URL、服务器用户名和密码
-neo4j_url = 'bolt://192.168.0.54:7687'  # 根据你的 Neo4j 实例的 URL 修改
-server_username = 'neo4j'  # 替换为你的 Neo4j 服务器的用户名
-server_password = '20020321'  # 替换为你的 Neo4j 服务器密码
+# Define test parameters for Neo4j connection
+neo4j_url = 'bolt://192.168.0.54:7687'  # Adjust with your Neo4j instance URL
+server_username = 'neo4j'  # Replace with your Neo4j server username
+server_password = '20020321'  # Replace with your Neo4j server password
 
 # 创建 Neo4jConnector 实例并测试连接
 connector = Neo4jConnector(neo4j_url, server_username, server_password)
@@ -14,17 +14,28 @@ success, message = connector.test_connection()
 if success:
     print("Connection successful!")
 
-    # 测试获取节点标签（node labels）
+    # Test fetching node labels
     labels = connector.get_node_labels()
     print(f"Node Labels: {labels}")
 
-    # 测试获取关系类型（relationship types）
+    # Test fetching relationship types
     relationship_types = connector.get_relationship_types()
     print(f"Relationship Types: {relationship_types}")
 
-    # 测试获取属性键（property keys）
+    # Test fetching property keys
     property_keys = connector.get_property_keys()
     print(f"Property Keys: {property_keys}")
+
+    # Test fetching node entities for a specific label (e.g., "Person")
+    test_label = "Person"  # Replace with an actual label in your database
+    node_entities = connector.get_node_entities(test_label)
+    print(f"Entities with label '{test_label}': {node_entities}")
+
+    # Test fetching relationship entities for a specific type (e.g., "FRIEND_OF")
+    test_type = "ACTED_IN"  # Replace with an actual relationship type in your database
+    relationship_entities = connector.get_relationship_entities(test_type)
+    print(f"Entities with relationship type '{test_type}': {relationship_entities}")
+
 else:
     print(f"Connection failed: {message}")
 

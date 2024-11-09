@@ -58,17 +58,18 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
-  margin-left: 20px;
+  width: 77px;
+  min-width: 0;
 }
 .page1 .brandingNameText {
   margin: 0; /* Remove unnecessary margin */
-  font: 400 18px/1.36 Abel, Helvetica, Arial, serif;
+  font: 500 16px/1 Roboto, Helvetica, Arial, serif;
   color: black;
   letter-spacing: 3.06px;
 }
 .page1 .brandingStudioText {
   margin: 0; /* Remove unnecessary margin */
-  font: 400 18px/1.36 Abel, Helvetica, Arial, serif;
+  font: 500 16px/1 Roboto, Helvetica, Arial, serif;
   color: black;
   letter-spacing: 4.41px;
 }
@@ -83,6 +84,7 @@
 .page1 .navPlaygroundText,
 .page1 .navTutorialText,
 .page1 .navAboutText {
+  font: 500 16px/1 Roboto, Helvetica, Arial, serif;
   font-size: 16px;
   font-weight: 500;
   color: #21272a;
@@ -173,6 +175,10 @@
   justify-content: center;
   align-items: center; /* Horizontally center the content */
   background-color: #f2f4f8;
+}
+.page1 .solutionsContentRow {
+  display: flex;
+  flex-direction: row;
 }
 .page1 .solutionsContentColumn {
   position: absolute;

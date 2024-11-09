@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import styles from '../styles/playground.module.css';
 import Image from 'next/image';
+import SearchBox from '../components/SearchBox';
+import SearchResults from '../components/SearchResults';
 
 export default function Playground() {
   const [databases, setDatabases] = useState([]);
@@ -13,11 +15,53 @@ export default function Playground() {
   const [serverPassword, setServerPassword] = useState('');
   const [openSettingsIndex, setOpenSettingsIndex] = useState(null);
   const [nodeLabels, setNodeLabels] = useState([]);
+  const [expandedLabel, setExpandedLabel] = useState(null); // Track which label is expanded
+  const [nodeEntities, setNodeEntities] = useState({}); // Store entities for each label
   const [relationshipTypes, setRelationshipTypes] = useState([]);
+  const [expandedRelationship, setExpandedRelationship] = useState(null);
+  const [relationshipEntities, setRelationshipEntities] = useState({});
   const [propertyKeys, setPropertyKeys] = useState([]);
   const [isNodeLabelsOpen, setIsNodeLabelsOpen] = useState(false);
   const [isRelationshipTypesOpen, setIsRelationshipTypesOpen] = useState(false);
   const [isPropertyKeysOpen, setIsPropertyKeysOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filteredResults, setFilteredResults] = useState({
+    nodeEntities: [],
+    relationshipEntities: [],
+    propertyKeys: [],
+  });
+
+  const data = {
+    nodeEntities,
+    relationshipEntities,
+    propertyKeys,
+  };
+
+  const [graphNodes, setGraphNodes] = useState([]);
+  const [graphRelationships, setGraphRelationships] = useState([]);
+
+  const handleSearch = (query) => {
+    const lowerCaseQuery = query.toLowerCase();
+
+    // Grouped results by type
+    const results = {
+      nodeEntities: Object.entries(data.nodeEntities).flatMap(([label, entities]) =>
+        entities.filter(entity => entity.toLowerCase().includes(lowerCaseQuery))
+      ),
+      relationshipEntities: Object.entries(data.relationshipEntities).flatMap(([type, entities]) =>
+        entities.filter(entity => entity.some(e => e.toLowerCase().includes(lowerCaseQuery)))
+      ),
+      propertyKeys: data.propertyKeys.filter(key => key.toLowerCase().includes(lowerCaseQuery)),
+    };
+
+    setFilteredResults(results);
+  };
+
+  const handleSearchInput = (e) => {
+    const query = e.target.value;
+    setSearchQuery(query);
+    handleSearch(query);
+  };
 
   useEffect(() => {
     const fetchDatabases = async () => {
@@ -68,7 +112,7 @@ export default function Playground() {
         alert('Database selected and connected successfully.');
 
         // 在数据库选择成功后调用 fetchDatabaseInfo 获取数据库信息
-        fetchDatabaseInfo();
+        await fetchDatabaseInfo();
       } else {
         alert('Error: ' + result.error);
       }
@@ -148,31 +192,97 @@ export default function Playground() {
     }
   };
 
-   // Function to fetch node labels, relationship types, and property keys from the back-end
-   const fetchDatabaseInfo = () => {
-    fetch('http://localhost:8000/get_database_info/', {
-      method: 'GET',
+  // Function to fetch node labels, relationship types, and property keys from the back-end
+  const fetchDatabaseInfo = async () => {
+    try {
+      const response = await fetch('http://localhost:8000/get_database_info/', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        setNodeLabels(data.labels || []);
+        setRelationshipTypes(data.relationship_types || []);
+        setPropertyKeys(data.property_keys || []);
+
+        // Wait until nodeLabels and relationshipTypes are set, then fetch entities
+        for (const label of data.labels || []) {
+          await fetchEntitiesForLabel(label);
+        }
+        for (const type of data.relationship_types || []) {
+          await fetchEntitiesForRelationship(type);
+        }
+      } else {
+        console.error("Error fetching database info:", data.error);
+      }
+    } catch (error) {
+      console.error("Error fetching database info:", error);
+    }
+  };
+
+  // Fetch entities for a given label when it is expanded
+  const fetchEntitiesForLabel = (label) => {
+    fetch('http://localhost:8000/get_nodeEntities/', {
+      method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      credentials: 'include'
+      body: JSON.stringify({ label }),
+      credentials: 'include',
     })
-      .then(response => response.json())
-      .then(data => {
+      .then((response) => response.json())
+      .then((data) => {
         if (data.success) {
-          setNodeLabels(data.labels || []);
-          setRelationshipTypes(data.relationship_types || []);
-          setPropertyKeys(data.property_keys || []);
+          setNodeEntities((prevEntities) => {
+            const updatedEntities = { ...prevEntities, [label]: data.nodeEntities };
+            console.log("Entities for each label after update:", updatedEntities);
+            return updatedEntities;
+          });
         } else {
-          alert('Error fetching database info: ' + data.error);
+          alert('Error fetching entities: ' + data.error);
         }
       })
-      .catch(error => console.error('Error:', error));
+      .catch((error) => console.error('Error fetching entities:', error));
+  };
+
+  // Fetch entities for a given relationship type when it is expanded
+  const fetchEntitiesForRelationship = (type) => {
+    fetch('http://localhost:8000/get_relationshipEntities/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ type }),
+      credentials: 'include',
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.success) {
+          setRelationshipEntities((prevEntities) => {
+            const updatedEntities = { ...prevEntities, [type]: data.relationshipEntities };
+            console.log("Entities for each relationship type after update:", updatedEntities);
+            return updatedEntities;
+          });
+        } else {
+          alert('Error fetching entities: ' + data.error);
+        }
+      })
+      .catch((error) => console.error('Error fetching entities:', error));
   };
 
   const toggleNodeLabels = () => setIsNodeLabelsOpen(!isNodeLabelsOpen);
   const toggleRelationshipTypes = () => setIsRelationshipTypesOpen(!isRelationshipTypesOpen);
   const togglePropertyKeys = () => setIsPropertyKeysOpen(!isPropertyKeysOpen);
+  const toggleExpandedLabel = (label) => {
+    setExpandedLabel(expandedLabel === label ? null : label); // Toggle between expanded and collapsed
+  };
+  const toggleExpandedRelationship = (type) => {
+    setExpandedRelationship(expandedRelationship === type ? null : type); // Toggle between expanded and collapsed
+  };
 
   return (
     <div className={styles.flexColumn}>
@@ -354,7 +464,29 @@ export default function Playground() {
                       width={30}
                       height={30}
                     />
-                    <p className={styles.featureTextSearchFor}>Search for...</p>
+                    <input
+                      type="text"
+                      placeholder="Search for..."
+                      value={searchQuery}
+                      onChange={handleSearchInput}
+                      className={styles.searchInput}
+                    />
+                  </div>
+
+                  {/* Display categorized search results */}
+                  <div className={styles.searchResults}>
+                    {Object.entries(filteredResults).map(([category, results]) => (
+                      results.length > 0 && (
+                        <div key={category} className={styles.searchCategory}>
+                          <h4 className={styles.categoryTitle}>{category}</h4>
+                          {results.map((result, idx) => (
+                            <div key={idx} className={styles.searchResultItem}>
+                              <span className={styles.resultName}>{result}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )
+                    ))}
                   </div>
                 </div>
 
@@ -414,9 +546,36 @@ export default function Playground() {
                   </div>
                   {isNodeLabelsOpen && (
                   <div id="nodeLabelsList" className={styles.nodeLabelsList}>
-                    {/* 动态加载 node labels */}
                     {nodeLabels.map((label, index) => (
-                        <p key={index} className={styles.labelItem}>{label}</p>
+                      <div key={index} className={styles.labelItemContainer}>
+                        <div className={styles.labelItem} onClick={() => toggleExpandedLabel(label)}>
+                          {label}
+                          <Image
+                            className={`${styles.imageNodeLabelsExtra} ${expandedLabel === label ? styles.rotate : ''}`}
+                            src="/assets/c1122939168fb69f50f3e2f253333e62.svg"
+                            alt="expand"
+                            width={20}
+                            height={20}
+                          />
+                        </div>
+                        {expandedLabel === label && nodeEntities[label] && (
+                        <div className={styles.entityList}>
+                          {nodeEntities[label].map((entity, idx) => (
+                            <div key={idx} className={styles.entityItemContainer}>
+                              <p className={styles.entityItem}>{entity}</p>
+                              <Image
+                                src="/assets/add.svg"
+                                alt="add"
+                                width={20}
+                                height={20}
+                                className={styles.addButton}
+                                onClick={() => handleAddEntity(entity)}
+                              />
+                            </div>
+                          ))}
+                          </div>
+                        )}
+                      </div>
                     ))}
                   </div>
                   )}
@@ -442,10 +601,58 @@ export default function Playground() {
                   </div>
                   {isRelationshipTypesOpen && (
                     <div id="relationshipTypesList" className={styles.relationshipTypesList}>
-                        {/* 动态加载 relationship types */}
-                        {relationshipTypes.map((type, index) => (
-                            <p key={index} className={styles.typeItem}>{type}</p>
-                        ))}
+                      {relationshipTypes.map((type, index) => (
+                        <div key={index} className={styles.typeItemContainer}>
+                          <p className={styles.typeItem} onClick={() => toggleExpandedRelationship(type)}>
+                            {type}
+                            <Image
+                              className={`${styles.imageRelationshipTypesExtra} ${expandedRelationship === type ? styles.rotate : ''}`}
+                              src="/assets/c1122939168fb69f50f3e2f253333e62.svg"
+                              alt="expand"
+                              width={20}
+                              height={20}
+                            />
+                          </p>
+                          {expandedRelationship === type && relationshipEntities[type] && (
+                            <div className={styles.entityList}>
+                              {relationshipEntities[type].map((entity, idx) => (
+                                <div key={idx} className={styles.entityGroup}>
+                                  <div className={styles.entityItemContainer}>
+                                    <div className={styles.relationshipEntityItemContainer}>
+                                      {/* First line: Display the first element of the entity */}
+                                      <p className={styles.entityItem}>{entity[0]}</p>
+
+                                      {/* Second line: Centered arrow icon */}
+                                      <div className={styles.arrowContainer}>
+                                        <Image
+                                          src="/assets/cc-arrow-down.svg"
+                                          alt="arrow down"
+                                          width={20}
+                                          height={20}
+                                          className={styles.arrowIcon}
+                                        />
+                                      </div>
+
+                                      {/* Third line: Display the second element of the entity */}
+                                      <p className={styles.entityItem}>{entity[1]}</p>
+                                    </div>
+                                    <Image
+                                      src="/assets/add.svg"
+                                      alt="add"
+                                      width={20}
+                                      height={20}
+                                      className={styles.addButton}
+                                      onClick={() => handleAddEntity(entity)}
+                                    />
+                                  </div>
+                                  {/* Separator line */}
+                                  <div className={styles.separator}></div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      ))}
                     </div>
                   )}
                 </div>

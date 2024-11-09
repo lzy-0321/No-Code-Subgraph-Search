@@ -1,8 +1,7 @@
-import autoprefixer from 'autoprefixer';
 import React, { useRef } from 'react';
 import { ForceGraph2D } from 'react-force-graph';
 
-const GraphComponent = ({ nodes, relationships }) => {
+const GraphComponent = ({ nodes, relationships, enableZoom = true }) => {
   const graphRef = useRef();
 
   // 定义颜色映射函数
@@ -49,6 +48,7 @@ const GraphComponent = ({ nodes, relationships }) => {
   return (
     <ForceGraph2D
       ref={graphRef}
+      enablePanInteraction={false} // 禁用全局拖动
       graphData={data}
       nodeLabel={(node) => {
         const props = Object.entries(node.properties)
@@ -85,15 +85,10 @@ const GraphComponent = ({ nodes, relationships }) => {
       linkDirectionalArrowLength={8}
       linkDirectionalArrowRelPos={0.5}
       linkCurvature={0.2}
+      enableZoomInteraction={enableZoom} // 根据传入参数控制是否允许滚轮缩放
       onNodeDragEnd={(node) => {
         node.fx = node.x;
         node.fy = node.y;
-      }}
-      onNodeClick={(node) => {
-        alert(`Node clicked: ${node.label}\nProperties:\n${JSON.stringify(node.properties, null, 2)}`);
-      }}
-      onLinkClick={(link) => {
-        alert(`Link clicked: ${link.type}\nProperties:\n${JSON.stringify(link.properties, null, 2)}`);
       }}
       // 设置力导向图参数
       d3Force="charge"
@@ -103,8 +98,18 @@ const GraphComponent = ({ nodes, relationships }) => {
         graphRef.current.d3Force('charge').strength(-200); // 增强节点间的排斥力
         graphRef.current.d3Force('link').distance(100); // 设置节点之间的距离
       }}
+      onNodeClick={(node, event) => {
+        // 仅阻止默认交互，不移动整个图形
+        event.stopPropagation();
+        alert(`Node clicked: ${node.label}\nProperties:\n${JSON.stringify(node.properties, null, 2)}`);
+      }}
+      onLinkClick={(link, event) => {
+        // 仅阻止默认交互，不移动整个图形
+        event.stopPropagation();
+        alert(`Link clicked: ${link.type}\nProperties:\n${JSON.stringify(link.properties, null, 2)}`);
+      }}
     />
   );
-}
+};
 
 export default GraphComponent;

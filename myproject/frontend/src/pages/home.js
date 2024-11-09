@@ -221,7 +221,7 @@ export default function Home() {
           </div>
           <div className={styles.graph}>
             <h1>Graph Visualization</h1>
-            <GraphComponent nodes={graphNodes} relationships={graphRelationships} />
+            <GraphComponent nodes={graphNodes} relationships={graphRelationships} enableZoom={false} />
           </div>
         </div>
       </section>

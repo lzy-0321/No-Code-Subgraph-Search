@@ -7,6 +7,7 @@ import Register from './register';  // 导入注册组件
 import styles from '../styles/Page1.module.css';
 import dynamic from 'next/dynamic';
 import { tutorialCard } from '../components/tutorialCard';
+import PulsatingButton from "../components/ui/pulsating-button";
 const GraphComponent = dynamic(() => import('../components/GraphComponent'), { ssr: false });
 
 export default function Home() {
@@ -17,16 +18,34 @@ export default function Home() {
   const [tutorialContent, setTutorialContent] = useState(null); // Add state to hold the tutorial content
   const router = useRouter();
 
-  const graphNodes = [
-    { id: '1', properties: { name: 'Alice', age: 30 } },
-    { id: '2', properties: { name: 'Bob', age: 25 } },
-    { id: '3', properties: { title: 'Graph Database', type: 'Tutorial' } },
-  ];
+  const [graphNodes, setGraphNodes] = useState([]);
+  const [graphRelationships, setGraphRelationships] = useState([]);
 
-  const graphRelationships = [
-    { startNode: '1', endNode: '2', type: 'FRIEND', properties: { since: '2020' } },
-    { startNode: '2', endNode: '3', type: 'LEARNED', properties: { date: '2021' } },
-  ];
+  useEffect(() => {
+    // 模拟获取图数据的异步操作
+    setTimeout(() => {
+      setGraphNodes([
+        { id: '1', nodeLabel: 'PERSON', properties: { name: 'Alice', age: 30, role: 'Engineer' } },
+        { id: '2', nodeLabel: 'PERSON', properties: { name: 'Bob', age: 25, role: 'Designer' } },
+        { id: '3', nodeLabel: 'KNOWLEDGE', properties: { title: 'Graph Database', type: 'Tutorial', category: 'Technology' } },
+        { id: '4', nodeLabel: 'PERSON', properties: { name: 'Charlie', age: 35, role: 'Manager' } },
+        { id: '5', nodeLabel: 'PERSON', properties: { name: 'Diana', age: 28, role: 'Researcher' } },
+        { id: '6', nodeLabel: 'KNOWLEDGE', properties: { title: 'Data Science', type: 'Tutorial', category: 'Education' } },
+        { id: '7', nodeLabel: 'PERSON', properties: { name: 'Eve', age: 40, role: 'Director' } },
+      ]);
+      setGraphRelationships([
+        { startNode: '1', endNode: '2', type: 'FRIEND', properties: { since: '2020', frequency: 'Weekly' } },
+        { startNode: '2', endNode: '3', type: 'LEARNED', properties: { date: '2021', confidence: 'High' } },
+        { startNode: '3', endNode: '4', type: 'MENTORED', properties: { duration: '6 months', successRate: '90%' } },
+        { startNode: '4', endNode: '5', type: 'COLLABORATED', properties: { project: 'AI Research', duration: '1 year' } },
+        { startNode: '5', endNode: '6', type: 'ATTENDED', properties: { event: 'Workshop', feedback: 'Positive' } },
+        { startNode: '6', endNode: '7', type: 'INSPIRED', properties: { topic: 'Machine Learning', impact: 'Significant' } },
+        { startNode: '1', endNode: '7', type: 'FRIEND', properties: { since: '2019', frequency: 'Monthly' } },
+        { startNode: '2', endNode: '4', type: 'WORKED_WITH', properties: { project: 'UI Redesign', duration: '3 months' } },
+        { startNode: '3', endNode: '6', type: 'REFERRED', properties: { reason: 'Expertise', trustLevel: 'High' } },
+      ]);
+    }, 1000);
+  }, []);
 
   useEffect(() => {
     const fetchTutorialContent = async () => {
@@ -217,10 +236,22 @@ export default function Home() {
                 Visual Query Interfaces (VQIs) let users create database queries with "drag-and-drop" ease.
               </p>
             </div>
-            <button className={styles.linkDatabaseBtn}>Link database</button>
+            <PulsatingButton
+              className={styles.linkDatabaseBtn}
+              onClick={() => {
+                if (!user) {
+                  // 未登录时，打开注册模态框
+                  openModal('register');
+                } else {
+                  // 登录后，跳转到 playground 页面
+                  router.push('/playground');
+                }
+              }}
+            >
+              {user ? 'Go to Playground' : 'Link database'}
+            </PulsatingButton>
           </div>
           <div className={styles.graph}>
-            <h1>Graph Visualization</h1>
             <GraphComponent nodes={graphNodes} relationships={graphRelationships} enableZoom={false} />
           </div>
         </div>

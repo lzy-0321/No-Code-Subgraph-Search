@@ -11,15 +11,15 @@ const SearchBox = ({ data, onSearch }) => {
       onSearch([]);
       return;
     }
-  
+
     const results = [];
     const lowerCaseQuery = query.toLowerCase();
-  
+
     const addResult = (type, name) => {
       const isExactMatch = name.toLowerCase() === lowerCaseQuery;
       results.push({ type, name, isExactMatch });
     };
-  
+
     // Search in node entities
     Object.keys(data.nodeEntities).forEach((label) => {
       data.nodeEntities[label].forEach((entity) => {
@@ -28,7 +28,7 @@ const SearchBox = ({ data, onSearch }) => {
         }
       });
     });
-  
+
     // Search in relationship entities
     Object.keys(data.relationshipEntities).forEach((type) => {
       data.relationshipEntities[type].forEach((entity) => {
@@ -41,21 +41,21 @@ const SearchBox = ({ data, onSearch }) => {
         }
       });
     });
-  
+
     // Search in property keys
     data.propertyKeys.forEach((key) => {
       if (key.toLowerCase().includes(lowerCaseQuery)) {
         addResult('Property Key', key);
       }
     });
-  
+
     // Sort results to prioritize exact matches
     results.sort((a, b) => {
       if (a.isExactMatch && !b.isExactMatch) return -1;
       if (!a.isExactMatch && b.isExactMatch) return 1;
       return a.name.localeCompare(b.name);
     });
-  
+
     onSearch(results);
   };
 

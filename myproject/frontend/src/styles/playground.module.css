@@ -96,10 +96,11 @@
 .playground .flexRowFeatures {
   display: flex;
   flex-direction: row;
-  justify-content: space-between;
+  justify-content: space-between; /* Ensure consistent spacing */
   align-items: flex-start;
-  width: 100%;
-  height: 100%; /* Full height to fill the parent container */
+  flex-grow: 1;
+  max-width: 100%; /* Prevent horizontal overflow */
+  box-sizing: border-box;
 }
 .playground .featureContentBox {
   display: flex;
@@ -691,4 +692,149 @@
 }
 .confirmDatabaseBtn:hover {
   background-color: #0056b3; /* Darker color on hover for effect */
+}
+
+.tabContainer {
+  display: flex;
+  flex-direction: column; /* Stack children vertically */
+  height: 94vh; /* Full height of the viewport */
+  width: 100%; /* Full width of the viewport */
+  overflow: hidden; /* Prevent content overflow */
+}
+
+.tabNav {
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid #ccc;
+  padding: 0.5rem;
+  height: 5%; /* Fixed height (e.g., 10% of the viewport) */
+  justify-content: space-between; /* Space out items */
+}
+
+.tab {
+  padding: 0.5rem 1rem;
+  margin-right: 0.5rem;
+  cursor: pointer;
+  border: 1px solid #ccc;
+  border-radius: 5px 5px 0 0;
+  background: #f9f9f9;
+}
+
+.activeTab {
+  background: #ffffff;
+  border-bottom: none;
+}
+
+.addTabButton {
+  margin-left: auto;
+  padding: 0.5rem 1rem;
+  border: none;
+  background: #007bff;
+  color: #fff;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.closeButton {
+  margin-left: 0.5rem;
+  color: red;
+  cursor: pointer;
+}
+
+.tabGraph {
+  position: absolute; /* Position within the bounds of the parent container */
+  top: 0;
+  left: 0;
+  width: 100%; /* Match the width of the tabContent */
+  height: 100%; /* Match the height of the tabContent */
+  max-width: 100%; /* Prevent horizontal overflow */
+  max-height: 100%; /* Prevent vertical overflow */
+  overflow: hidden; /* Prevent content overflow */
+  box-sizing: border-box; /* Include padding and border in size */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.tabContent {
+  position: relative; /* 相对于父容器定位 */
+  flex: 1; /* 填满父容器的剩余高度 */
+  width: 100%; /* 占据父容器的全部宽度 */
+  overflow: hidden; /* 避免内容溢出 */
+  display: flex; /* Flex 布局 */
+  justify-content: center; /* 水平居中 */
+  align-items: center; /* 垂直居中 */
+  box-sizing: border-box; /* 包括 padding 和 border */
+  /* border: 10px solid #ccc; */
+  /* 边框样式，可选 */
+}
+.searchResults {
+  display: flex;
+  flex-direction: column;
+  gap: 15px; /* Space between categories */
+  padding: 15px;
+  max-height: 300px; /* Limit height to avoid oversizing */
+  min-height: 100px; /* Ensure consistent minimum height */
+  overflow-y: auto; /* Add scrolling if content exceeds max height */
+}
+
+.searchCategory {
+  display: flex;
+  flex-direction: column;
+  background: #f9f9f9;
+  border-radius: 8px;
+  padding: 10px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.categoryTitle {
+  font-size: 14px;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  border-bottom: 1px solid #eaeaea;
+  padding-bottom: 5px;
+}
+
+.searchResultItem {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  border-radius: 6px;
+  background-color: #ffffff;
+  margin-bottom: 5px;
+  transition: background-color 0.2s ease, box-shadow 0.2s ease;
+  cursor: pointer;
+}
+
+.searchResultItem:hover {
+  background-color: #eef4ff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.resultName {
+  font-size: 16px;
+  color: #4a4a4a;
+  font-weight: 500;
+}
+
+.searchResultItem:last-child {
+  margin-bottom: 0;
+}
+
+/* Style adjustments for responsiveness */
+@media (max-width: 768px) {
+  .commandPalette {
+    width: 95%; /* Use most of the screen width */
+    max-width: none;
+  }
+
+  .categoryTitle {
+    font-size: 12px;
+  }
+
+  .resultName {
+    font-size: 14px;
+  }
 }

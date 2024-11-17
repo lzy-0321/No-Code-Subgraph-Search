@@ -1,8 +1,14 @@
-import React, { useRef } from 'react';
+import React, { useRef, useEffect } from 'react';
 import { ForceGraph2D } from 'react-force-graph';
 
 const GraphComponent = ({ nodes, relationships, enableZoom = true }) => {
   const graphRef = useRef();
+
+  useEffect(() => {
+    return () => {
+        graphRef.current = null; // 清理 ref
+    };
+  }, []);
 
   // 定义颜色映射函数
   const getNodeColor = (properties) => {
@@ -31,19 +37,40 @@ const GraphComponent = ({ nodes, relationships, enableZoom = true }) => {
   };
 
   // 转换数据为 Force-Graph 格式
-  const data = {
-    nodes: nodes.map((node) => ({
-      id: node.id,
-      label: getPriorityProperty(node.properties),
-      properties: node.properties,
-    })),
-    links: relationships.map((rel) => ({
-      source: rel.startNode,
-      target: rel.endNode,
-      type: rel.type,
-      properties: rel.properties,
-    })),
-  };
+  // const data = {
+  //   nodes: nodes.map((node) => ({
+  //     id: node.id,
+  //     label: getPriorityProperty(node.properties),
+  //     properties: node.properties,
+  //   })),
+  //   links: relationships.map((rel) => ({
+  //     source: rel.startNode,
+  //     target: rel.endNode,
+  //     type: rel.type,
+  //     properties: rel.properties,
+  //   })),
+  // };
+
+  const data = React.useMemo(
+    () => ({
+      nodes: nodes.map((node) => ({
+        id: node.id,
+        label: getPriorityProperty(node.properties),
+        properties: node.properties,
+      })),
+      links: relationships.map((rel) => ({
+        source: rel.startNode,
+        target: rel.endNode,
+        type: rel.type,
+        properties: rel.properties,
+      })),
+    }),
+    [nodes, relationships]
+  );
+
+  useEffect(() => {
+    console.log('Graph data updated');
+  }, [data]);
 
   return (
     <ForceGraph2D
@@ -95,8 +122,12 @@ const GraphComponent = ({ nodes, relationships, enableZoom = true }) => {
       d3VelocityDecay={0.9}
       d3AlphaDecay={0.02}
       onEngineTick={() => {
-        graphRef.current.d3Force('charge').strength(-200); // 增强节点间的排斥力
-        graphRef.current.d3Force('link').distance(100); // 设置节点之间的距离
+        if (graphRef.current) {
+          const chargeForce = graphRef.current.d3Force('charge');
+          const linkForce = graphRef.current.d3Force('link');
+          if (chargeForce) chargeForce.strength(-800); // 增强节点间的排斥力
+          if (linkForce) linkForce.distance(150); // 设置节点之间的距离
+        }
       }}
       onNodeClick={(node, event) => {
         // 仅阻止默认交互，不移动整个图形

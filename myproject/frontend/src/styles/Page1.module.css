@@ -177,17 +177,34 @@
   background-color: #f2f4f8;
 }
 .page1 .solutionsContentRow {
-  display: flex;
-  flex-direction: row;
+  display: flex; /* 使用 Flexbox 布局 */
+  flex-direction: row; /* 水平方向排列 */
+  justify-content: space-between; /* 在两列之间分散排列 */
+  align-items: flex-start; /* 顶部对齐 */
+  gap: 20px; /* 列之间的间距 */
+  margin: 20px 0;
 }
 .page1 .solutionsContentColumn {
   position: absolute;
-  left: 80px;
+  left: 100px;
   display: flex;
   flex-direction: column;
   gap: 63px 0;
   width: 640px;
   height: 395px;
+}
+.page1 .graph {
+  position: absolute; /* 改为绝对定位 */
+  right: 10; /* 放置在 solutionsContentColumn 的右侧（640px + 100px 间距） */
+  top: 0; /* 确保与 solutionsContentColumn 顶部对齐 */
+  width: 60%; /* 固定宽度 */
+  height: 90%; /* 固定高度 */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  box-sizing: border-box; /* 包括 padding 和 border */
+  overflow: hidden; /* 防止内容溢出 */
 }
 .page1 .contentWrapper {
   display: flex;

@@ -1,8 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import styles from '../styles/playground.module.css';
 import Image from 'next/image';
-import SearchBox from '../components/SearchBox';
-import SearchResults from '../components/SearchResults';
+import { searchData } from '../utils/searchUtils';
+import dynamic from 'next/dynamic';
+import Filter from '../components/Filter';
+
+// 动态加载 GraphComponent
+const GraphComponent = dynamic(() => import('../components/GraphComponent'), { ssr: false });
 
 export default function Playground() {
   const [databases, setDatabases] = useState([]);
@@ -37,23 +41,258 @@ export default function Playground() {
     propertyKeys,
   };
 
-  const [graphNodes, setGraphNodes] = useState([]);
-  const [graphRelationships, setGraphRelationships] = useState([]);
+  const [graphNodes, setGraphNodes] = useState([
+    { id: 1, nodeLabel: 'PERSON', properties: { name: 'Alice', age: 30, role: 'Engineer' } },
+    { id: 2, nodeLabel: 'PERSON', properties: { name: 'Bob', age: 25, role: 'Designer' } },
+    { id: 3, nodeLabel: 'KNOWLEDGE', properties: { title: 'Graph Database', type: 'Tutorial', category: 'Technology' } },
+    { id: 4, nodeLabel: 'PERSON', properties: { name: 'Charlie', age: 35, role: 'Manager' } },
+    { id: 5, nodeLabel: 'KNOWLEDGE', properties: { title: 'Graph Science', type: 'Tutorial', category: 'Technology' } },]);
+  const [graphRelationships, setGraphRelationships] = useState([
+    { startNode: 1, endNode: 2, type: 'FRIEND', properties: { since: '2020', frequency: 'Weekly' } },
+    { startNode: 1, endNode: 3, type: 'LIKES', properties: { since: '2019', frequency: 'Monthly' } },
+    { startNode: 2, endNode: 3, type: 'FRIEND', properties: { since: '2018', frequency: 'Daily' } },
+    { startNode: 4, endNode: 5, type: 'LIKES', properties: { since: '2016', frequency: 'Monthly' } },]);
+  const [graphNodesBuffer, setGraphNodesBuffer] = useState([]);
+  const [graphRelationshipsBuffer, setGraphRelationshipsBuffer] = useState([]);
 
-  const handleSearch = (query) => {
-    const lowerCaseQuery = query.toLowerCase();
+  const cleanUp = () => {
+    setNodeLabels([]);
+    setExpandedLabel(null);
+    setNodeEntities({});
+    setRelationshipTypes([]);
+    setExpandedRelationship(null);
+    setRelationshipEntities({});
+    setPropertyKeys([]);
+    setIsNodeLabelsOpen(false);
+    setIsRelationshipTypesOpen(false);
+    setIsPropertyKeysOpen(false);
+    setSearchQuery('');
+    setFilteredResults({
+      nodeEntities: [],
+      relationshipEntities: [],
+      propertyKeys: [],
+    });
+  };
 
-    // Grouped results by type
-    const results = {
-      nodeEntities: Object.entries(data.nodeEntities).flatMap(([label, entities]) =>
-        entities.filter(entity => entity.toLowerCase().includes(lowerCaseQuery))
-      ),
-      relationshipEntities: Object.entries(data.relationshipEntities).flatMap(([type, entities]) =>
-        entities.filter(entity => entity.some(e => e.toLowerCase().includes(lowerCaseQuery)))
-      ),
-      propertyKeys: data.propertyKeys.filter(key => key.toLowerCase().includes(lowerCaseQuery)),
+  const [tabs, setTabs] = useState([
+    {
+      id: 1,
+      title: 'Tab 1',
+      databaseInfo: { protocol: 'bolt://', connectUrl: '', selectedDatabase: null },
+      graphData: {
+        graphNodes: [], // Nodes for the graph
+        graphRelationships: [], // Relationships for the graph
+        graphNodesBuffer: [],
+        graphRelationshipsBuffer: [],
+      },
+      nodeInfo: { nodeLabels: [], expandedLabel: null, nodeEntities: {} },
+      relationshipInfo: { relationshipTypes: [], expandedRelationship: null, relationshipEntities: {} },
+      propertyInfo: { propertyKeys: [] },
+      uiState: {
+        isNodeLabelsOpen: false,
+        isRelationshipTypesOpen: false,
+        isPropertyKeysOpen: false,
+        searchQuery: '',
+        filteredResults: {
+          nodeEntities: [],
+          relationshipEntities: [],
+          propertyKeys: [],
+        },
+      },
+    },
+  ]);
+
+  const [activeTab, setActiveTab] = useState(1);
+
+  useEffect(() => {
+    if (!tabs.find((tab) => tab.id === activeTab)) {
+      setActiveTab(1);
+    }
+  }, [tabs]);
+
+  const saveCurrentTabState = () => {
+    setTabs((prevTabs) =>
+      prevTabs.map((tab) =>
+        tab.id === activeTab
+          ? {
+              ...tab,
+              graphData: {
+                graphNodes: graphNodes,
+                graphRelationships: graphRelationships,
+                graphNodesBuffer: graphNodesBuffer,
+                graphRelationshipsBuffer: graphRelationshipsBuffer,
+              },
+              nodeInfo: {
+                nodeLabels,
+                expandedLabel,
+                nodeEntities,
+              },
+              relationshipInfo: {
+                relationshipTypes,
+                expandedRelationship,
+                relationshipEntities,
+              },
+              propertyInfo: {
+                propertyKeys,
+              },
+              uiState: {
+                isNodeLabelsOpen,
+                isRelationshipTypesOpen,
+                isPropertyKeysOpen,
+                searchQuery,
+                filteredResults,
+              },
+            }
+          : tab
+      )
+    );
+  };
+
+  // 存储当前tab的状态
+  // 清楚页面上的所有数据
+  // 切换到新的tab
+  // 从新的tab中恢复数据
+  const handleTabSwitch = (tabId) => {
+    saveCurrentTabState();
+    cleanUp();
+
+    const newTab = tabs.find((tab) => tab.id === tabId);
+    if (newTab) {
+      setNodeLabels(newTab.nodeInfo.nodeLabels || []);
+      setExpandedLabel(newTab.nodeInfo.expandedLabel || null);
+      setNodeEntities(newTab.nodeInfo.nodeEntities || {});
+
+      setRelationshipTypes(newTab.relationshipInfo.relationshipTypes || []);
+      setExpandedRelationship(newTab.relationshipInfo.expandedRelationship || null);
+      setRelationshipEntities(newTab.relationshipInfo.relationshipEntities || {});
+
+      setPropertyKeys(newTab.propertyInfo.propertyKeys || []);
+
+      setIsNodeLabelsOpen(newTab.uiState.isNodeLabelsOpen || false);
+      setIsRelationshipTypesOpen(newTab.uiState.isRelationshipTypesOpen || false);
+      setIsPropertyKeysOpen(newTab.uiState.isPropertyKeysOpen || false);
+
+      setSearchQuery(newTab.uiState.searchQuery || '');
+      setFilteredResults(newTab.uiState.filteredResults || {
+        nodeEntities: [],
+        relationshipEntities: [],
+        propertyKeys: [],
+      });
+
+      // Restore graph data
+      setGraphNodes(newTab.graphData.graphNodes || []);
+      setGraphRelationships(newTab.graphData.graphRelationships || []);
+      setGraphNodesBuffer(newTab.graphData.graphNodesBuffer || []);
+      setGraphRelationshipsBuffer(newTab.graphData.graphRelationshipsBuffer || []);
+
+      setActiveTab(tabId);
+    }
+  };
+
+  const handleAddTab = () => {
+    const newTabId = tabs.length > 0 ? tabs[tabs.length - 1].id + 1 : 1;
+
+    // Save the current tab state
+    saveCurrentTabState();
+
+    // Add the new tab
+    const newTab = {
+      id: newTabId,
+      title: `Tab ${newTabId}`,
+      databaseInfo: { protocol: 'bolt://', connectUrl: '', selectedDatabase: null },
+      nodeInfo: { nodeLabels: [], expandedLabel: null, nodeEntities: {} },
+      relationshipInfo: { relationshipTypes: [], expandedRelationship: null, relationshipEntities: {} },
+      propertyInfo: { propertyKeys: [] },
+      uiState: {
+        isNodeLabelsOpen: false,
+        isRelationshipTypesOpen: false,
+        isPropertyKeysOpen: false,
+        searchQuery: '',
+        filteredResults: {
+          nodeEntities: [],
+          relationshipEntities: [],
+          propertyKeys: [],
+        },
+      },
+      graphData: {
+        graphNodes: [], // Nodes for the graph
+        graphRelationships: [], // Relationships for the graph
+        graphNodesBuffer: [],
+        graphRelationshipsBuffer: [],
+      },
     };
 
+    setTabs((prevTabs) => [...prevTabs, newTab]);
+    setActiveTab(newTabId);
+
+    // Clear the current state after the new tab is active
+    cleanUp();
+  };
+
+  const handleCloseTab = (tabId) => {
+    if (tabId === activeTab) {
+      saveCurrentTabState();
+    }
+
+    setTabs((prevTabs) => prevTabs.filter((tab) => tab.id !== tabId));
+
+    if (activeTab === tabId && tabs.length > 1) {
+      setActiveTab(tabs[0].id);
+    } else if (tabs.length === 1) {
+      setActiveTab(null);
+    }
+  };
+
+  const handleSearch = (query) => {
+    if (!query.trim()) {
+      // If the query is empty, reset the filtered results to empty
+      setFilteredResults({
+        nodeEntities: [],
+        relationshipEntities: [],
+        propertyKeys: [],
+      });
+      return;
+    }
+
+    // Normalize query and prepare data
+    const lowerCaseQuery = query.toLowerCase();
+
+    // Filter node entities
+    const filteredNodeEntities = Object.entries(nodeEntities).flatMap(([label, entities]) =>
+      searchData(
+        entities, // Array of strings
+        lowerCaseQuery, // Query
+        (entity) => entity, // Directly use the string entity for filtering
+        (entity, index) => `${label}-${index}` // Generate an ID based on the label and index
+      )
+    );
+    console.log("Filtered nodeEntities:", filteredNodeEntities);
+
+    // Filter relationship entities
+    const filteredRelationshipEntities = Object.entries(relationshipEntities).flatMap(([type, entities]) =>
+      searchData(
+        entities,
+        lowerCaseQuery,
+        (entity) => entity.join(' '), // Accessor for combined entity properties
+        (entity) => entity.id // Accessor for relationship id
+      )
+    );
+
+    // Filter property keys
+    const filteredPropertyKeys = searchData(
+      propertyKeys,
+      lowerCaseQuery,
+      (key) => key // Accessor for property key
+    );
+
+    // Aggregate results
+    const results = {
+      nodeEntities: filteredNodeEntities,
+      relationshipEntities: filteredRelationshipEntities,
+      propertyKeys: filteredPropertyKeys,
+    };
+
+    // Update state
     setFilteredResults(results);
   };
 
@@ -62,6 +301,24 @@ export default function Playground() {
     setSearchQuery(query);
     handleSearch(query);
   };
+
+  const tabContentRef = useRef(null); // 用于获取 tabContent 的 DOM
+  const [tabContentBounds, setTabContentBounds] = useState(null);
+
+  useEffect(() => {
+    if (tabContentRef.current) {
+      setTabContentBounds(tabContentRef.current.getBoundingClientRect());
+    }
+    const handleResize = () => {
+      if (tabContentRef.current) {
+        setTabContentBounds(tabContentRef.current.getBoundingClientRect());
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
 
   useEffect(() => {
     const fetchDatabases = async () => {
@@ -113,6 +370,8 @@ export default function Playground() {
 
         // 在数据库选择成功后调用 fetchDatabaseInfo 获取数据库信息
         await fetchDatabaseInfo();
+        //将url保存到当前tab的数据库信息中
+        tabs.find((tab) => tab.id === activeTab).databaseInfo.selectedDatabase = url;
       } else {
         alert('Error: ' + result.error);
       }
@@ -349,13 +608,16 @@ export default function Playground() {
                             >+ Add New Database</button>
                         </div>
 
-                        {databases.map((db, index) => (
-                        <div
+                        {databases.map((db, index) => {
+                          const isActive = tabs.find((tab) => tab.id === activeTab)?.databaseInfo.selectedDatabase === db.url;
+
+                          return (
+                            <div
                             key={index}
-                            className={`${styles.databaseItem} ${selectedDatabase === db.url ? styles.selected : ''}`}
+                            className={`${styles.databaseItem} ${isActive ? styles.selected : ''}`}
                             onClick={() => handleDatabaseSelection(db.url)}
                         >
-                            <span className={`${styles.selectedLabel} ${selectedDatabase === db.url ? '' : styles.hidden}`}>
+                            <span className={`${styles.selectedLabel} ${isActive ? '' : styles.hidden}`}>
                             <Image
                                 src="/assets/asd953aa98cdd54cef71b5b8167386wa.svg"
                                 alt="check icon"
@@ -395,7 +657,8 @@ export default function Playground() {
                             </div>
                             )}
                         </div>
-                        ))}
+                          );
+                        })}
                     </div>
                     )}
 
@@ -474,20 +737,24 @@ export default function Playground() {
                   </div>
 
                   {/* Display categorized search results */}
-                  <div className={styles.searchResults}>
-                    {Object.entries(filteredResults).map(([category, results]) => (
-                      results.length > 0 && (
-                        <div key={category} className={styles.searchCategory}>
-                          <h4 className={styles.categoryTitle}>{category}</h4>
-                          {results.map((result, idx) => (
-                            <div key={idx} className={styles.searchResultItem}>
-                              <span className={styles.resultName}>{result}</span>
-                            </div>
-                          ))}
-                        </div>
-                      )
-                    ))}
-                  </div>
+                  {searchQuery.trim() && (
+                    <div className={styles.searchResults}>
+                      {Object.entries(filteredResults).map(([category, results]) => (
+                        results.length > 0 && (
+                          <div key={category} className={styles.searchCategory}>
+                            <h4 className={styles.categoryTitle}>{category}</h4>
+                            <ul className={styles.resultList}>
+                              {results.map((result, idx) => (
+                                <li key={idx} className={styles.searchResultItem}>
+                                  <span className={styles.resultName}>{result.value || result}</span> {/* Render value */}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 <div className={styles.flexRowGraphInfo}>
@@ -686,45 +953,89 @@ export default function Playground() {
                 </div>
               </div>
             </div>
-          </div>
-        </div>
+            <div className={styles.tabContainer}>
+              {/* 标签导航 */}
+              <div className={styles.tabNav}>
+                {tabs.map((tab) => (
+                  <div
+                    key={tab.id}
+                    className={`${styles.tab} ${activeTab === tab.id ? styles.activeTab : ''}`}
+                    onClick={() => handleTabSwitch(tab.id)}
+                  >
+                    {tab.title}
+                    <span className={styles.closeButton} onClick={(e) => { e.stopPropagation(); handleCloseTab(tab.id); }}>
+                      ×
+                    </span>
+                  </div>
+                ))}
+                <button className={styles.addTabButton} onClick={handleAddTab}>
+                  + Add Tab
+                </button>
+              </div>
 
-        <div className={styles.flexRowGalleryImages}>
-          <Image
-            className={styles.imageGallery1}
-            src="/assets/1a56e8e208ac2c0c653ced0adf8f94e4.svg"
-            alt="Gallery 1"
-            width={100}
-            height={100}
-          />
-          <Image
-            className={styles.imageGallery2}
-            src="/assets/a905b1857bdcb12b37a25f21999ed4b6.svg"
-            alt="Gallery 2"
-            width={100}
-            height={100}
-          />
-          <Image
-            className={styles.imageGallery3}
-            src="/assets/c4c5271e3a965c1947519f3d1043ca07.svg"
-            alt="Gallery 3"
-            width={100}
-            height={100}
-          />
-          <Image
-            className={styles.imageGallery4}
-            src="/assets/da4eefaf0a92648334ca6ec4b0a024bb.svg"
-            alt="Gallery 4"
-            width={100}
-            height={100}
-          />
-          <Image
-            className={styles.imageGallery5}
-            src="/assets/c1e0f400b1ed9085e7051a447b48c9d8.svg"
-            alt="Gallery 5"
-            width={100}
-            height={100}
-          />
+              {/* 标签内容 */}
+              <div className={styles.tabContent} ref={tabContentRef}>
+                {tabContentBounds && (
+                <Filter
+                  // 把graphNodes和graphNodeBuffer合并为graphNodes，组合成一个新的数组
+                  graphRelationships = {graphRelationships}
+                  graphNodes = {graphNodes.concat(graphNodesBuffer)}
+                  setGraphNodes={setGraphNodes} // Pass state setter for graphNodes
+                  setGraphRelationships={setGraphRelationships} // Pass state setter for graphRelationships
+                  // buffer
+                  graphNodesBuffer = {graphNodesBuffer}
+                  graphRelationshipsBuffer = {graphRelationshipsBuffer}
+                  setGraphNodesBuffer={setGraphNodesBuffer}
+                  setGraphRelationshipsBuffer={setGraphRelationshipsBuffer}
+                  tabContentBounds={tabContentBounds}
+                />
+                )}
+                <div className={styles.tabGraph}>
+                  <GraphComponent
+                    relationships = {graphRelationships}
+                    nodes = {graphNodes}
+                  />
+                </div>
+                <div className={styles.flexRowGalleryImages}>
+                  <Image
+                    className={styles.imageGallery1}
+                    src="/assets/1a56e8e208ac2c0c653ced0adf8f94e4.svg"
+                    alt="Gallery 1"
+                    width={100}
+                    height={100}
+                  />
+                  <Image
+                    className={styles.imageGallery2}
+                    src="/assets/a905b1857bdcb12b37a25f21999ed4b6.svg"
+                    alt="Gallery 2"
+                    width={100}
+                    height={100}
+                  />
+                  <Image
+                    className={styles.imageGallery3}
+                    src="/assets/c4c5271e3a965c1947519f3d1043ca07.svg"
+                    alt="Gallery 3"
+                    width={100}
+                    height={100}
+                  />
+                  <Image
+                    className={styles.imageGallery4}
+                    src="/assets/da4eefaf0a92648334ca6ec4b0a024bb.svg"
+                    alt="Gallery 4"
+                    width={100}
+                    height={100}
+                  />
+                  <Image
+                    className={styles.imageGallery5}
+                    src="/assets/c1e0f400b1ed9085e7051a447b48c9d8.svg"
+                    alt="Gallery 5"
+                    width={100}
+                    height={100}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
     </div>

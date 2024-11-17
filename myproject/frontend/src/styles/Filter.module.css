@@ -1,0 +1,277 @@
+.filterContainer {
+position: absolute;
+z-index: 1000;
+cursor: grab;
+transition: left 0.2s, top 0.2s; /* 平滑移动效果 */
+}
+
+.filterContainer:active {
+cursor: grabbing;
+}
+
+.filterButton {
+  width: 50px;
+  height: 50px;
+  background-color: #007bff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  border-radius: 15%;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  user-select: none;
+}
+
+.filterWindow {
+  position: absolute;
+  background-color: #4f4f4f;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  padding: 10px;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  z-index: 1000; /* 确保在其他元素之上 */
+  transition: all 0.2s ease; /* 添加平滑过渡效果 */
+}
+.filterWindow.downleft {
+  top: 110%;
+  right: 0;
+}
+.filterWindow.downright {
+  top: 110%;
+  left: 0;
+}
+.filterWindow.upleft {
+  bottom: 110%;
+  right: 0;
+}
+.filterWindow.upright {
+  bottom: 110%;
+  left: 0;
+}
+.filterHeader {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+.tabs {
+  display: flex;
+  gap: 5px;
+  margin-bottom: 10px;
+}
+.tab {
+  flex: 1;
+  padding: 5px;
+  text-align: center;
+  border: none;
+  background-color: #6c757d;
+  color: white;
+  cursor: pointer;
+  border-radius: 5px;
+}
+.activeTab {
+  background-color: #007bff;
+}
+.tabContent {
+  max-height: 300px;
+  padding: 0 0px;
+}
+.relationshipContent, .nodeContent {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.relationshipRow, .nodeRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 5px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background-color: #6c757d;
+}
+.relationshipNode, .relationshipArrow, .relationshipType, .nodeProperty {
+flex: 1;
+text-align: center;
+}
+.settingsButton, .deleteButton {
+background: none;
+border: none;
+cursor: pointer;
+color: white;
+font-size: 14px;
+}
+.settingsRow {
+  display: flex;
+  align-items: center;
+  gap: 0px;
+  padding: 5px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background-color: #6c757d;
+  justify-content: space-between; /* Label 和 Button 两端对齐 */
+}
+.settingLabel {
+  font-weight: bold;
+  font-size: 16px;
+}
+.settingsButton1 {
+  padding: 5px 10px;
+  background-color: #007bff; /* 按钮背景颜色 */
+  color: white; /* 按钮文字颜色 */
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+.settingsButton:hover {
+  background-color: #0056b3; /* 按钮悬停颜色 */
+}
+.nodeGroup {
+  margin-bottom: 15px;
+}
+
+.nodeGroup h4 {
+  margin: 5px 0;
+  font-size: 16px;
+  color: #ffffff;
+  text-transform: uppercase;
+}
+
+.propertyRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 10px 0;
+  padding: 5px;
+  background-color: #6c757d;
+  border-radius: 5px;
+}
+
+.propertyName {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 14px;
+  font-weight: bold;
+  color: white;
+  background-color: #d3d3d3;
+  border-radius: 5px;
+  padding: 5px 10px;
+  text-align: center; /* 确保文字对齐 */
+}
+.dragIcon {
+  font-size: 16px;
+  color: white;
+  cursor: grab;
+  padding: 0 10px;
+}
+.propertyInput {
+  flex: 1;
+  padding: 5px;
+  border-radius: 5px;
+  font-size: 16px;
+  color: #333;
+  background-color: #fff;
+}
+.numberControl {
+  display: flex;
+  align-items: center;
+  background-color: #ffffff;
+  border-radius: 5px;
+  padding: 5px 10px;
+  gap: 5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  width: 60%;
+  justify-content: space-between;
+}
+.arrowButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 25px;
+  height: 25px;
+  font-size: 16px;
+  font-weight: bold;
+  color: #333;
+  background-color: #e0e0e0;
+  border: none;
+  border-radius: 15%;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+.arrowButton:hover {
+  background-color: #c0c0c0;
+}
+.arrowButton:active {
+  background-color: #a0a0a0;
+}
+.animatedNumber {
+  min-width: 50px;
+  text-align: center;
+  font-size: 16px;
+  font-weight: bold;
+  color: #333;
+}
+.suggestionsList {
+  margin-top: 5px;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  padding: 10px;
+  max-height: 150px;
+  overflow-y: auto;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+  /* 悬浮 */
+  position: absolute;
+  width: 52.5%; /* Match input width */
+}
+
+.suggestionItem {
+  padding: 8px;
+  font-size: 14px;
+  color: #333;
+  cursor: pointer;
+}
+
+.suggestionItem:hover {
+  background: #f0f0f0;
+}
+
+.numberControl {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.arrowButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  font-size: 18px;
+  color: #333;
+  background-color: #e0e0e0;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+.selectedTag {
+  display: inline-flex;
+  align-items: center;
+  background-color: #e0e0e0;
+  border-radius: 4px;
+  padding: 4px 8px;
+  margin-right: 8px;
+  font-size: 14px;
+}
+
+.removeTag {
+  margin-left: 8px;
+  cursor: pointer;
+  color: #ff4d4f;
+  font-weight: bold;
+}

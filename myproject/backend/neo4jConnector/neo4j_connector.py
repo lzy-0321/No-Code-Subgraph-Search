@@ -78,17 +78,6 @@ class Neo4jConnector:
 
     def get_node_entities(self, label):
         """
-        Retrieves representative entities for the specified label, selecting specific properties based on the label type.
-
-        Parameters:
-        label (str): The label of the nodes to retrieve.
-
-        Returns:
-        list of str: A sorted list of representative property values for each node of the specified label.
-        """
-        # Define a mapping of labels to their representative property keys
-    def get_node_entities(self, label):
-        """
         Retrieves entities (nodes) for the specified label from the Neo4j database,
         prioritizing properties that best represent each node.
 

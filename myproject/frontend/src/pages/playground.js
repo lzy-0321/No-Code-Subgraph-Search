@@ -4,6 +4,8 @@ import Image from 'next/image';
 import { searchData } from '../utils/searchUtils';
 import dynamic from 'next/dynamic';
 import Filter from '../components/Filter';
+import AddTab from "../components/AddTab";
+import { TbCrosshair, TbTrash } from 'react-icons/tb';
 
 // 动态加载 GraphComponent
 const GraphComponent = dynamic(() => import('../components/GraphComponent'), { ssr: false });
@@ -20,9 +22,11 @@ export default function Playground() {
   const [openSettingsIndex, setOpenSettingsIndex] = useState(null);
   const [nodeLabels, setNodeLabels] = useState([]);
   const [expandedLabel, setExpandedLabel] = useState(null); // Track which label is expanded
-  const [nodeEntities, setNodeEntities] = useState({}); // Store entities for each label
+  const [nodePrimeEntities, setNodePrimeEntities] = useState({}); // Store entities for each label
+  const [nodeEntities, setNodeEntities] = useState({});
   const [relationshipTypes, setRelationshipTypes] = useState([]);
   const [expandedRelationship, setExpandedRelationship] = useState(null);
+  const [relationshipPrimeEntities, setRelationshipPrimeEntities] = useState({});
   const [relationshipEntities, setRelationshipEntities] = useState({});
   const [propertyKeys, setPropertyKeys] = useState([]);
   const [isNodeLabelsOpen, setIsNodeLabelsOpen] = useState(false);
@@ -35,12 +39,6 @@ export default function Playground() {
     propertyKeys: [],
   });
 
-  const data = {
-    nodeEntities,
-    relationshipEntities,
-    propertyKeys,
-  };
-
   const [graphNodes, setGraphNodes] = useState([
     { id: 1, nodeLabel: 'PERSON', properties: { name: 'Alice', age: 30, role: 'Engineer' } },
     { id: 2, nodeLabel: 'PERSON', properties: { name: 'Bob', age: 25, role: 'Designer' } },
@@ -50,18 +48,70 @@ export default function Playground() {
   const [graphRelationships, setGraphRelationships] = useState([
     { startNode: 1, endNode: 2, type: 'FRIEND', properties: { since: '2020', frequency: 'Weekly' } },
     { startNode: 1, endNode: 3, type: 'LIKES', properties: { since: '2019', frequency: 'Monthly' } },
-    { startNode: 2, endNode: 3, type: 'FRIEND', properties: { since: '2018', frequency: 'Daily' } },
+    { startNode: 2, endNode: 3, type: 'LIKES', properties: { since: '2018', frequency: 'Daily' } },
     { startNode: 4, endNode: 5, type: 'LIKES', properties: { since: '2016', frequency: 'Monthly' } },]);
   const [graphNodesBuffer, setGraphNodesBuffer] = useState([]);
   const [graphRelationshipsBuffer, setGraphRelationshipsBuffer] = useState([]);
 
+  //每一次更新 graphNodes 和 graphRelationships 时，都需要检查是否有重复的节点和关系，
+  // 如果有重复的节点和关系，需要将重复的节点和关系去重
+  //检查完成之后才允许GraphComponent渲染
+  const [isDataClean, setIsDataClean] = useState(false);
+  const deduplicateNodes = (nodes) => {
+    const seen = new Set();
+    return nodes.filter(node => {
+      if (seen.has(node.id)) {
+        return false;
+      }
+      seen.add(node.id);
+      return true;
+    });
+  };
+
+  const deduplicateRelationships = (relationships) => {
+    const seen = new Set();
+    return relationships.filter(rel => {
+      const key = `${rel.startNode}-${rel.endNode}-${rel.type}`;
+      if (seen.has(key)) {
+        return false;
+      }
+      seen.add(key);
+      return true;
+    });
+  };
+
+  useEffect(() => {
+    const uniqueNodes = deduplicateNodes(graphNodes);
+    const uniqueRelationships = deduplicateRelationships(graphRelationships);
+
+    let nodesUpdated = false;
+    let relationshipsUpdated = false;
+
+    if (uniqueNodes.length !== graphNodes.length) {
+      setGraphNodes(uniqueNodes);
+      nodesUpdated = true;
+    }
+
+    if (uniqueRelationships.length !== graphRelationships.length) {
+      setGraphRelationships(uniqueRelationships);
+      relationshipsUpdated = true;
+    }
+
+    // Set readiness only after ensuring data is clean
+    if (!nodesUpdated && !relationshipsUpdated) {
+      setIsDataClean(true);
+    } else {
+      setIsDataClean(false);
+    }
+  }, [graphNodes, graphRelationships]);
+
   const cleanUp = () => {
     setNodeLabels([]);
     setExpandedLabel(null);
-    setNodeEntities({});
+    setNodePrimeEntities({});
     setRelationshipTypes([]);
     setExpandedRelationship(null);
-    setRelationshipEntities({});
+    setRelationshipPrimeEntities({});
     setPropertyKeys([]);
     setIsNodeLabelsOpen(false);
     setIsRelationshipTypesOpen(false);
@@ -125,12 +175,12 @@ export default function Playground() {
               nodeInfo: {
                 nodeLabels,
                 expandedLabel,
-                nodeEntities,
+                nodeEntities: nodePrimeEntities,
               },
               relationshipInfo: {
                 relationshipTypes,
                 expandedRelationship,
-                relationshipEntities,
+                relationshipEntities: relationshipPrimeEntities,
               },
               propertyInfo: {
                 propertyKeys,
@@ -160,11 +210,11 @@ export default function Playground() {
     if (newTab) {
       setNodeLabels(newTab.nodeInfo.nodeLabels || []);
       setExpandedLabel(newTab.nodeInfo.expandedLabel || null);
-      setNodeEntities(newTab.nodeInfo.nodeEntities || {});
+      setNodePrimeEntities(newTab.nodeInfo.nodeEntities || {});
 
       setRelationshipTypes(newTab.relationshipInfo.relationshipTypes || []);
       setExpandedRelationship(newTab.relationshipInfo.expandedRelationship || null);
-      setRelationshipEntities(newTab.relationshipInfo.relationshipEntities || {});
+      setRelationshipPrimeEntities(newTab.relationshipInfo.relationshipEntities || {});
 
       setPropertyKeys(newTab.propertyInfo.propertyKeys || []);
 
@@ -258,7 +308,7 @@ export default function Playground() {
     const lowerCaseQuery = query.toLowerCase();
 
     // Filter node entities
-    const filteredNodeEntities = Object.entries(nodeEntities).flatMap(([label, entities]) =>
+    const filteredNodeEntities = Object.entries(nodePrimeEntities).flatMap(([label, entities]) =>
       searchData(
         entities, // Array of strings
         lowerCaseQuery, // Query
@@ -269,7 +319,7 @@ export default function Playground() {
     console.log("Filtered nodeEntities:", filteredNodeEntities);
 
     // Filter relationship entities
-    const filteredRelationshipEntities = Object.entries(relationshipEntities).flatMap(([type, entities]) =>
+    const filteredRelationshipEntities = Object.entries(relationshipPrimeEntities).flatMap(([type, entities]) =>
       searchData(
         entities,
         lowerCaseQuery,
@@ -496,8 +546,13 @@ export default function Playground() {
       .then((response) => response.json())
       .then((data) => {
         if (data.success) {
+          setNodePrimeEntities((prevEntities) => {
+            const updatedPrimeEntities = { ...prevEntities, [label]: data.nodeEntities[0] };
+            console.log("Entities for each label after update:", updatedPrimeEntities);
+            return updatedPrimeEntities;
+          });
           setNodeEntities((prevEntities) => {
-            const updatedEntities = { ...prevEntities, [label]: data.nodeEntities };
+            const updatedEntities = { ...prevEntities, [label]: data.nodeEntities[1] };
             console.log("Entities for each label after update:", updatedEntities);
             return updatedEntities;
           });
@@ -521,8 +576,13 @@ export default function Playground() {
       .then((response) => response.json())
       .then((data) => {
         if (data.success) {
+          setRelationshipPrimeEntities((prevEntities) => {
+            const updatedPrimeEntities = { ...prevEntities, [type]: data.relationshipEntities[0] };
+            console.log("Entities for each relationship type after update:", updatedPrimeEntities);
+            return updatedPrimeEntities;
+          });
           setRelationshipEntities((prevEntities) => {
-            const updatedEntities = { ...prevEntities, [type]: data.relationshipEntities };
+            const updatedEntities = { ...prevEntities, [type]: data.relationshipEntities[1] };
             console.log("Entities for each relationship type after update:", updatedEntities);
             return updatedEntities;
           });
@@ -825,9 +885,9 @@ export default function Playground() {
                             height={20}
                           />
                         </div>
-                        {expandedLabel === label && nodeEntities[label] && (
+                        {expandedLabel === label && nodePrimeEntities[label] && (
                         <div className={styles.entityList}>
-                          {nodeEntities[label].map((entity, idx) => (
+                          {nodePrimeEntities[label].map((entity, idx) => (
                             <div key={idx} className={styles.entityItemContainer}>
                               <p className={styles.entityItem}>{entity}</p>
                               <Image
@@ -880,9 +940,9 @@ export default function Playground() {
                               height={20}
                             />
                           </p>
-                          {expandedRelationship === type && relationshipEntities[type] && (
+                          {expandedRelationship === type && relationshipPrimeEntities[type] && (
                             <div className={styles.entityList}>
-                              {relationshipEntities[type].map((entity, idx) => (
+                              {relationshipPrimeEntities[type].map((entity, idx) => (
                                 <div key={idx} className={styles.entityGroup}>
                                   <div className={styles.entityItemContainer}>
                                     <div className={styles.relationshipEntityItemContainer}>
@@ -979,7 +1039,7 @@ export default function Playground() {
                 <Filter
                   // 把graphNodes和graphNodeBuffer合并为graphNodes，组合成一个新的数组
                   graphRelationships = {graphRelationships}
-                  graphNodes = {graphNodes.concat(graphNodesBuffer)}
+                  graphNodes = {graphNodes}
                   setGraphNodes={setGraphNodes} // Pass state setter for graphNodes
                   setGraphRelationships={setGraphRelationships} // Pass state setter for graphRelationships
                   // buffer
@@ -991,47 +1051,23 @@ export default function Playground() {
                 />
                 )}
                 <div className={styles.tabGraph}>
-                  <GraphComponent
-                    relationships = {graphRelationships}
-                    nodes = {graphNodes}
-                  />
+                  {isDataClean && (
+                    <GraphComponent
+                      nodes={graphNodes}
+                      relationships={graphRelationships}
+                    />
+                  )}
                 </div>
                 <div className={styles.flexRowGalleryImages}>
-                  <Image
-                    className={styles.imageGallery1}
-                    src="/assets/1a56e8e208ac2c0c653ced0adf8f94e4.svg"
-                    alt="Gallery 1"
-                    width={100}
-                    height={100}
-                  />
-                  <Image
-                    className={styles.imageGallery2}
-                    src="/assets/a905b1857bdcb12b37a25f21999ed4b6.svg"
-                    alt="Gallery 2"
-                    width={100}
-                    height={100}
-                  />
-                  <Image
-                    className={styles.imageGallery3}
-                    src="/assets/c4c5271e3a965c1947519f3d1043ca07.svg"
-                    alt="Gallery 3"
-                    width={100}
-                    height={100}
-                  />
-                  <Image
-                    className={styles.imageGallery4}
-                    src="/assets/da4eefaf0a92648334ca6ec4b0a024bb.svg"
-                    alt="Gallery 4"
-                    width={100}
-                    height={100}
-                  />
-                  <Image
-                    className={styles.imageGallery5}
-                    src="/assets/c1e0f400b1ed9085e7051a447b48c9d8.svg"
-                    alt="Gallery 5"
-                    width={100}
-                    height={100}
-                  />
+                  <div className={styles.iconContainer}>
+                    <AddTab nodeEntities
+                      AddTabNodeEntities = {nodeEntities}
+                      AddTabRelationshipEntities = {relationshipEntities}
+                    />
+                  </div>
+                  <div className={styles.iconContainer}>
+                    <TbTrash size={50} className={styles.icon} />
+                  </div>
                 </div>
               </div>
             </div>

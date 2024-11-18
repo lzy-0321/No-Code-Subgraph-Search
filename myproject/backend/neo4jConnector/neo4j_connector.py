@@ -85,7 +85,9 @@ class Neo4jConnector:
         label (str): The label of the nodes to retrieve.
 
         Returns:
-        list of str: A sorted list containing the prioritized property value for each node.
+        tuple: A tuple containing two lists:
+            - prioritized_entities: A sorted list containing the prioritized property value for each node.
+            - property_names: A list of unique property names from the first node of the specified label.
         """
         # Define a list of properties to prioritize
         priority_properties = ["name", "title", "id"]
@@ -96,11 +98,17 @@ class Neo4jConnector:
                 query = f"MATCH (n:{label}) RETURN properties(n) AS properties LIMIT 100"
                 result = session.run(query)
 
-                # Extract prioritized property from each node
-                entities = []
-                for record in result:
+                # Extract prioritized property values and property names
+                prioritized_entities = []
+                property_names = set()
+
+                for i, record in enumerate(result):
                     properties = record["properties"]
                     if properties:
+                        # Extract property names from the first node only
+                        if i == 0:
+                            property_names.update(properties.keys())
+
                         # Find the first available priority property
                         selected_property = next(
                             (properties[prop] for prop in priority_properties if prop in properties),
@@ -109,14 +117,20 @@ class Neo4jConnector:
                         # Default to the first available property if no priority property is found
                         if selected_property is None and properties:
                             selected_property = list(properties.values())[0]
-                        entities.append(selected_property)
+                        prioritized_entities.append(selected_property)
 
-                # Sort entities alphabetically
-                entities.sort()
-            return entities
+                # Sort prioritized entities alphabetically
+                prioritized_entities.sort()
+
+            return_value = []
+            return_value.append(prioritized_entities)
+            return_value.append(list(property_names))
+
+            return return_value
         except Exception as e:
             print(f"Error fetching entities for label {label}: {e}")
-            return []
+            return [], []
+
 
     def get_relationship_entities(self, label):
         """
@@ -127,15 +141,17 @@ class Neo4jConnector:
         label (str): The label of the relationships to retrieve.
 
         Returns:
-        list of lists: A sorted list containing pairs of start and end node properties.
-                       Each entry is formatted as [[start_property, end_property], ...]
+        tuple: A tuple containing two elements:
+            - relationships: A sorted list containing pairs of start and end node properties.
+                            Each entry is formatted as [[start_property, end_property], ...]
+            - relationship_property_names: A list of unique property names for the specified relationship type.
         """
         # Define a list of properties to prioritize
         priority_properties = ["type", "name", "title", "id"]
 
         try:
             with self.driver.session() as session:
-                # Query to match relationships with the specified label and return start and end nodes
+                # Query to match relationships with the specified label and return start, end, and relationship properties
                 query = (
                     f"MATCH (start)-[r:{label}]->(end) "
                     "RETURN start, end, properties(r) AS relationship_properties LIMIT 100"
@@ -144,10 +160,16 @@ class Neo4jConnector:
 
                 # Extract relationships as start and end node property pairs
                 relationships = []
-                for record in result:
+                relationship_property_names = set()
+
+                for i, record in enumerate(result):
                     start_node = record["start"]
                     end_node = record["end"]
                     relationship_properties = record["relationship_properties"]
+
+                    # Extract relationship property names from the first relationship only
+                    if i == 0 and relationship_properties:
+                        relationship_property_names.update(relationship_properties.keys())
 
                     # Select the prioritized property for start and end nodes
                     start_property = next(
@@ -169,7 +191,13 @@ class Neo4jConnector:
 
                 # Sort relationships by start and end properties alphabetically
                 relationships.sort(key=lambda x: (x[0], x[1]))
-            return relationships
+
+            return_value = []
+            return_value.append(relationships)
+            return_value.append(list(relationship_property_names))
+
+            return relationships, list(relationship_property_names)
         except Exception as e:
             print(f"Error fetching relationships for label {label}: {e}")
-            return []
+            return [], []
+

@@ -4,6 +4,7 @@ import styles from "../styles/Filter.module.css";
 import { TbFilter } from "react-icons/tb";
 import NumberTicker from "../components/ui/number-ticker"
 import { searchData } from '../utils/searchUtils';
+import { TbEye, TbEyeOff } from "react-icons/tb";
 
 const Filter = ({ graphNodes: nodes, graphRelationships: relationships, setGraphNodes, setGraphRelationships, graphNodesBuffer, graphRelationshipsBuffer, setGraphNodesBuffer, setGraphRelationshipsBuffer, tabContentBounds }) => {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -13,7 +14,7 @@ const Filter = ({ graphNodes: nodes, graphRelationships: relationships, setGraph
   const nodeLabels = [...new Set(nodes.map((node) => node.nodeLabel))];
 
   // Group relationships by type and get only the first relationship of each type
-  const groupedRelationships = groupRelationshipsByType(relationships);
+  const groupedRelationships = groupRelationshipsByType(relationships.concat(graphRelationshipsBuffer));
 
   const [position, setPosition] = useState({ x: (tabContentBounds.width / 2) - 10 - 50, y: (-tabContentBounds.height / 2) + 20 + 50 });
   const [menuDirection, setMenuDirection] = useState('downleft');
@@ -89,6 +90,101 @@ const Filter = ({ graphNodes: nodes, graphRelationships: relationships, setGraph
   const handleMouseUp = () => {
     clearInterval(intervalId);
     setIntervalId(null);
+  };
+
+  // relationship 状态
+  const [hiddenTypes, setHiddenTypes] = useState({});
+
+  const toggleVisibilityByType = async (type) => {
+    const isHidden = hiddenTypes[type];
+    // const relationshipsToToggle = groupedRelationships[type];
+
+
+    const isIsolated = (nodeId, updatedRelationships) =>
+      !updatedRelationships.some(
+        (relationship) =>
+          relationship.startNode === nodeId || relationship.endNode === nodeId
+      );
+
+    if (!isHidden) {
+      // Hide relationships and manage nodes
+      const relationshipsToToggle = groupRelationshipsByType(relationships)[type];
+      const updatedRelationships = relationships.filter(
+        (rel) => rel.type !== type
+      );
+      await setGraphRelationships(updatedRelationships);
+
+      await setGraphRelationshipsBuffer((prev) => [
+        ...prev,
+        ...relationshipsToToggle,
+      ]);
+
+      // Check and move isolated nodes to buffer
+      relationshipsToToggle.forEach(async (rel) => {
+        const startNode = nodes.find((node) => node.id === rel.startNode);
+        const endNode = nodes.find((node) => node.id === rel.endNode);
+
+        if (isIsolated(rel.startNode, updatedRelationships)) {
+          await setGraphNodesBuffer((prev) => [...prev, startNode]);
+          await setGraphNodes((prev) =>
+            prev.filter((node) => node.id !== rel.startNode)
+          );
+        }
+
+        if (isIsolated(rel.endNode, updatedRelationships)) {
+          await setGraphNodesBuffer((prev) => [...prev, endNode]);
+          await setGraphNodes((prev) =>
+            prev.filter((node) => node.id !== rel.endNode)
+          );
+        }
+      });
+
+      console.log("Hidden Type:", type);
+      console.log("Nodes:", nodes);
+      console.log("Relationships:", relationships);
+      console.log("Buffered Nodes:", graphNodesBuffer);
+      console.log("Buffered Relationships:", graphRelationshipsBuffer);
+    } else {
+      // Show relationships and related nodes
+
+      const relationshipsToToggle = groupRelationshipsByType(graphRelationshipsBuffer)[type];
+      await setGraphRelationships((prev) => [...prev, ...relationshipsToToggle]);
+
+      await setGraphRelationshipsBuffer((prev) =>
+        prev.filter((rel) => !relationshipsToToggle.includes(rel))
+      );
+
+      relationshipsToToggle.forEach(async (rel) => {
+        const startNode = graphNodesBuffer.find((node) => node.id === rel.startNode);
+        const endNode = graphNodesBuffer.find((node) => node.id === rel.endNode);
+
+        if (startNode) {
+          await setGraphNodes((prev) => [...prev, startNode]);
+          await setGraphNodesBuffer((prev) =>
+            prev.filter((node) => node.id !== rel.startNode)
+          );
+        }
+
+        if (endNode) {
+          await setGraphNodes((prev) => [...prev, endNode]);
+          await setGraphNodesBuffer((prev) =>
+            prev.filter((node) => node.id !== rel.endNode)
+          );
+        }
+      });
+
+
+      console.log("Visible Type:", type);
+      console.log("Nodes:", nodes);
+      console.log("Relationships:", relationships);
+      console.log("Buffered Nodes:", graphNodesBuffer);
+      console.log("Buffered Relationships:", graphRelationshipsBuffer);
+    }
+    // Toggle hidden state for the type
+    setHiddenTypes((prev) => ({
+      ...prev,
+      [type]: !isHidden,
+    }));
   };
 
   // searchQuery 状态
@@ -201,16 +297,6 @@ const Filter = ({ graphNodes: nodes, graphRelationships: relationships, setGraph
     return;
   };
 
-  const handleTagSelect = (tag) => {
-    if (!selectedTags.includes(tag)) {
-      setSelectedTags((prevTags) => [...prevTags, tag]);
-    }
-  };
-
-  const handleTagRemove = (tag) => {
-    setSelectedTags((prevTags) => prevTags.filter((t) => t !== tag));
-  };
-
   return (
     <Draggable
       position={position} // 绑定位置到状态
@@ -263,23 +349,31 @@ const Filter = ({ graphNodes: nodes, graphRelationships: relationships, setGraph
             <div className={styles.tabContent}>
               {activeTab === "relationship" && (
                 <div className={styles.relationshipContent}>
-                  {Object.entries(groupedRelationships).map(([type, relationships]) => {
-                    const rel = relationships[0]; // Use the first relationship of the type
-                    const startNode = nodes.find((node) => node.id === rel.startNode);
-                    const endNode = nodes.find((node) => node.id === rel.endNode);
+                  {Object.entries(groupedRelationships)
+                  .map(([type, relationships]) => {
+                    const findNodeById = (id, allNodes) => allNodes.find((node) => node.id === id);
+                    // Combine nodes and graphNodesBuffer into one array for searching
+                    const allNodes = [...nodes, ...graphNodesBuffer];
+                    // Find startNode and endNode
+                    const startNode = findNodeById(relationships[0].startNode, allNodes);
+                    const endNode = findNodeById(relationships[0].endNode, allNodes);
 
                     return (
                       <div key={type} className={styles.relationshipRow}>
                         <span className={styles.relationshipNode}>
-                          {startNode ? startNode.nodeLabel : `Node ${rel.startNode}`}
+                          {startNode ? startNode.nodeLabel : `Node ${relationships[0].startNode}`}
                         </span>
                         <span className={styles.relationshipArrow}>→</span>
                         <span className={styles.relationshipNode}>
-                          {endNode ? endNode.nodeLabel : `Node ${rel.endNode}`}
+                          {endNode ? endNode.nodeLabel : `Node ${relationships[0].endNode}`}
                         </span>
                         <span className={styles.relationshipType}>{type}</span>
-                        <button className={styles.settingsButton}>⚙️</button>
-                        <button className={styles.deleteButton}>✖</button>
+                        <button
+                          className={styles.toggleVisibilityButton}
+                          onClick={() => toggleVisibilityByType(type)}
+                        >
+                          {hiddenTypes[type] ? <TbEyeOff /> : <TbEye />}
+                        </button>
                       </div>
                     );
                   })}
@@ -406,14 +500,32 @@ const Filter = ({ graphNodes: nodes, graphRelationships: relationships, setGraph
 };
 
 // Utility to group relationships by type
-const groupRelationshipsByType = (relationships) => {
-  return relationships.reduce((acc, rel) => {
+const groupRelationshipsByType = (allRelationships, sortByType = true) => {
+  // Group relationships by type
+  const grouped = allRelationships.reduce((acc, rel) => {
     if (!acc[rel.type]) {
       acc[rel.type] = [];
     }
     acc[rel.type].push(rel);
     return acc;
   }, {});
+
+  // Optionally sort group keys (types)
+  const sortedKeys = sortByType
+    ? Object.keys(grouped).sort()
+    : Object.keys(grouped);
+
+  // Sort within each group by startNode and endNode
+  const sortedGroups = sortedKeys.reduce((acc, type) => {
+    acc[type] = grouped[type].sort((a, b) => {
+      const keyA = parseInt(`${a.startNode}${a.endNode}`);
+      const keyB = parseInt(`${b.startNode}${b.endNode}`);
+      return keyA - keyB;
+    });
+    return acc;
+  }, {});
+
+  return sortedGroups;
 };
 
 export default Filter;

@@ -397,12 +397,6 @@
   background-color: #e0e0e0; /* Highlight label on hover */
 }
 
-.playground .galleryContainer {
-  flex-grow: 1; /* Allow this container to grow and fill the remaining space */
-  width: 75%;
-  background-color: #f2f4f8; /* Set the background if needed */
-  overflow-y: auto; /* Allow scrolling if content exceeds the height */
-}
 .playground .flexRowGalleryImages {
   position: fixed; /* Fixes the position relative to the viewport */
   bottom: 20px; /* Adjust the distance from the bottom */
@@ -410,18 +404,18 @@
   display: flex;
   gap: 17px; /* Spacing between gallery images */
 }
-/* Image sizes for gallery */
-.playground .imageGallery1,
-.playground .imageGallery2,
-.playground .imageGallery3,
-.playground .imageGallery4 {
-  width: 46px;
+.iconContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 50px; /* 容器宽度 */
+  height: 50px; /* 容器高度 */
+  background-color: #f5f5f5; /* 浅灰色背景 */
+  border-radius: 15px; /* 圆角 */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* 阴影 */
 }
-.playground .imageGallery5 {
-  position: absolute;
-  top: 105px;
-  right: 2px;
-  width: 38px;
+.icon {
+  color: #333; /* 图标颜色 */
 }
 .databaseSection {
   margin-bottom: 20px;

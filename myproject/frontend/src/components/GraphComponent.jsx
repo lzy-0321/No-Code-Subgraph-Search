@@ -4,6 +4,10 @@ import { ForceGraph2D } from 'react-force-graph';
 const GraphComponent = ({ nodes, relationships, enableZoom = true }) => {
   const graphRef = useRef();
 
+  console.log('GraphComponent rendered');
+  console.log('Nodes:', nodes);
+  console.log('Relationships:', relationships);
+
   useEffect(() => {
     return () => {
         graphRef.current = null; // 清理 ref

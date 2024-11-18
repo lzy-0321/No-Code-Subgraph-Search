@@ -1,0 +1,155 @@
+.popupOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+  }
+
+  .popupContent {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    position: relative;
+    width: 400px;
+    max-width: 90%;
+  }
+
+  .tabHeader {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+  .tabButton {
+    padding: 10px 20px;
+    cursor: pointer;
+  }
+
+  .activeTab {
+    border-bottom: 2px solid #007bff;
+  }
+  .disabledTab {
+    opacity: 0.5;
+    pointer-events: none;
+    cursor: not-allowed;
+  }
+  .tabContent {
+    margin-top: 20px;
+  }
+  .stepOne,
+  .stepTwo {
+    display: flex;
+    flex-direction: column; /* Ensure vertical alignment for stepOne/stepTwo as a whole */
+    align-items: center;
+    justify-content: center;
+  }
+
+  .rowSection {
+    display: flex; /* Horizontal alignment for rowSection */
+    justify-content: space-between; /* Distribute leftSection and rightSection */
+    align-items: center; /* Vertical alignment within rowSection */
+    width: 100%; /* Ensures rowSection spans full width */
+    max-width: 500px; /* Optional: Limit the width of rowSection */
+    gap: 10px; /* Add spacing between left and right sections */
+  }
+
+  .leftSection {
+    font-size: 16px;
+    flex-shrink: 0; /* Prevent leftSection from shrinking */
+  }
+
+  .rightSection {
+    flex-grow: 1; /* Allow rightSection to take available space */
+  }
+
+  .selectBox {
+    width: 100%; /* Make the dropdown fill the available space in rightSection */
+    padding: 8px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+
+  .buttonContainer {
+    margin-top: 20px;
+  }
+
+  .nextButton,
+  .cancelButton,
+  .addButton,
+  .backButton {
+    padding: 10px 20px;
+    font-size: 16px;
+    margin: 5px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+
+  .nextButton:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+  }
+  .nextButton,
+  .addButton {
+    background-color: #007bff;
+    color: white;
+  }
+  .cancelButton,
+  .backButton {
+    background-color: #f5f5f5;
+    color: #333;
+  }
+
+  .headerContainer {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+
+  .headerText {
+    font-size: 20px;
+    margin: 0; /* Remove default margin */
+    color: #333;
+  }
+
+  .propertyContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 15px; /* Space between rows */
+  }
+
+  .propertyRow {
+    display: flex;
+    align-items: center;
+    gap: 10px; /* Space between label, icon, and input */
+  }
+
+  .propertyLabel {
+    font-size: 16px;
+    font-weight: bold;
+    padding: 5px 10px;
+    background-color: #f0f0f0;
+    border-radius: 4px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+
+  .propertyIcon {
+    font-size: 20px;
+    color: #333;
+    flex-shrink: 0;
+  }
+
+  .propertyInput {
+    flex-grow: 1;
+    padding: 8px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }

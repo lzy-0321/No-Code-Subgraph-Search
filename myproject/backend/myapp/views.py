@@ -32,6 +32,7 @@ def home(request):
         'current_year': datetime.now().year
     })
 
+@csrf_exempt
 @ensure_csrf_cookie
 def test_neo4j_and_signup(request):
     if request.method == 'POST':
@@ -88,6 +89,7 @@ def test_neo4j_and_signup(request):
 
     return JsonResponse({'success': False, 'error': 'Invalid request method'})
 
+@csrf_exempt
 @ensure_csrf_cookie
 def login_view(request):
     if request.method == 'POST':
@@ -116,6 +118,7 @@ def login_view(request):
     else:
         return JsonResponse({'success': False, 'error': 'Invalid request method'}, status=405)
 
+@csrf_exempt
 @ensure_csrf_cookie
 def logout_view(request):
     if request.method == 'POST':
@@ -123,6 +126,7 @@ def logout_view(request):
         return JsonResponse({'success': True, 'message': 'Logged out successfully'})
     return JsonResponse({'success': False, 'error': 'Invalid request method'})
 
+@csrf_exempt
 @ensure_csrf_cookie
 def get_user_databases(request):
     if request.method == 'GET' and request.user.is_authenticated:
@@ -142,6 +146,7 @@ def get_user_databases(request):
             return JsonResponse({'success': False, 'error': str(e)}, status=500)
     return JsonResponse({'success': False, 'error': 'Unauthorized or invalid request'}, status=400)
 
+@csrf_exempt
 @ensure_csrf_cookie
 def add_database(request):
     if request.method == 'POST' and request.user.is_authenticated:
@@ -174,6 +179,7 @@ def add_database(request):
     return JsonResponse({'success': False, 'error': 'Invalid request method'})
 
 # 删除数据库记录的视图
+@csrf_exempt
 @ensure_csrf_cookie
 def delete_database(request):
     if request.method == 'POST' and request.user.is_authenticated:
@@ -198,6 +204,7 @@ def delete_database(request):
 
     return JsonResponse({'success': False, 'error': 'Invalid request method'})
 
+@csrf_exempt
 @ensure_csrf_cookie
 def select_database(request):
     if request.method == 'POST' and request.user.is_authenticated:
@@ -229,6 +236,7 @@ def select_database(request):
 
     return JsonResponse({'success': False, 'error': 'Invalid request'}, status=400)
 
+@csrf_exempt
 @ensure_csrf_cookie
 def get_database_info(request):
     if request.method == 'GET' and request.user.is_authenticated:

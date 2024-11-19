@@ -121,7 +121,7 @@ export default function Register() {
             checked={rememberMe}
             onChange={(e) => setRememberMe(e.target.checked)}
           />
-          <label htmlFor="registerRememberMe">Remember Me</label>
+          <label htmlFor="registerRememberMe">Remember Me For 30 Days</label>
         </div>
         <button type="submit" className={styles['submit-btn']}>Log In</button>
       </form>

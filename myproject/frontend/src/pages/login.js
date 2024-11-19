@@ -35,7 +35,7 @@ export default function Login() {
         const data = await res.json();
 
         if (data.success) {
-            alert('Login successful!');
+            // alert('Login successful!');
             window.location.href = '/playground';  // 登录成功后重定向
         } else {
             alert('Login failed: ' + data.error);
@@ -76,7 +76,7 @@ export default function Login() {
             checked={rememberMe}
             onChange={(e) => setRememberMe(e.target.checked)}
           />
-          <label htmlFor="loginRememberMe">Remember Me</label>
+          <label htmlFor="loginRememberMe">Remember Me For 30 Days</label>
         </div>
         <button type="submit" className={styles['submit-btn']}>Log In</button>
       </form>

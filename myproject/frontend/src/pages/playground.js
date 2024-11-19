@@ -416,7 +416,7 @@ export default function Playground() {
       const result = await response.json();
       if (result.success) {
         setSelectedDatabase(url);
-        alert('Database selected and connected successfully.');
+        // alert('Database selected and connected successfully.');
 
         // 在数据库选择成功后调用 fetchDatabaseInfo 获取数据库信息
         await fetchDatabaseInfo();

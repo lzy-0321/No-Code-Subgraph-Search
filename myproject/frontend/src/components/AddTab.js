@@ -20,6 +20,7 @@ const AddTab = ({ AddTabNodeEntities: nodeEntities, AddTabRelationshipEntities: 
   const handleAddTabSwitch = (tab) => {
     if (step === 1) {
       setActiveAddTab(tab);
+      setSelectedLabel("");
     }
   };
 
@@ -125,6 +126,15 @@ const AddTab = ({ AddTabNodeEntities: nodeEntities, AddTabRelationshipEntities: 
                             />
                             </div>
                         ))}
+                        <div className={styles.propertyRow}>
+                          <span className={styles.propertyLabel}>Path limit</span>
+                          <span className={styles.propertyIcon}>=</span>
+                          <input
+                              type="text"
+                              placeholder={`Enter Number`}
+                              className={styles.propertyInput}
+                          />
+                        </div>
                         </div>
                         <div className={styles.buttonContainer}>
                         <button className={styles.backButton} onClick={() => setStep(1)}>
@@ -196,6 +206,15 @@ const AddTab = ({ AddTabNodeEntities: nodeEntities, AddTabRelationshipEntities: 
                             />
                             </div>
                         ))}
+                        <div className={styles.propertyRow}>
+                          <span className={styles.propertyLabel}>Number limit</span>
+                          <span className={styles.propertyIcon}>=</span>
+                          <input
+                              type="text"
+                              placeholder={`Enter Number`}
+                              className={styles.propertyInput}
+                          />
+                        </div>
                         </div>
                         <div className={styles.buttonContainer}>
                         <button className={styles.backButton} onClick={() => setStep(1)}>

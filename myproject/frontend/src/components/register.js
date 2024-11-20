@@ -42,6 +42,7 @@ export default function Register() {
       router.push('/playground');
     } else {
       setError(data.error);  // 显示错误消息
+      alert(`Registration failed: ${data.error}`);
     }
   };
 

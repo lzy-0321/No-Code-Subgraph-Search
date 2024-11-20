@@ -8,7 +8,8 @@ import styles from '../styles/Page1.module.css';
 import dynamic from 'next/dynamic';
 import { tutorialCard } from '../components/tutorialCard';
 import PulsatingButton from "../components/ui/pulsating-button";
-const GraphComponent = dynamic(() => import('../components/GraphComponent'), { ssr: false });
+import BoxReveal from "../components/ui/box-reveal";
+const DrawGraph = dynamic(() => import('../components/DrawGraph'), { ssr: false });
 
 export default function Home() {
   const [user, setUser] = useState(null);  // 用户状态
@@ -36,12 +37,11 @@ export default function Home() {
       setGraphRelationships([
         { startNode: '1', endNode: '2', type: 'FRIEND', properties: { since: '2020', frequency: 'Weekly' } },
         { startNode: '2', endNode: '3', type: 'LEARNED', properties: { date: '2021', confidence: 'High' } },
-        { startNode: '3', endNode: '4', type: 'MENTORED', properties: { duration: '6 months', successRate: '90%' } },
+        { startNode: '1', endNode: '6', type: 'LEARNED', properties: { date: '2019', confidence: 'High' } },
+        { startNode: '1', endNode: '3', type: 'MENTORED', properties: { duration: '6 months', successRate: '90%' } },
         { startNode: '4', endNode: '5', type: 'COLLABORATED', properties: { project: 'AI Research', duration: '1 year' } },
-        { startNode: '5', endNode: '6', type: 'ATTENDED', properties: { event: 'Workshop', feedback: 'Positive' } },
         { startNode: '6', endNode: '7', type: 'INSPIRED', properties: { topic: 'Machine Learning', impact: 'Significant' } },
-        { startNode: '1', endNode: '7', type: 'FRIEND', properties: { since: '2019', frequency: 'Monthly' } },
-        { startNode: '2', endNode: '4', type: 'WORKED_WITH', properties: { project: 'UI Redesign', duration: '3 months' } },
+        { startNode: '4', endNode: '7', type: 'FRIEND', properties: { since: '2019', frequency: 'Monthly' } },
         { startNode: '3', endNode: '6', type: 'REFERRED', properties: { reason: 'Expertise', trustLevel: 'High' } },
       ]);
     }, 1000);
@@ -229,30 +229,36 @@ export default function Home() {
           <div className={styles.solutionsContentColumn}>
             <div className={styles.contentWrapper}>
               <div className={styles.solutionsHeaderWrapper}>
-                <h1 className={styles.noCodeSolutionsHeader}>No code solutions for Graph Database</h1>
-              </div>
-              <p className={styles.solutionsDescriptionText}>
+              <BoxReveal boxColor={"#5046e6"} duration={0.5}>
+                <p className="text-[3.5rem] font-semibold">
+                  No code solutions for Graph Database
+                </p>
+              </BoxReveal>
+              <BoxReveal boxColor={"#5046e6"} duration={0.5}>
+                <h1 className="mt-[.5rem] text-[1rem]">
                 Due to the developer shortage and budget issues, low-code/no-code frameworks are gaining popularity.
                 Visual Query Interfaces (VQIs) let users create database queries with "drag-and-drop" ease.
-              </p>
+                </h1>
+              </BoxReveal>
+              </div>
             </div>
-            <PulsatingButton
-              className={styles.linkDatabaseBtn}
-              onClick={() => {
-                if (!user) {
-                  // 未登录时，打开注册模态框
-                  openModal('register');
-                } else {
-                  // 登录后，跳转到 playground 页面
-                  router.push('/playground');
-                }
-              }}
-            >
-              {user ? 'Go to Playground' : 'Link database'}
-            </PulsatingButton>
+              <PulsatingButton
+                className={styles.linkDatabaseBtn}
+                onClick={() => {
+                  if (!user) {
+                    // 未登录时，打开注册模态框
+                    openModal('register');
+                  } else {
+                    // 登录后，跳转到 playground 页面
+                    router.push('/playground');
+                  }
+                }}
+              >
+                {user ? 'Go to Playground' : 'Link database'}
+              </PulsatingButton>
           </div>
           <div className={styles.graph}>
-            <GraphComponent nodes={graphNodes} relationships={graphRelationships} enableZoom={false} />
+            <DrawGraph nodes={graphNodes} relationships={graphRelationships} enableZoom={false} />
           </div>
         </div>
       </section>

@@ -219,62 +219,7 @@
   margin: 17px 0 0;
   width: 92.86%;
 }
-.playground .imageGraphInfo {
-  width: 24px;
-  min-width: 0;
-}
-.playground .featureTextInGraph {
-  margin: 4px 0;
-  min-width: 0;
-  font: 500 16px/1 Roboto, Helvetica, Arial, serif;
-  color: #21272a;
-}
-.playground .nodeLabelContentBox {
-  display: flex;
-  flex-direction: column;
-  margin: 5px 0 0;
-  width: 100%;
-  background-color: #f2f4f8;
-  border-radius: 10px;
-  border-color: #c1c7cd;
-  border-style: solid;
-  border-width: 0 0 1px;
-}
-.playground .flexColumnNodeLabels {
-  display: flex;
-  flex-direction: column;
-  gap: 9px 0;
-  margin: 7px 0 10px 8px;
-  width: 98px;
-}
-.playground .flexRowNodeImage {
-  display: flex;
-  gap: 0 4px;
-}
-.playground .imageNode {
-  width: 16px;
-  min-width: 0;
-}
-.playground .infoNodeCount {
-  margin: 4px 0 2px;
-  min-width: 0;
-  font: 500 11px/1 Roboto, Helvetica, Arial, serif;
-  color: #21272a;
-}
-.playground .flexRowRelationshipInfo {
-  display: flex;
-  gap: 0 6px;
-}
-.playground .imageRelationship {
-  width: 14px;
-  min-width: 0;
-}
-.playground .infoRelationshipCount {
-  margin: 2px 0;
-  min-width: 0;
-  font: 500 11px/1 Roboto, Helvetica, Arial, serif;
-  color: #21272a;
-}
+
 /* Node labels */
 .playground .nodeLabelsContentBox,
 .playground .relationshipTypesContentBox,

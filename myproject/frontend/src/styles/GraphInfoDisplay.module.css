@@ -1,0 +1,94 @@
+.graphInfoContainer {
+    width: 100%; /* Ensure it uses the full available width */
+    box-sizing: border-box; /* Include padding and border in element width */
+}
+
+.flexRowGraphInfo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 10px 0;
+    width: 100%; /* Ensure it takes up the full width */
+}
+
+.nodeLabelContentBox {
+    width: 100%; /* Ensure it spans the full width of the parent container */
+    padding: 10px;
+    background-color: #ffffff;
+    border-radius: 8px;
+    border: 1px solid #d1d9e6;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.flexColumnNodeLabels {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin: 0;
+    width: 100%;
+}
+
+.flexRowNodeImage {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%; /* Ensure it takes up the full width */
+}
+
+.imageNode {
+    width: 20px;
+}
+
+.infoNodeCount {
+    font: 500 14px/1 Roboto, Helvetica, Arial, serif;
+    color: #21272a;
+}
+
+.nodeTypesList {
+    margin-top: 10px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    width: 100%; /* Ensure it takes up the full width */
+}
+
+.nodeTypeItem {
+    background-color: #e5f1fc;
+    border-radius: 4px;
+    padding: 4px 8px;
+    font: 500 12px/1 Roboto, Helvetica, Arial, serif;
+    color: #0072ce;
+}
+
+.flexRowRelationshipInfo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 15px;
+    width: 100%; /* Ensure it takes up the full width */
+}
+
+.imageRelationship {
+    width: 20px;
+}
+
+.infoRelationshipCount {
+    font: 500 14px/1 Roboto, Helvetica, Arial, serif;
+    color: #21272a;
+}
+
+.relationshipTypesList {
+    margin-top: 10px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    width: 100%; /* Ensure it takes up the full width */
+}
+
+.relationshipTypeItem {
+    background-color: #fdf1d4;
+    border-radius: 4px;
+    padding: 4px 8px;
+    font: 500 12px/1 Roboto, Helvetica, Arial, serif;
+    color: #b97a00;
+}

@@ -5,10 +5,11 @@ import { searchData } from '../utils/searchUtils';
 import dynamic from 'next/dynamic';
 import Filter from '../components/Filter';
 import AddTab from "../components/AddTab";
+import GraphInfoDisplay from '../components/GraphInfoDisplay';
 import { TbCrosshair, TbTrash } from 'react-icons/tb';
 
 // 动态加载 GraphComponent
-const GraphComponent = dynamic(() => import('../components/GraphComponent'), { ssr: false });
+const DrawGraph = dynamic(() => import('../components/DrawGraph'), { ssr: false });
 
 export default function Playground() {
   const [databases, setDatabases] = useState([]);
@@ -40,16 +41,18 @@ export default function Playground() {
   });
 
   const [graphNodes, setGraphNodes] = useState([
-    { id: 1, nodeLabel: 'PERSON', properties: { name: 'Alice', age: 30, role: 'Engineer' } },
-    { id: 2, nodeLabel: 'PERSON', properties: { name: 'Bob', age: 25, role: 'Designer' } },
-    { id: 3, nodeLabel: 'KNOWLEDGE', properties: { title: 'Graph Database', type: 'Tutorial', category: 'Technology' } },
-    { id: 4, nodeLabel: 'PERSON', properties: { name: 'Charlie', age: 35, role: 'Manager' } },
-    { id: 5, nodeLabel: 'KNOWLEDGE', properties: { title: 'Graph Science', type: 'Tutorial', category: 'Technology' } },]);
+    // { id: 1, nodeLabel: 'PERSON', properties: { name: 'Alice', age: 30, role: 'Engineer' } },
+    // { id: 2, nodeLabel: 'PERSON', properties: { name: 'Bob', age: 25, role: 'Designer' } },
+    // { id: 3, nodeLabel: 'KNOWLEDGE', properties: { title: 'Graph Database', type: 'Tutorial', category: 'Technology' } },
+    // { id: 4, nodeLabel: 'PERSON', properties: { name: 'Charlie', age: 35, role: 'Manager' } },
+    // { id: 5, nodeLabel: 'KNOWLEDGE', properties: { title: 'Graph Science', type: 'Tutorial', category: 'Technology' } },
+  ]);
   const [graphRelationships, setGraphRelationships] = useState([
-    { startNode: 1, endNode: 2, type: 'FRIEND', properties: { since: '2020', frequency: 'Weekly' } },
-    { startNode: 1, endNode: 3, type: 'LIKES', properties: { since: '2019', frequency: 'Monthly' } },
-    { startNode: 2, endNode: 3, type: 'LIKES', properties: { since: '2018', frequency: 'Daily' } },
-    { startNode: 4, endNode: 5, type: 'LIKES', properties: { since: '2016', frequency: 'Monthly' } },]);
+    // { startNode: 1, endNode: 2, type: 'FRIEND', properties: { since: '2020', frequency: 'Weekly' } },
+    // { startNode: 1, endNode: 3, type: 'LIKES', properties: { since: '2019', frequency: 'Monthly' } },
+    // { startNode: 2, endNode: 3, type: 'LIKES', properties: { since: '2018', frequency: 'Daily' } },
+    // { startNode: 4, endNode: 5, type: 'LIKES', properties: { since: '2016', frequency: 'Monthly' } },
+  ]);
   const [graphNodesBuffer, setGraphNodesBuffer] = useState([]);
   const [graphRelationshipsBuffer, setGraphRelationshipsBuffer] = useState([]);
 
@@ -818,41 +821,8 @@ export default function Playground() {
                     </div>
                   )}
                 </div>
-
                 <div className={styles.flexRowGraphInfo}>
-                  <Image
-                    className={styles.imageGraphInfo}
-                    src="/assets/93f66d49f8cec41f326c7bb705c4363e.svg"
-                    alt="graph info"
-                    width={30}
-                    height={30}
-                  />
-                  <p className={styles.featureTextInGraph}>In Graph</p>
-                </div>
-
-                <div className={styles.nodeLabelContentBox}>
-                  <div className={styles.flexColumnNodeLabels}>
-                    <div className={styles.flexRowNodeImage}>
-                      <Image
-                        className={styles.imageNode}
-                        src="/assets/5c7bc533b46918472c06b5da9e3111a7.svg"
-                        alt="node"
-                        width={30}
-                        height={30}
-                      />
-                      <div className={styles.infoNodeCount}>Node (0)</div>
-                    </div>
-                    <div className={styles.flexRowRelationshipInfo}>
-                      <Image
-                        className={styles.imageRelationship}
-                        src="/assets/461cd4b84fab404232553c25b46adbe5.svg"
-                        alt="relationship"
-                        width={30}
-                        height={30}
-                      />
-                      <div className={styles.infoRelationshipCount}>Relationship (0)</div>
-                    </div>
-                  </div>
+                  <GraphInfoDisplay graphNodes={graphNodes} graphRelationships={graphRelationships} />
                 </div>
 
                 <div className={styles.nodeLabelsContentBox}>
@@ -1054,7 +1024,7 @@ export default function Playground() {
                 )}
                 <div className={styles.tabGraph}>
                   {isDataClean && (
-                    <GraphComponent
+                    <DrawGraph
                       nodes={graphNodes}
                       relationships={graphRelationships}
                     />

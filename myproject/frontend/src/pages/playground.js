@@ -724,7 +724,8 @@ export default function Playground() {
 
                     {/* 模态框部分 */}
                     {isModalOpen && (
-                    <div className={styles.modal}>
+                    <div className={styles.modalBackdrop} onClick={() => setIsModalOpen(false)}>
+                        <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
                         <div className={styles['modal-content']}>
                         <span className={styles.closeBtn} onClick={handleCloseModal}>&times;</span>
                         <form onSubmit={handleFormSubmit}>
@@ -773,6 +774,7 @@ export default function Playground() {
                             Connect Database
                             </button>
                         </form>
+                        </div>
                         </div>
                     </div>
                     )}

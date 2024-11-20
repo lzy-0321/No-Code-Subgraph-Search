@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Image from 'next/image';
 import Link from 'next/link';
-import Login from './login';  // 导入登录组件
-import Register from './register';  // 导入注册组件
+import Login from '../components/login';  // 导入登录组件
+import Register from '../components/register';  // 导入注册组件
 import styles from '../styles/Page1.module.css';
 import dynamic from 'next/dynamic';
 import { tutorialCard } from '../components/tutorialCard';

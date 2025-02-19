@@ -7,9 +7,94 @@ import Filter from '../components/Filter';
 import AddTab from "../components/AddTab";
 import GraphInfoDisplay from '../components/GraphInfoDisplay';
 import { TbCrosshair, TbTrash } from 'react-icons/tb';
+import DatabaseManager from '../components/Database/DatabaseManager';
 
 // 动态加载 GraphComponent
 const DrawGraph = dynamic(() => import('../components/DrawGraph'), { ssr: false });
+
+class QueryParamsGenerator {
+  constructor() {
+    this.queryParams = {
+      matchType: 'allNodes',
+      label: '',
+      nodeProperties: {},
+      relationship: {},
+      whereClause: '',
+      returnFields: ['n'],
+      optional: false,
+      useWithClause: false,
+      aggregate: false,
+      multipleMatches: false,
+      variableLength: {
+        enabled: false,
+        minHops: 1,
+        maxHops: null
+      }
+    };
+  }
+
+  // 根据节点标签生成查询
+  generateLabelQuery(label) {
+    return {
+      ...this.queryParams,
+      matchType: 'labelMatch',
+      label: label,
+      returnFields: ['n']
+    };
+  }
+
+  // 根据节点属性生成查询
+  generatePropertyQuery(label, properties) {
+    return {
+      ...this.queryParams,
+      matchType: 'propertyMatch',
+      label: label,
+      nodeProperties: properties,
+      returnFields: ['n']
+    };
+  }
+
+  // 根据关系生成查询
+  generateRelationshipQuery(startLabel, relationType, endLabel, relationshipProps = {}, variableLength = null) {
+    const query = {
+      ...this.queryParams,
+      matchType: 'relationshipMatch',
+      label: startLabel,
+      relationship: {
+        type: relationType,
+        properties: relationshipProps
+      },
+      returnFields: ['a', 'b']
+    };
+
+    if (variableLength) {
+      query.variableLength = {
+        enabled: true,
+        minHops: variableLength.minHops || 1,
+        maxHops: variableLength.maxHops
+      };
+    }
+
+    return query;
+  }
+
+  // 添加WHERE子句
+  addWhereClause(query, whereClause) {
+    return {
+      ...query,
+      whereClause: whereClause
+    };
+  }
+
+  // 添加聚合
+  addAggregation(query, aggregateFields) {
+    return {
+      ...query,
+      aggregate: true,
+      returnFields: aggregateFields
+    };
+  }
+}
 
 export default function Playground() {
   const [databases, setDatabases] = useState([]);
@@ -399,38 +484,35 @@ export default function Playground() {
     fetchDatabases();
   }, []);
 
-  const handleDatabaseSelection = async (url) => {
-    try {
-      const csrfToken = document.cookie
-        .split('; ')
-        .find((row) => row.startsWith('csrftoken='))
-        ?.split('=')[1];
+  const handleDatabaseSelect = (url) => {
+    setSelectedDatabase(url);
+  };
 
-      const response = await fetch('http://localhost:8000/select_database/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRFToken': csrfToken,
-        },
-        body: JSON.stringify({ selectedUrl: url }),
-        credentials: 'include',
+  const handleDatabaseInfoFetch = (dbInfo) => {
+    // 一次性更新所有状态
+    setNodeLabels(dbInfo.labels);
+    setRelationshipTypes(dbInfo.relationshipTypes);
+    setPropertyKeys(dbInfo.propertyKeys);
+    setNodePrimeEntities(dbInfo.nodePrimeEntities);
+    setNodeEntities(dbInfo.nodeEntities);
+    setRelationshipPrimeEntities(dbInfo.relationshipPrimeEntities);
+    setRelationshipEntities(dbInfo.relationshipEntities);
+
+    // 更新当前标签页的数据库信息
+    if (activeTab) {
+      const updatedTabs = tabs.map(tab => {
+        if (tab.id === activeTab) {
+          return {
+            ...tab,
+            databaseInfo: {
+              ...tab.databaseInfo,
+              selectedDatabase: dbInfo.selectedDatabase
+            }
+          };
+        }
+        return tab;
       });
-
-      const result = await response.json();
-      if (result.success) {
-        setSelectedDatabase(url);
-        // alert('Database selected and connected successfully.');
-
-        // 在数据库选择成功后调用 fetchDatabaseInfo 获取数据库信息
-        await fetchDatabaseInfo();
-        //将url保存到当前tab的数据库信息中
-        tabs.find((tab) => tab.id === activeTab).databaseInfo.selectedDatabase = url;
-      } else {
-        alert('Error: ' + result.error);
-      }
-    } catch (error) {
-      console.error('Error selecting database:', error);
-      alert('Error selecting database.');
+      setTabs(updatedTabs);
     }
   };
 
@@ -504,98 +586,6 @@ export default function Playground() {
     }
   };
 
-  // Function to fetch node labels, relationship types, and property keys from the back-end
-  const fetchDatabaseInfo = async () => {
-    try {
-      const response = await fetch('http://localhost:8000/get_database_info/', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-      });
-
-      const data = await response.json();
-      if (data.success) {
-        setNodeLabels(data.labels || []);
-        setRelationshipTypes(data.relationship_types || []);
-        setPropertyKeys(data.property_keys || []);
-
-        // Wait until nodeLabels and relationshipTypes are set, then fetch entities
-        for (const label of data.labels || []) {
-          await fetchEntitiesForLabel(label);
-        }
-        for (const type of data.relationship_types || []) {
-          await fetchEntitiesForRelationship(type);
-        }
-      } else {
-        console.error("Error fetching database info:", data.error);
-      }
-    } catch (error) {
-      console.error("Error fetching database info:", error);
-    }
-  };
-
-  // Fetch entities for a given label when it is expanded
-  const fetchEntitiesForLabel = (label) => {
-    fetch('http://localhost:8000/get_nodeEntities/', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ label }),
-      credentials: 'include',
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        if (data.success) {
-          setNodePrimeEntities((prevEntities) => {
-            const updatedPrimeEntities = { ...prevEntities, [label]: data.nodeEntities[0] };
-            console.log("Entities for each label after update:", updatedPrimeEntities);
-            return updatedPrimeEntities;
-          });
-          setNodeEntities((prevEntities) => {
-            const updatedEntities = { ...prevEntities, [label]: data.nodeEntities[1] };
-            console.log("Entities for each label after update:", updatedEntities);
-            return updatedEntities;
-          });
-        } else {
-          alert('Error fetching entities: ' + data.error);
-        }
-      })
-      .catch((error) => console.error('Error fetching entities:', error));
-  };
-
-  // Fetch entities for a given relationship type when it is expanded
-  const fetchEntitiesForRelationship = (type) => {
-    fetch('http://localhost:8000/get_relationshipEntities/', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ type }),
-      credentials: 'include',
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        if (data.success) {
-          setRelationshipPrimeEntities((prevEntities) => {
-            const updatedPrimeEntities = { ...prevEntities, [type]: data.relationshipEntities[0] };
-            console.log("Entities for each relationship type after update:", updatedPrimeEntities);
-            return updatedPrimeEntities;
-          });
-          setRelationshipEntities((prevEntities) => {
-            const updatedEntities = { ...prevEntities, [type]: data.relationshipEntities[1] };
-            console.log("Entities for each relationship type after update:", updatedEntities);
-            return updatedEntities;
-          });
-        } else {
-          alert('Error fetching entities: ' + data.error);
-        }
-      })
-      .catch((error) => console.error('Error fetching entities:', error));
-  };
-
   const toggleNodeLabels = () => setIsNodeLabelsOpen(!isNodeLabelsOpen);
   const toggleRelationshipTypes = () => setIsRelationshipTypesOpen(!isRelationshipTypesOpen);
   const togglePropertyKeys = () => setIsPropertyKeysOpen(!isPropertyKeysOpen);
@@ -604,6 +594,88 @@ export default function Playground() {
   };
   const toggleExpandedRelationship = (type) => {
     setExpandedRelationship(expandedRelationship === type ? null : type); // Toggle between expanded and collapsed
+  };
+
+  const [queryGenerator] = useState(new QueryParamsGenerator());
+
+  // 处理节点标签点击
+  const handleLabelClick = async (label) => {
+    try {
+      const query = queryGenerator.generateLabelQuery(label);
+      const response = await fetch('http://localhost:8000/match_query/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify(query)
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        // 更新图形显示
+        const newNodes = data.data.map(record => ({
+          id: record.n.properties.id || Math.random(),
+          nodeLabel: Array.isArray(record.n.labels) ? record.n.labels[0] : record.n.labels,
+          properties: record.n.properties
+        }));
+        setGraphNodes(prevNodes => [...prevNodes, ...newNodes]);
+      }
+    } catch (error) {
+      console.error('Error executing query:', error);
+    }
+  };
+
+  // 处理关系类型点击
+  const handleRelationshipClick = async (relationType) => {
+    try {
+      // 这里假设我们知道起始节点的标签
+      const query = queryGenerator.generateRelationshipQuery('Person', relationType, 'Person');
+      const response = await fetch('http://localhost:8000/match_query/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify(query)
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        // 更新图形显示
+        const newNodes = new Set();
+        const newRelationships = [];
+
+        data.data.forEach(record => {
+          // 添加起始节点
+          newNodes.add({
+            id: record.a.properties.id || Math.random(),
+            nodeLabel: Array.isArray(record.a.labels) ? record.a.labels[0] : record.a.labels,
+            properties: record.a.properties
+          });
+
+          // 添加终止节点
+          newNodes.add({
+            id: record.b.properties.id || Math.random(),
+            nodeLabel: Array.isArray(record.b.labels) ? record.b.labels[0] : record.b.labels,
+            properties: record.b.properties
+          });
+
+          // 添加关系
+          newRelationships.push({
+            startNode: record.a.properties.id,
+            endNode: record.b.properties.id,
+            type: relationType,
+            properties: record.r ? record.r.properties : {}
+          });
+        });
+
+        setGraphNodes(prevNodes => [...prevNodes, ...Array.from(newNodes)]);
+        setGraphRelationships(prevRels => [...prevRels, ...newRelationships]);
+      }
+    } catch (error) {
+      console.error('Error executing query:', error);
+    }
   };
 
   return (
@@ -635,153 +707,12 @@ export default function Playground() {
           <div className={styles.flexRowFeatures}>
             <div className={styles.featureContentBox}>
               <div className={styles.featureColumnBox}>
-                <div className={styles.flexRowInfoDatabase}>
-                  <div className={styles.flexRowDatabaseImages} onClick={handleToggleDatabaseMenu}>
-                    <Image
-                      className={styles.imageDatabase}
-                      src="/assets/b8cc5f09c290b9922de3d8a93473af01.svg"
-                      alt="alt text"
-                      width={50}
-                      height={50}
-                    />
-                    <p className={styles.featureTextUseDatabase}>Use database</p>
-                    <Image
-                      className={`${styles.imageDatabaseExtra} ${isDatabaseMenuOpen ? styles.rotate : ''}`}
-                      src="/assets/c1122939168fb69f50f3e2f253333e62.svg"
-                      alt="extra options"
-                      width={20}
-                      height={20}
-                    />
-                  </div>
 
                   {/* 数据库菜单部分，只有在 isDatabaseMenuOpen 为 true 时才显示 */}
-                  {isDatabaseMenuOpen && (
-                    <div className={`${styles.databaseMenu} show`} onClick={() => console.log('Menu is rendered')}>
-                        <div className={styles.addDatabaseSection}>
-                            <button id="addDatabaseBtn" className={styles.addDatabaseBtn}
-                            // clickout to close the AddDatabase
-                            onClick= {() => {
-                                handleAddDatabase();
-                                document.addEventListener('click', (e) => {
-                                if (!e.target.closest(`.${styles.addDatabaseBtn}`)) {
-                                    setIsModalOpen(false);
-                                }
-                                });
-                            }}
-                            >+ Add New Database</button>
-                        </div>
-
-                        {databases.map((db, index) => {
-                          const isActive = tabs.find((tab) => tab.id === activeTab)?.databaseInfo.selectedDatabase === db.url;
-
-                          return (
-                            <div
-                            key={index}
-                            className={`${styles.databaseItem} ${isActive ? styles.selected : ''}`}
-                            onClick={() => handleDatabaseSelection(db.url)}
-                        >
-                            <span className={`${styles.selectedLabel} ${isActive ? '' : styles.hidden}`}>
-                            <Image
-                                src="/assets/asd953aa98cdd54cef71b5b8167386wa.svg"
-                                alt="check icon"
-                                width={20}
-                                height={20}
-                            />
-                            </span>
-                            <p>{db.url.replace('neo4j://', '').replace('bolt://', '').replace('neo4j+s://', '').replace('bolt+s://', '')}</p>
-                            <input type="hidden" className={styles.fullUrl} value={db.url} />
-                            <Image
-                            className={styles.settingsIcon}
-                            src="/assets/e21aaacasc3469ef458c264147aer45c.svg"
-                            alt="settings icon"
-                            width={20}
-                            height={20}
-                            onClick={(e) => {
-                                e.stopPropagation(); // Prevents the parent `onClick` from being triggered
-                                handleToggleSettingsMenu(index);
-                                // clickout to close the settings menu
-                                document.addEventListener('click', (e) => {
-                                if (!e.target.closest(`.${styles.settingsMenu}`)) {
-                                    setOpenSettingsIndex(null);
-                                }
-                                });
-                              }}
-                            />
-
-                            {/* Settings menu, shown if openSettingsIndex matches the current index */}
-                            {openSettingsIndex === index && (
-                            <div className={`${styles.settingsMenu}`}>
-                                <button
-                                className={styles.settingsMenuItem}
-                                onClick={() => handleDeleteDatabase(db.url)}
-                                >
-                                Delete Database
-                                </button>
-                            </div>
-                            )}
-                        </div>
-                          );
-                        })}
-                    </div>
-                    )}
-
-                    {/* 模态框部分 */}
-                    {isModalOpen && (
-                    <div className={styles.modalBackdrop} onClick={() => setIsModalOpen(false)}>
-                        <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-                        <div className={styles['modal-content']}>
-                        <span className={styles.closeBtn} onClick={handleCloseModal}>&times;</span>
-                        <form onSubmit={handleFormSubmit}>
-                            <div className={styles['input-group']}>
-                            <label htmlFor="addDatabaseProtocol">Connect URL</label>
-                            <div className={styles['input-flex']}>
-                                <select
-                                value={protocol}
-                                onChange={(e) => setProtocol(e.target.value)}
-                                >
-                                <option value="neo4j://">neo4j://</option>
-                                <option value="bolt://">bolt://</option>
-                                <option value="neo4j+s://">neo4j+s://</option>
-                                <option value="bolt+s://">bolt+s://</option>
-                                </select>
-                                <input
-                                type="text"
-                                value={connectUrl}
-                                onChange={(e) => setConnectUrl(e.target.value)}
-                                placeholder="192.168.0.54:7687"
-                                required
-                                />
-                            </div>
-                            </div>
-                            <div className={styles['input-group']}>
-                            <label htmlFor="serverUsername">Server Username</label>
-                            <input
-                                type="text"
-                                value={serverUsername}
-                                onChange={(e) => setServerUsername(e.target.value)}
-                                placeholder="Enter server username"
-                                required
-                            />
-                            </div>
-                            <div className={styles['input-group']}>
-                            <label htmlFor="serverPassword">Server Password</label>
-                            <input
-                                type="password"
-                                value={serverPassword}
-                                onChange={(e) => setServerPassword(e.target.value)}
-                                placeholder="Enter server password"
-                                required
-                            />
-                            </div>
-                            <button type="submit" className={styles['submit-btn']}>
-                            Connect Database
-                            </button>
-                        </form>
-                        </div>
-                        </div>
-                    </div>
-                    )}
-                </div>
+                  <DatabaseManager 
+                    onDatabaseSelect={handleDatabaseSelect}
+                    onDatabaseInfoFetch={handleDatabaseInfoFetch}
+                  />
 
                 <div className={styles.searchFeatureContentBox}>
                   <div className={styles.flexRowSearchFeature}>
@@ -847,7 +778,13 @@ export default function Playground() {
                   <div id="nodeLabelsList" className={styles.nodeLabelsList}>
                     {nodeLabels.map((label, index) => (
                       <div key={index} className={styles.labelItemContainer}>
-                        <div className={styles.labelItem} onClick={() => toggleExpandedLabel(label)}>
+                        <div 
+                          className={styles.labelItem} 
+                          onClick={() => {
+                            toggleExpandedLabel(label);
+                            handleLabelClick(label);
+                          }}
+                        >
                           {label}
                           <Image
                             className={`${styles.imageNodeLabelsExtra} ${expandedLabel === label ? styles.rotate : ''}`}
@@ -902,7 +839,13 @@ export default function Playground() {
                     <div id="relationshipTypesList" className={styles.relationshipTypesList}>
                       {relationshipTypes.map((type, index) => (
                         <div key={index} className={styles.typeItemContainer}>
-                          <p className={styles.typeItem} onClick={() => toggleExpandedRelationship(type)}>
+                          <p 
+                            className={styles.typeItem} 
+                            onClick={() => {
+                              toggleExpandedRelationship(type);
+                              handleRelationshipClick(type);
+                            }}
+                          >
                             {type}
                             <Image
                               className={`${styles.imageRelationshipTypesExtra} ${expandedRelationship === type ? styles.rotate : ''}`}
@@ -1046,6 +989,20 @@ export default function Playground() {
           </div>
         </div>
       </section>
+      <div className={styles.flexColumnFeature}>
+        <div className={styles.featureGroup}>
+          <DatabaseManager 
+            onDatabaseSelect={handleDatabaseSelect}
+            onDatabaseInfoFetch={handleDatabaseInfoFetch}
+          />
+
+          <div className={styles.searchBox}>
+            {/* ... 其他内容保持不变 ... */}
+          </div>
+
+          {/* ... 其他内容保持不变 ... */}
+        </div>
+      </div>
     </div>
   );
 }

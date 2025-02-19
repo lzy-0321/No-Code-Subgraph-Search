@@ -155,6 +155,20 @@ def add_database(request):
         server_username = data.get('serverUsername')
         server_password = data.get('serverPassword')
 
+        # 检查是否存在完全相同的数据库配置
+        existing_db = Neo4jServer.objects.filter(
+            user=request.user,
+            url=full_url,
+            server_username=server_username,
+            server_password=server_password
+        ).exists()
+
+        if existing_db:
+            return JsonResponse({
+                'success': False,
+                'error': 'Database with identical configuration already exists'
+            })
+
         # 测试Neo4j连接
         try:
             neo4j_connector = Neo4jConnector(full_url, server_username, server_password)
@@ -162,21 +176,38 @@ def add_database(request):
             neo4j_connector.close()
 
             if not success:
-                return JsonResponse({'success': False, 'error': f'Failed to connect to Neo4j: {message}'})
+                return JsonResponse({
+                    'success': False, 
+                    'error': f'Failed to connect to Neo4j: {message}'
+                })
 
         except Exception as e:
             print(f"Error connecting to Neo4j: {e}")
-            return JsonResponse({'success': False, 'error': 'Error connecting to Neo4j'})
+            return JsonResponse({
+                'success': False, 
+                'error': 'Error connecting to Neo4j'
+            })
 
-        # 如果连接成功，创建新的 Neo4jServer 记录
+        # 如果连接成功且配置不重复，创建新的 Neo4jServer 记录
         try:
-            new_server = Neo4jServer(user=request.user, url=full_url, server_password=server_password)
+            new_server = Neo4jServer(
+                user=request.user,
+                url=full_url,
+                server_username=server_username,
+                server_password=server_password
+            )
             new_server.save()
             return JsonResponse({'success': True})
         except Exception as e:
-            return JsonResponse({'success': False, 'error': str(e)})
+            return JsonResponse({
+                'success': False,
+                'error': str(e)
+            })
 
-    return JsonResponse({'success': False, 'error': 'Invalid request method'})
+    return JsonResponse({
+        'success': False,
+        'error': 'Invalid request method'
+    })
 
 # 删除数据库记录的视图
 @csrf_exempt
@@ -322,3 +353,44 @@ def playground(request):
 
 def home_redirect(request):
     return redirect('/home/')
+
+@csrf_exempt
+@ensure_csrf_cookie
+def match_query(request):
+    """处理match查询请求"""
+    if request.method == 'POST' and request.user.is_authenticated:
+        try:
+            # 获取当前会话的connector
+            connector = neo4j_session_manager.get_session()
+            if not connector:
+                return JsonResponse({'success': False, 'error': 'No active Neo4j session found'}, status=500)
+                
+            # 解析请求体
+            query_params = json.loads(request.body)
+            
+            # 执行查询
+            results = connector.execute_match_query(query_params)
+            
+            return JsonResponse({
+                'success': True,
+                'data': results
+            })
+            
+        except ValueError as ve:
+            return JsonResponse({
+                'success': False,
+                'error': str(ve)
+            }, status=400)
+            
+        except Exception as e:
+            print(f"Error in match_query view: {e}")
+            traceback.print_exc()
+            return JsonResponse({
+                'success': False,
+                'error': str(e)
+            }, status=500)
+            
+    return JsonResponse({
+        'success': False,
+        'error': 'Invalid request method or unauthorized'
+    }, status=400)

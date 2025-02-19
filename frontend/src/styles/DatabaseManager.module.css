@@ -1,0 +1,264 @@
+.databaseManager {
+  width: 100%;
+  margin-bottom: 10px;
+}
+
+.flexRowInfoDatabase {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  background: #ffffff;
+  border-radius: 8px;
+  padding: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.flexRowDatabaseImages {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  padding: 8px;
+}
+
+.imageDatabase {
+  width: 30px;
+  height: 30px;
+}
+
+.featureTextUseDatabase {
+  margin-left: 10px;
+  font-size: 14px;
+  color: #333;
+  font-weight: 500;
+}
+
+.imageDatabaseExtra {
+  margin-left: auto;
+  transition: transform 0.3s ease;
+}
+
+.rotate {
+  transform: rotate(180deg);
+}
+
+.databaseMenu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  z-index: 1000;
+  margin-top: 4px;
+}
+
+.databaseItem {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  cursor: pointer;
+  position: relative;
+  border-bottom: 1px solid #eee;
+  transition: all 0.2s ease;
+}
+
+.databaseItem:last-child {
+  border-bottom: none;
+}
+
+.databaseItem:hover {
+  background: #f5f5f5;
+}
+
+/* 选中状态的样式 */
+.databaseItem.selected {
+  background: #e3f2fd;
+  border-left: 4px solid #007bff;
+}
+
+.databaseInfo {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.databaseUrl {
+  flex: 1;
+}
+
+.selectedIndicator {
+  color: #007bff;
+  font-weight: bold;
+  font-size: 16px;
+}
+
+/* 选中状态下的设置图标样式 */
+.databaseItem.selected .settingsIcon {
+  opacity: 1;
+}
+
+.selectedLabel {
+  margin-right: 8px;
+  display: flex;
+  align-items: center;
+}
+
+.hidden {
+  display: none;
+}
+
+.settingsIcon {
+  margin-left: auto;
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+
+.settingsIcon:hover {
+  opacity: 1;
+}
+
+.settingsMenu {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  background: white;
+  border-radius: 4px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  z-index: 1001;
+  min-width: 150px;
+}
+
+.settingsMenuItem {
+  padding: 8px 16px;
+  width: 100%;
+  text-align: left;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: #333;
+  font-size: 14px;
+}
+
+.settingsMenuItem:hover {
+  background: #f5f5f5;
+}
+
+.addDatabaseSection {
+  padding: 10px;
+  border-bottom: 1px solid #eee;
+}
+
+.addDatabaseBtn {
+  width: 100%;
+  padding: 8px;
+  background: none;
+  border: 1px dashed #ccc;
+  border-radius: 4px;
+  cursor: pointer;
+  color: #666;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.addDatabaseBtn:hover {
+  background: #f5f5f5;
+  border-color: #999;
+}
+
+/* Modal styles */
+.modalBackdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal {
+  background: white;
+  padding: 24px;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 500px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+}
+
+.inputGroup {
+  margin-bottom: 20px;
+}
+
+.inputGroup label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: #333;
+}
+
+.inputGroupHorizontal {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+  gap: 16px;
+}
+
+.inputGroupHorizontal label {
+  flex: 0 0 140px;
+  font-weight: 500;
+  color: #333;
+  text-align: right;
+}
+
+.inputGroupHorizontal input {
+  flex: 1;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.inputFlex {
+  display: flex;
+  gap: 10px;
+}
+
+.inputFlex select {
+  width: 120px;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background: white;
+}
+
+.inputFlex input {
+  flex: 1;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.submitBtn {
+  width: 100%;
+  padding: 12px;
+  background: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background 0.2s;
+  margin-top: 10px;
+}
+
+.submitBtn:hover {
+  background: #0056b3;
+} 

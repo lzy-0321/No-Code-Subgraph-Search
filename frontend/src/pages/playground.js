@@ -8,6 +8,8 @@ import AddTab from "../components/AddTab";
 import GraphInfoDisplay from '../components/GraphInfoDisplay';
 import { TbCrosshair, TbTrash } from 'react-icons/tb';
 import DatabaseManager from '../components/Database/DatabaseManager';
+import TabManager from '../components/TabSystem/TabManager';
+import { useTabManager } from '../hooks/useTabManager';
 
 // 动态加载 GraphComponent
 const DrawGraph = dynamic(() => import('../components/DrawGraph'), { ssr: false });
@@ -97,15 +99,6 @@ class QueryParamsGenerator {
 }
 
 export default function Playground() {
-  const [databases, setDatabases] = useState([]);
-  const [selectedDatabase, setSelectedDatabase] = useState(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isDatabaseMenuOpen, setIsDatabaseMenuOpen] = useState(false);
-  const [protocol, setProtocol] = useState('bolt://');
-  const [connectUrl, setConnectUrl] = useState('');
-  const [serverUsername, setServerUsername] = useState('');
-  const [serverPassword, setServerPassword] = useState('');
-  const [openSettingsIndex, setOpenSettingsIndex] = useState(null);
   const [nodeLabels, setNodeLabels] = useState([]);
   const [expandedLabel, setExpandedLabel] = useState(null); // Track which label is expanded
   const [nodePrimeEntities, setNodePrimeEntities] = useState({}); // Store entities for each label
@@ -126,17 +119,17 @@ export default function Playground() {
   });
 
   const [graphNodes, setGraphNodes] = useState([
-    // { id: 1, nodeLabel: 'PERSON', properties: { name: 'Alice', age: 30, role: 'Engineer' } },
-    // { id: 2, nodeLabel: 'PERSON', properties: { name: 'Bob', age: 25, role: 'Designer' } },
-    // { id: 3, nodeLabel: 'KNOWLEDGE', properties: { title: 'Graph Database', type: 'Tutorial', category: 'Technology' } },
-    // { id: 4, nodeLabel: 'PERSON', properties: { name: 'Charlie', age: 35, role: 'Manager' } },
-    // { id: 5, nodeLabel: 'KNOWLEDGE', properties: { title: 'Graph Science', type: 'Tutorial', category: 'Technology' } },
+    { id: 1, nodeLabel: 'PERSON', properties: { name: 'Alice', age: 30, role: 'Engineer' } },
+    { id: 2, nodeLabel: 'PERSON', properties: { name: 'Bob', age: 25, role: 'Designer' } },
+    { id: 3, nodeLabel: 'KNOWLEDGE', properties: { title: 'Graph Database', type: 'Tutorial', category: 'Technology' } },
+    { id: 4, nodeLabel: 'PERSON', properties: { name: 'Charlie', age: 35, role: 'Manager' } },
+    { id: 5, nodeLabel: 'KNOWLEDGE', properties: { title: 'Graph Science', type: 'Tutorial', category: 'Technology' } },
   ]);
   const [graphRelationships, setGraphRelationships] = useState([
-    // { startNode: 1, endNode: 2, type: 'FRIEND', properties: { since: '2020', frequency: 'Weekly' } },
-    // { startNode: 1, endNode: 3, type: 'LIKES', properties: { since: '2019', frequency: 'Monthly' } },
-    // { startNode: 2, endNode: 3, type: 'LIKES', properties: { since: '2018', frequency: 'Daily' } },
-    // { startNode: 4, endNode: 5, type: 'LIKES', properties: { since: '2016', frequency: 'Monthly' } },
+    { startNode: 1, endNode: 2, type: 'FRIEND', properties: { since: '2020', frequency: 'Weekly' } },
+    { startNode: 1, endNode: 3, type: 'LIKES', properties: { since: '2019', frequency: 'Monthly' } },
+    { startNode: 2, endNode: 3, type: 'LIKES', properties: { since: '2018', frequency: 'Daily' } },
+    { startNode: 4, endNode: 5, type: 'LIKES', properties: { since: '2016', frequency: 'Monthly' } },
   ]);
   const [graphNodesBuffer, setGraphNodesBuffer] = useState([]);
   const [graphRelationshipsBuffer, setGraphRelationshipsBuffer] = useState([]);
@@ -212,377 +205,210 @@ export default function Playground() {
     });
   };
 
-  const [tabs, setTabs] = useState([
-    {
-      id: 1,
-      title: 'Tab 1',
-      databaseInfo: { protocol: 'bolt://', connectUrl: '', selectedDatabase: null },
-      graphData: {
-        graphNodes: [], // Nodes for the graph
-        graphRelationships: [], // Relationships for the graph
-        graphNodesBuffer: [],
-        graphRelationshipsBuffer: [],
-      },
-      nodeInfo: { nodeLabels: [], expandedLabel: null, nodeEntities: {} },
-      relationshipInfo: { relationshipTypes: [], expandedRelationship: null, relationshipEntities: {} },
-      propertyInfo: { propertyKeys: [] },
-      uiState: {
-        isNodeLabelsOpen: false,
-        isRelationshipTypesOpen: false,
-        isPropertyKeysOpen: false,
-        searchQuery: '',
-        filteredResults: {
-          nodeEntities: [],
-          relationshipEntities: [],
-          propertyKeys: [],
-        },
-      },
+  // 使用tab管理hook
+  const {
+    tabs,
+    activeTab,
+    tabDatabases,
+    saveTabState,
+    getTabState,
+    addTab,
+    closeTab,
+    switchTab,
+    updateTabDatabase
+  } = useTabManager({
+    id: 1,
+    title: 'Tab 1',
+    nodeInfo: {
+      nodeLabels: [],
+      expandedLabel: null,
+      nodeEntities: {},
+      nodePrimeEntities: {}
     },
-  ]);
-
-  const [activeTab, setActiveTab] = useState(1);
-
-  useEffect(() => {
-    if (!tabs.find((tab) => tab.id === activeTab)) {
-      setActiveTab(1);
-    }
-  }, [tabs]);
-
-  const saveCurrentTabState = () => {
-    setTabs((prevTabs) =>
-      prevTabs.map((tab) =>
-        tab.id === activeTab
-          ? {
-              ...tab,
-              graphData: {
-                graphNodes: graphNodes,
-                graphRelationships: graphRelationships,
-                graphNodesBuffer: graphNodesBuffer,
-                graphRelationshipsBuffer: graphRelationshipsBuffer,
-              },
-              nodeInfo: {
-                nodeLabels,
-                expandedLabel,
-                nodeEntities: nodePrimeEntities,
-              },
-              relationshipInfo: {
-                relationshipTypes,
-                expandedRelationship,
-                relationshipEntities: relationshipPrimeEntities,
-              },
-              propertyInfo: {
-                propertyKeys,
-              },
-              uiState: {
-                isNodeLabelsOpen,
-                isRelationshipTypesOpen,
-                isPropertyKeysOpen,
-                searchQuery,
-                filteredResults,
-              },
-            }
-          : tab
-      )
-    );
-  };
-
-  // 存储当前tab的状态
-  // 清楚页面上的所有数据
-  // 切换到新的tab
-  // 从新的tab中恢复数据
-  const handleTabSwitch = (tabId) => {
-    saveCurrentTabState();
-    cleanUp();
-
-    const newTab = tabs.find((tab) => tab.id === tabId);
-    if (newTab) {
-      setNodeLabels(newTab.nodeInfo.nodeLabels || []);
-      setExpandedLabel(newTab.nodeInfo.expandedLabel || null);
-      setNodePrimeEntities(newTab.nodeInfo.nodeEntities || {});
-
-      setRelationshipTypes(newTab.relationshipInfo.relationshipTypes || []);
-      setExpandedRelationship(newTab.relationshipInfo.expandedRelationship || null);
-      setRelationshipPrimeEntities(newTab.relationshipInfo.relationshipEntities || {});
-
-      setPropertyKeys(newTab.propertyInfo.propertyKeys || []);
-
-      setIsNodeLabelsOpen(newTab.uiState.isNodeLabelsOpen || false);
-      setIsRelationshipTypesOpen(newTab.uiState.isRelationshipTypesOpen || false);
-      setIsPropertyKeysOpen(newTab.uiState.isPropertyKeysOpen || false);
-
-      setSearchQuery(newTab.uiState.searchQuery || '');
-      setFilteredResults(newTab.uiState.filteredResults || {
+    relationshipInfo: {
+      relationshipTypes: [],
+      expandedRelationship: null,
+      relationshipEntities: {},
+      relationshipPrimeEntities: {}
+    },
+    propertyInfo: {
+      propertyKeys: []
+    },
+    uiState: {
+      isNodeLabelsOpen: false,
+      isRelationshipTypesOpen: false,
+      isPropertyKeysOpen: false,
+      searchQuery: '',
+      filteredResults: {
         nodeEntities: [],
         relationshipEntities: [],
         propertyKeys: [],
-      });
+      }
+    },
+    graphData: {
+      graphNodes: [],
+      graphRelationships: [],
+      graphNodesBuffer: [],
+      graphRelationshipsBuffer: []
+    }
+  });
 
-      // Restore graph data
-      setGraphNodes(newTab.graphData.graphNodes || []);
-      setGraphRelationships(newTab.graphData.graphRelationships || []);
-      setGraphNodesBuffer(newTab.graphData.graphNodesBuffer || []);
-      setGraphRelationshipsBuffer(newTab.graphData.graphRelationshipsBuffer || []);
-
-      setActiveTab(tabId);
+  // 处理tab状态变化
+  const handleTabStateChange = (action) => {
+    switch (action.type) {
+      case 'ADD_TAB':
+        saveCurrentTabState(); // 保存当前tab状态
+        addTab(action.payload);
+        cleanUp();
+        break;
+      case 'CLOSE_TAB':
+        saveCurrentTabState();
+        closeTab(action.payload.tabId);
+        if (tabs.length > 1) {
+          const nextTab = tabs.find(tab => tab.id !== action.payload.tabId);
+          if (nextTab) {
+            restoreTabState(nextTab.id);
+          }
+        } else {
+          cleanUp();
+        }
+        break;
+      case 'SWITCH_TAB':
+        saveCurrentTabState(); // 保存当前tab的状态
+        switchTab(action.payload.tabId);
+        restoreTabState(action.payload.tabId); // 恢复目标tab的状态
+        break;
+      default:
+        console.warn('Unknown tab action:', action);
     }
   };
 
-  const handleAddTab = () => {
-    const newTabId = tabs.length > 0 ? tabs[tabs.length - 1].id + 1 : 1;
-
-    // Save the current tab state
-    saveCurrentTabState();
-
-    // Add the new tab
-    const newTab = {
-      id: newTabId,
-      title: `Tab ${newTabId}`,
-      databaseInfo: { protocol: 'bolt://', connectUrl: '', selectedDatabase: null },
-      nodeInfo: { nodeLabels: [], expandedLabel: null, nodeEntities: {} },
-      relationshipInfo: { relationshipTypes: [], expandedRelationship: null, relationshipEntities: {} },
-      propertyInfo: { propertyKeys: [] },
+  // 保存当前tab状态
+  const saveCurrentTabState = () => {
+    if (!activeTab) return;
+    
+    const currentState = {
+      nodeInfo: {
+        nodeLabels,
+        expandedLabel,
+        nodeEntities,
+        nodePrimeEntities
+      },
+      relationshipInfo: {
+        relationshipTypes,
+        expandedRelationship,
+        relationshipEntities,
+        relationshipPrimeEntities
+      },
+      propertyInfo: {
+        propertyKeys
+      },
       uiState: {
-        isNodeLabelsOpen: false,
-        isRelationshipTypesOpen: false,
-        isPropertyKeysOpen: false,
-        searchQuery: '',
-        filteredResults: {
-          nodeEntities: [],
-          relationshipEntities: [],
-          propertyKeys: [],
-        },
+        isNodeLabelsOpen,
+        isRelationshipTypesOpen,
+        isPropertyKeysOpen,
+        searchQuery,
+        filteredResults
       },
       graphData: {
-        graphNodes: [], // Nodes for the graph
-        graphRelationships: [], // Relationships for the graph
-        graphNodesBuffer: [],
-        graphRelationshipsBuffer: [],
-      },
+        graphNodes,
+        graphRelationships,
+        graphNodesBuffer,
+        graphRelationshipsBuffer
+      }
     };
 
-    setTabs((prevTabs) => [...prevTabs, newTab]);
-    setActiveTab(newTabId);
-
-    // Clear the current state after the new tab is active
-    cleanUp();
+    saveTabState(activeTab, currentState);
   };
 
-  const handleCloseTab = (tabId) => {
-    if (tabId === activeTab) {
-      saveCurrentTabState();
+  // 恢复tab状态
+  const restoreTabState = (tabId) => {
+    const tabState = getTabState(tabId);
+    if (!tabState) {
+      console.warn(`No state found for tab ${tabId}`);
+      return;
     }
 
-    setTabs((prevTabs) => prevTabs.filter((tab) => tab.id !== tabId));
+    try {
+      // 恢复节点信息
+      setNodeLabels(tabState.nodeInfo?.nodeLabels || []);
+      setExpandedLabel(tabState.nodeInfo?.expandedLabel || null);
+      setNodeEntities(tabState.nodeInfo?.nodeEntities || {});
+      setNodePrimeEntities(tabState.nodeInfo?.nodePrimeEntities || {});
 
-    if (activeTab === tabId && tabs.length > 1) {
-      setActiveTab(tabs[0].id);
-    } else if (tabs.length === 1) {
-      setActiveTab(null);
-    }
-  };
+      // 恢复关系信息
+      setRelationshipTypes(tabState.relationshipInfo?.relationshipTypes || []);
+      setExpandedRelationship(tabState.relationshipInfo?.expandedRelationship || null);
+      setRelationshipEntities(tabState.relationshipInfo?.relationshipEntities || {});
+      setRelationshipPrimeEntities(tabState.relationshipInfo?.relationshipPrimeEntities || {});
 
-  const handleSearch = (query) => {
-    if (!query.trim()) {
-      // If the query is empty, reset the filtered results to empty
-      setFilteredResults({
+      // 恢复属性信息
+      setPropertyKeys(tabState.propertyInfo?.propertyKeys || []);
+
+      // 恢复UI状态
+      setIsNodeLabelsOpen(tabState.uiState?.isNodeLabelsOpen || false);
+      setIsRelationshipTypesOpen(tabState.uiState?.isRelationshipTypesOpen || false);
+      setIsPropertyKeysOpen(tabState.uiState?.isPropertyKeysOpen || false);
+      setSearchQuery(tabState.uiState?.searchQuery || '');
+      setFilteredResults(tabState.uiState?.filteredResults || {
         nodeEntities: [],
         relationshipEntities: [],
         propertyKeys: [],
       });
-      return;
+
+      // 恢复图数据
+      setGraphNodes(tabState.graphData?.graphNodes || []);
+      setGraphRelationships(tabState.graphData?.graphRelationships || []);
+      setGraphNodesBuffer(tabState.graphData?.graphNodesBuffer || []);
+      setGraphRelationshipsBuffer(tabState.graphData?.graphRelationshipsBuffer || []);
+    } catch (error) {
+      console.error('Error restoring tab state:', error);
+      cleanUp(); // 发生错误时清空状态
     }
-
-    // Normalize query and prepare data
-    const lowerCaseQuery = query.toLowerCase();
-
-    // Filter node entities
-    const filteredNodeEntities = Object.entries(nodePrimeEntities).flatMap(([label, entities]) =>
-      searchData(
-        entities, // Array of strings
-        lowerCaseQuery, // Query
-        (entity) => entity, // Directly use the string entity for filtering
-        (entity, index) => `${label}-${index}` // Generate an ID based on the label and index
-      )
-    );
-    console.log("Filtered nodeEntities:", filteredNodeEntities);
-
-    // Filter relationship entities
-    const filteredRelationshipEntities = Object.entries(relationshipPrimeEntities).flatMap(([type, entities]) =>
-      searchData(
-        entities,
-        lowerCaseQuery,
-        (entity) => entity.join(' '), // Accessor for combined entity properties
-        (entity) => entity.id // Accessor for relationship id
-      )
-    );
-
-    // Filter property keys
-    const filteredPropertyKeys = searchData(
-      propertyKeys,
-      lowerCaseQuery,
-      (key) => key // Accessor for property key
-    );
-
-    // Aggregate results
-    const results = {
-      nodeEntities: filteredNodeEntities,
-      relationshipEntities: filteredRelationshipEntities,
-      propertyKeys: filteredPropertyKeys,
-    };
-
-    // Update state
-    setFilteredResults(results);
   };
 
-  const handleSearchInput = (e) => {
-    const query = e.target.value;
-    setSearchQuery(query);
-    handleSearch(query);
+  // 修改数据库选择处理
+  const handleDatabaseSelect = (url, tabId) => {
+    updateTabDatabase(tabId, url);
   };
 
-  const tabContentRef = useRef(null); // 用于获取 tabContent 的 DOM
-  const [tabContentBounds, setTabContentBounds] = useState(null);
-
-  useEffect(() => {
-    if (tabContentRef.current) {
-      setTabContentBounds(tabContentRef.current.getBoundingClientRect());
-    }
-    const handleResize = () => {
-      if (tabContentRef.current) {
-        setTabContentBounds(tabContentRef.current.getBoundingClientRect());
-      }
-    };
-    window.addEventListener('resize', handleResize);
-    return () => {
-      window.removeEventListener('resize', handleResize);
-    };
-  }, []);
-
-  useEffect(() => {
-    const fetchDatabases = async () => {
-      try {
-        const response = await fetch('http://localhost:8000/get_user_databases/', {
-          method: 'GET',
-          credentials: 'include', // Include cookies for authentication
-        });
-
-        if (!response.ok) {
-          throw new Error('Failed to fetch databases');
-        }
-
-        const data = await response.json();
-        if (data.success) {
-          setDatabases(data.databases);
-        } else {
-          console.error(data.error);
-        }
-      } catch (error) {
-        console.error('Error fetching databases:', error);
-      }
-    };
-
-    fetchDatabases();
-  }, []);
-
-  const handleDatabaseSelect = (url) => {
-    setSelectedDatabase(url);
-  };
-
+  // 处理数据库信息获取
   const handleDatabaseInfoFetch = (dbInfo) => {
-    // 一次性更新所有状态
-    setNodeLabels(dbInfo.labels);
-    setRelationshipTypes(dbInfo.relationshipTypes);
-    setPropertyKeys(dbInfo.propertyKeys);
-    setNodePrimeEntities(dbInfo.nodePrimeEntities);
-    setNodeEntities(dbInfo.nodeEntities);
-    setRelationshipPrimeEntities(dbInfo.relationshipPrimeEntities);
-    setRelationshipEntities(dbInfo.relationshipEntities);
-
-    // 更新当前标签页的数据库信息
-    if (activeTab) {
-      const updatedTabs = tabs.map(tab => {
-        if (tab.id === activeTab) {
-          return {
-            ...tab,
-            databaseInfo: {
-              ...tab.databaseInfo,
-              selectedDatabase: dbInfo.selectedDatabase
-            }
-          };
-        }
-        return tab;
-      });
-      setTabs(updatedTabs);
-    }
-  };
-
-  const handleAddDatabase = () => setIsModalOpen(true);
-  const handleCloseModal = () => setIsModalOpen(false);
-  const handleToggleSettingsMenu = (index) => {
-    setOpenSettingsIndex(openSettingsIndex === index ? null : index);
-  };
-
-  const handleToggleDatabaseMenu = () => {
-    setIsDatabaseMenuOpen(!isDatabaseMenuOpen);
-    console.log('Database menu open:', !isDatabaseMenuOpen);
-  };
-
-  const handleDeleteDatabase = async (url) => {
-    if (databases.length <= 1) {
-      alert('You must have at least one database.');
-      return;
-    }
-
     try {
-      const response = await fetch('http://localhost:8000/delete_database/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ url }),
-        credentials: 'include', // Include cookies for authentication
-      });
+      // 更新节点信息
+      setNodeLabels(dbInfo.labels || []);
+      setNodePrimeEntities(dbInfo.nodePrimeEntities || {});
+      setNodeEntities(dbInfo.nodeEntities || {});
 
-      const result = await response.json();
-      if (result.success) {
-        // Update the local state to remove the deleted database
-        setDatabases(databases.filter((db) => db.url !== url));
-        alert('Database deleted successfully.');
-      } else {
-        alert('Error: ' + result.error);
+      // 更新关系信息
+      setRelationshipTypes(dbInfo.relationshipTypes || []);
+      setRelationshipPrimeEntities(dbInfo.relationshipPrimeEntities || {});
+      setRelationshipEntities(dbInfo.relationshipEntities || {});
+
+      // 更新属性信息
+      setPropertyKeys(dbInfo.propertyKeys || []);
+
+      // 更新当前tab的状态
+      if (activeTab) {
+        saveTabState(activeTab, {
+          nodeInfo: {
+            nodeLabels: dbInfo.labels || [],
+            nodeEntities: dbInfo.nodeEntities || {},
+            nodePrimeEntities: dbInfo.nodePrimeEntities || {}
+          },
+          relationshipInfo: {
+            relationshipTypes: dbInfo.relationshipTypes || [],
+            relationshipEntities: dbInfo.relationshipEntities || {},
+            relationshipPrimeEntities: dbInfo.relationshipPrimeEntities || {}
+          },
+          propertyInfo: {
+            propertyKeys: dbInfo.propertyKeys || []
+          }
+        });
       }
     } catch (error) {
-      console.error('Error deleting database:', error);
-      alert('Error deleting database.');
-    }
-  };
-
-  const handleFormSubmit = async (e) => {
-    e.preventDefault();
-    const fullUrl = `${protocol}${connectUrl}`;
-
-    try {
-      const response = await fetch('http://localhost:8000/add_database', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          fullUrl,
-          serverUsername,
-          serverPassword,
-        }),
-      });
-      const result = await response.json();
-      if (result.success) {
-        alert('Database added successfully!');
-        setIsModalOpen(false);
-        // 处理成功后的其他逻辑，比如刷新数据库列表
-      } else {
-        alert('Error: ' + result.error);
-      }
-    } catch (error) {
-      console.error('Error adding database:', error);
+      console.error('Error handling database info:', error);
+      alert('Error updating database information');
     }
   };
 
@@ -678,6 +504,83 @@ export default function Playground() {
     }
   };
 
+  const handleSearch = (query) => {
+    if (!query.trim()) {
+      // If the query is empty, reset the filtered results to empty
+      setFilteredResults({
+        nodeEntities: [],
+        relationshipEntities: [],
+        propertyKeys: [],
+      });
+      return;
+    }
+
+    // Normalize query and prepare data
+    const lowerCaseQuery = query.toLowerCase();
+
+    // Filter node entities
+    const filteredNodeEntities = Object.entries(nodePrimeEntities).flatMap(([label, entities]) =>
+      searchData(
+        entities, // Array of strings
+        lowerCaseQuery, // Query
+        (entity) => entity, // Directly use the string entity for filtering
+        (entity, index) => `${label}-${index}` // Generate an ID based on the label and index
+      )
+    );
+    console.log("Filtered nodeEntities:", filteredNodeEntities);
+
+    // Filter relationship entities
+    const filteredRelationshipEntities = Object.entries(relationshipPrimeEntities).flatMap(([type, entities]) =>
+      searchData(
+        entities,
+        lowerCaseQuery,
+        (entity) => entity.join(' '), // Accessor for combined entity properties
+        (entity) => entity.id // Accessor for relationship id
+      )
+    );
+
+    // Filter property keys
+    const filteredPropertyKeys = searchData(
+      propertyKeys,
+      lowerCaseQuery,
+      (key) => key // Accessor for property key
+    );
+
+    // Aggregate results
+    const results = {
+      nodeEntities: filteredNodeEntities,
+      relationshipEntities: filteredRelationshipEntities,
+      propertyKeys: filteredPropertyKeys,
+    };
+
+    // Update state
+    setFilteredResults(results);
+  };
+
+  const handleSearchInput = (e) => {
+    const query = e.target.value;
+    setSearchQuery(query);
+    handleSearch(query);
+  };
+
+  const tabContentRef = useRef(null); // 用于获取 tabContent 的 DOM
+  const [tabContentBounds, setTabContentBounds] = useState(null);
+
+  useEffect(() => {
+    if (tabContentRef.current) {
+      setTabContentBounds(tabContentRef.current.getBoundingClientRect());
+    }
+    const handleResize = () => {
+      if (tabContentRef.current) {
+        setTabContentBounds(tabContentRef.current.getBoundingClientRect());
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
+
   return (
     <div className={styles.flexColumn}>
       <section className={`${styles.playground} ${styles.mainContentSection}`}>
@@ -712,6 +615,8 @@ export default function Playground() {
                   <DatabaseManager 
                     onDatabaseSelect={handleDatabaseSelect}
                     onDatabaseInfoFetch={handleDatabaseInfoFetch}
+                    activeTab={activeTab}
+                    tabDatabases={tabDatabases}
                   />
 
                 <div className={styles.searchFeatureContentBox}>
@@ -929,24 +834,12 @@ export default function Playground() {
               </div>
             </div>
             <div className={styles.tabContainer}>
-              {/* 标签导航 */}
-              <div className={styles.tabNav}>
-                {tabs.map((tab) => (
-                  <div
-                    key={tab.id}
-                    className={`${styles.tab} ${activeTab === tab.id ? styles.activeTab : ''}`}
-                    onClick={() => handleTabSwitch(tab.id)}
-                  >
-                    {tab.title}
-                    <span className={styles.closeButton} onClick={(e) => { e.stopPropagation(); handleCloseTab(tab.id); }}>
-                      ×
-                    </span>
-                  </div>
-                ))}
-                <button className={styles.addTabButton} onClick={handleAddTab}>
-                  + Add Tab
-                </button>
-              </div>
+              <TabManager 
+                tabs={tabs}
+                activeTab={activeTab}
+                onStateChange={handleTabStateChange}
+                tabDatabases={tabDatabases}
+              />
 
               {/* 标签内容 */}
               <div className={styles.tabContent} ref={tabContentRef}>
@@ -989,20 +882,6 @@ export default function Playground() {
           </div>
         </div>
       </section>
-      <div className={styles.flexColumnFeature}>
-        <div className={styles.featureGroup}>
-          <DatabaseManager 
-            onDatabaseSelect={handleDatabaseSelect}
-            onDatabaseInfoFetch={handleDatabaseInfoFetch}
-          />
-
-          <div className={styles.searchBox}>
-            {/* ... 其他内容保持不变 ... */}
-          </div>
-
-          {/* ... 其他内容保持不变 ... */}
-        </div>
-      </div>
     </div>
   );
 }

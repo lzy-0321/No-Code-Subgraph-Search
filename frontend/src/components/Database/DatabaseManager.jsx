@@ -2,12 +2,16 @@ import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import styles from '../../styles/DatabaseManager.module.css';
 
-const DatabaseManager = ({ onDatabaseSelect, onDatabaseInfoFetch }) => {
+const DatabaseManager = ({ 
+  onDatabaseSelect, 
+  onDatabaseInfoFetch,
+  activeTab,  // 新增: 当前活动的tab id
+  tabDatabases, // 新增: 存储每个tab的数据库URL {tabId: databaseUrl}
+}) => {
   const [databases, setDatabases] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDatabaseMenuOpen, setIsDatabaseMenuOpen] = useState(false);
   const [openSettingsIndex, setOpenSettingsIndex] = useState(null);
-  const [selectedDatabaseUrl, setSelectedDatabaseUrl] = useState(null);
   
   // 连接配置状态
   const [protocol, setProtocol] = useState('bolt://');
@@ -50,6 +54,7 @@ const DatabaseManager = ({ onDatabaseSelect, onDatabaseInfoFetch }) => {
         .find((row) => row.startsWith('csrftoken='))
         ?.split('=')[1];
 
+      // 第一步：选择数据库
       const response = await fetch('http://localhost:8000/select_database/', {
         method: 'POST',
         headers: {
@@ -60,81 +65,99 @@ const DatabaseManager = ({ onDatabaseSelect, onDatabaseInfoFetch }) => {
         credentials: 'include',
       });
 
-      const result = await response.json();
-      if (result.success) {
-        setSelectedDatabaseUrl(url);
-        onDatabaseSelect(url);
-        
-        // 获取数据库基本信息
-        const dbInfoResponse = await fetch('http://localhost:8000/get_database_info/', {
-          method: 'GET',
-          credentials: 'include',
-        });
-
-        const dbInfo = await dbInfoResponse.json();
-        if (dbInfo.success) {
-          // 创建一个状态对象来累积所有数据
-          let fullDbInfo = {
-            labels: dbInfo.labels || [],
-            relationshipTypes: dbInfo.relationship_types || [],
-            propertyKeys: dbInfo.property_keys || [],
-            nodePrimeEntities: {},
-            nodeEntities: {},
-            relationshipPrimeEntities: {},
-            relationshipEntities: {}
-          };
-
-          // 获取所有节点标签的实体
-          const nodePromises = dbInfo.labels.map(async (label) => {
-            const response = await fetch('http://localhost:8000/get_nodeEntities/', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({ label }),
-              credentials: 'include',
-            });
-            
-            const data = await response.json();
-            if (data.success) {
-              fullDbInfo.nodePrimeEntities[label] = data.nodeEntities[0];
-              fullDbInfo.nodeEntities[label] = data.nodeEntities[1];
-            }
-          });
-
-          // 获取所有关系类型的实体
-          const relationshipPromises = dbInfo.relationship_types.map(async (type) => {
-            const response = await fetch('http://localhost:8000/get_relationshipEntities/', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({ type }),
-              credentials: 'include',
-            });
-            
-            const data = await response.json();
-            if (data.success) {
-              fullDbInfo.relationshipPrimeEntities[type] = data.relationshipEntities[0];
-              fullDbInfo.relationshipEntities[type] = data.relationshipEntities[1];
-            }
-          });
-
-          // 等待所有请求完成
-          await Promise.all([...nodePromises, ...relationshipPromises]);
-
-          // 一次性更新所有数据
-          onDatabaseInfoFetch(fullDbInfo);
-          
-          // 成功后关闭数据库菜单
-          setIsDatabaseMenuOpen(false);
-        }
-      } else {
-        alert('Error: ' + result.error);
+      if (!response.ok) {
+        throw new Error('Failed to connect to database');
       }
+
+      const result = await response.json();
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to select database');
+      }
+
+      // 第二步：获取数据库信息
+      const dbInfoResponse = await fetch('http://localhost:8000/get_database_info/', {
+        method: 'GET',
+        credentials: 'include',
+      });
+
+      if (!dbInfoResponse.ok) {
+        throw new Error('Failed to fetch database info');
+      }
+
+      const dbInfo = await dbInfoResponse.json();
+      if (!dbInfo.success) {
+        throw new Error(dbInfo.error || 'Failed to get database info');
+      }
+
+      // 创建一个状态对象来累积所有数据
+      let fullDbInfo = {
+        labels: dbInfo.labels || [],
+        relationshipTypes: dbInfo.relationship_types || [],
+        propertyKeys: dbInfo.property_keys || [],
+        nodePrimeEntities: {},
+        nodeEntities: {},
+        relationshipPrimeEntities: {},
+        relationshipEntities: {}
+      };
+
+      // 第三步：获取实体信息
+      const nodePromises = (dbInfo.labels || []).map(async (label) => {
+        try {
+          const response = await fetch('http://localhost:8000/get_nodeEntities/', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ label }),
+            credentials: 'include',
+          });
+          
+          const data = await response.json();
+          if (data.success) {
+            fullDbInfo.nodePrimeEntities[label] = data.nodeEntities[0];
+            fullDbInfo.nodeEntities[label] = data.nodeEntities[1];
+          }
+        } catch (error) {
+          console.warn(`Failed to fetch entities for label ${label}:`, error);
+        }
+      });
+
+      const relationshipPromises = (dbInfo.relationship_types || []).map(async (type) => {
+        try {
+          const response = await fetch('http://localhost:8000/get_relationshipEntities/', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ type }),
+            credentials: 'include',
+          });
+          
+          const data = await response.json();
+          if (data.success) {
+            fullDbInfo.relationshipPrimeEntities[type] = data.relationshipEntities[0];
+            fullDbInfo.relationshipEntities[type] = data.relationshipEntities[1];
+          }
+        } catch (error) {
+          console.warn(`Failed to fetch entities for relationship type ${type}:`, error);
+        }
+      });
+
+      // 等待所有请求完成
+      await Promise.all([...nodePromises, ...relationshipPromises]);
+
+      // 更新数据库选择状态
+      onDatabaseSelect(url, activeTab);
+      
+      // 更新数据库信息
+      onDatabaseInfoFetch(fullDbInfo);
+      
+      // 成功后关闭数据库菜单
+      setIsDatabaseMenuOpen(false);
+
     } catch (error) {
       console.error('Error selecting database:', error);
-      alert('Error selecting database.');
+      alert('Error: ' + error.message);
     }
   };
 
@@ -166,22 +189,23 @@ const DatabaseManager = ({ onDatabaseSelect, onDatabaseInfoFetch }) => {
 
       const result = await response.json();
       if (result.success) {
-        // 更新本地状态，移除所有具有相同 URL 的数据库
         setDatabases(prevDatabases => 
           prevDatabases.filter((db) => db.url !== url)
         );
         
-        // 如果删除的是当前选中的数据库，清除选中状态
-        if (selectedDatabaseUrl === url) {
-          setSelectedDatabaseUrl(null);
-        }
+        // 清除所有使用该数据库的tab的选择
+        setTabDatabases(prev => {
+          const newTabDatabases = { ...prev };
+          Object.keys(newTabDatabases).forEach(tabId => {
+            if (newTabDatabases[tabId] === url) {
+              delete newTabDatabases[tabId];
+            }
+          });
+          return newTabDatabases;
+        });
         
         alert('Database deleted successfully.');
-        
-        // 关闭设置菜单
         setOpenSettingsIndex(null);
-        
-        // 刷新数据库列表
         fetchDatabases();
       } else {
         alert('Error: ' + result.error);
@@ -272,7 +296,7 @@ const DatabaseManager = ({ onDatabaseSelect, onDatabaseInfoFetch }) => {
               <div
                 key={index}
                 className={`${styles.databaseItem} ${
-                  selectedDatabaseUrl === db.url ? styles.selected : ''
+                  tabDatabases[activeTab] === db.url ? styles.selected : ''
                 }`}
                 onClick={() => handleDatabaseSelection(db.url)}
               >
@@ -280,7 +304,7 @@ const DatabaseManager = ({ onDatabaseSelect, onDatabaseInfoFetch }) => {
                   <span className={styles.databaseUrl}>
                     {db.url.replace(/^(neo4j:\/\/|bolt:\/\/|neo4j\+s:\/\/|bolt\+s:\/\/)/, '')}
                   </span>
-                  {selectedDatabaseUrl === db.url && (
+                  {tabDatabases[activeTab] === db.url && (
                     <span className={styles.selectedIndicator}>✓</span>
                   )}
                 </div>

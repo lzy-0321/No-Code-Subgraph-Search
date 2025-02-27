@@ -32,7 +32,7 @@ cursor: grabbing;
   color: white;
   display: flex;
   flex-direction: column;
-  z-index: 1000; /* 确保在其他元素之上 */
+  z-index: 1000;
   transition: all 0.2s ease; /* 添加平滑过渡效果 */
 }
 .filterWindow.downleft {
@@ -227,6 +227,7 @@ font-size: 14px;
   /* 悬浮 */
   position: absolute;
   width: 52.5%; /* Match input width */
+  z-index: 1100; /* 确保建议列表在最上层 */
 }
 
 .suggestionItem {

@@ -37,4 +37,5 @@ urlpatterns = [
     path('get_database_info/', views.get_database_info, name='get_database_info'),  # get database info
     path('get_nodeEntities/', views.get_nodeEntities, name='get_nodeEntities'),
     path('get_relationshipEntities/', views.get_relationshipEntities, name='get_relationshipEntities'),
+    path('match_query/', views.match_query, name='match_query'),
 ]

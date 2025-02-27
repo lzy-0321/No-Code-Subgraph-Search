@@ -41,79 +41,134 @@ class CypherQueryBuilder:
             tuple: (query_string, params_dict) 查询字符串和参数字典
         """
         match_type = query_params.get('matchType')
-        label = query_params.get('label')
-        node_properties = query_params.get('nodeProperties', {})
-        relationship = query_params.get('relationship', {})
-        where_clause = query_params.get('whereClause', '')
-        return_fields = query_params.get('returnFields', ['n'])
-        optional = query_params.get('optional', False)
-        use_with = query_params.get('useWithClause', False)
-        aggregate = query_params.get('aggregate', False)
-        multiple_matches = query_params.get('multipleMatches', False)
-        variable_length = query_params.get('variableLength', {})
         
-        # 参数化查询的参数字典
-        params = {}
+        if match_type == 'labelMatch':
+            label = query_params.get('label')
+            properties = query_params.get('properties', {})
+            limit = query_params.get('limit')
+            
+            # 初始化参数字典
+            params = {}
+            
+            # 构建基本查询
+            query = f"MATCH (n:{label})"
+            
+            # 添加属性条件
+            if properties:
+                props_list = []
+                for key, value in properties.items():
+                    param_name = f"prop_{key}"
+                    props_list.append(f"n.{key} = ${param_name}")
+                    params[param_name] = value
+                if props_list:
+                    query += " WHERE " + " AND ".join(props_list)
+            
+            # 添加返回语句和限制
+            query += " RETURN n"
+            if limit:
+                query += f" LIMIT {limit}"
+            
+            print(f"Built query: {query}")  # 调试日志
+            print(f"Query params: {params}")  # 调试日志
+            
+            return query, params
         
-        # 构建基本MATCH子句
-        match_clause = "OPTIONAL MATCH" if optional else "MATCH"
+        elif match_type == 'relationshipMatch':
+            rel_type = query_params.get('relationType')
+            if not rel_type:
+                raise ValueError("relationType is required")
+            
+            properties = query_params.get('properties', {})
+            
+            # 构建查询
+            query_parts = []
+            params = {}
+            
+            # 构建基本的关系匹配模式
+            query = f"MATCH (a)-[r:{rel_type}]->(b)"
+            
+            # 添加关系属性条件
+            if properties:
+                props_list = []
+                for key, value in properties.items():
+                    param_name = f"rel_{key}"
+                    props_list.append(f"r.{key} = ${param_name}")
+                    params[param_name] = value
+                if props_list:
+                    query += " WHERE " + " AND ".join(props_list)
+            
+            # 返回语句
+            query += " RETURN a, r, b"
+            
+            print(f"Built relationship query: {query}")  # 调试日志
+            print(f"With params: {params}")  # 调试日志
+            
+            return query, params
         
-        if match_type == "allNodes":
-            query = f"{match_clause} (n)"
+        elif match_type == 'pathMatch':
+            start_node = query_params.get('startNode', {})
+            end_node = query_params.get('endNode', {})
+            relationship = query_params.get('relationship', {})
+            
+            # 构建查询
+            query_parts = []
+            params = {}
+            
+            # 起始节点
+            start_label = start_node.get('label')
+            start_props = start_node.get('properties', {})
+            query_parts.append(f"MATCH (start:{start_label})")
+            
+            if start_props:
+                conditions = []
+                for key, value in start_props.items():
+                    param_name = f"start_{key}"
+                    conditions.append(f"start.{key} = ${param_name}")
+                    params[param_name] = value
+                if conditions:
+                    query_parts.append("WHERE " + " AND ".join(conditions))
+            
+            # 终止节点
+            end_label = end_node.get('label')
+            end_props = end_node.get('properties', {})
+            
+            # 关系部分
+            rel_types = relationship.get('types', [])
+            min_hops = relationship.get('minHops', 1)
+            max_hops = relationship.get('maxHops')
+            
+            # 构建关系类型字符串
+            rel_type_str = "|".join(rel_types) if rel_types else ""
+            rel_type_part = f":{rel_type_str}" if rel_type_str else ""
+            
+            # 构建可变长度部分
+            length_part = f"*{min_hops}"
+            if max_hops:
+                length_part += f"..{max_hops}"
+            
+            # 组合路径匹配
+            path_match = f"-[r{rel_type_part}{length_part}]->"
+            
+            # 终止节点匹配
+            query_parts.append(f"MATCH (start){path_match}(end:{end_label})")
+            
+            # 终止节点属性条件
+            if end_props:
+                conditions = []
+                for key, value in end_props.items():
+                    param_name = f"end_{key}"
+                    conditions.append(f"end.{key} = ${param_name}")
+                    params[param_name] = value
+                if conditions:
+                    query_parts.append("AND " + " AND ".join(conditions))
+            
+            # 返回完整路径
+            query_parts.append("RETURN start, r, end")
+            
+            return " ".join(query_parts), params
         
-        elif match_type == "labelMatch":
-            query = f"{match_clause} (n:{label})"
-            
-        elif match_type == "propertyMatch":
-            props_list = []
-            for key, value in node_properties.items():
-                param_name = f"prop_{key}"
-                props_list.append(f"{key}: ${param_name}")
-                params[param_name] = value
-            props_str = "{" + ", ".join(props_list) + "}" if props_list else ""
-            query = f"{match_clause} (n:{label} {props_str})"
-            
-        elif match_type == "relationshipMatch":
-            rel_type = relationship.get('type', '')
-            rel_props = relationship.get('properties', {})
-            
-            # 处理关系属性
-            rel_props_list = []
-            for key, value in rel_props.items():
-                param_name = f"rel_{key}"
-                rel_props_list.append(f"{key}: ${param_name}")
-                params[param_name] = value
-            rel_props_str = "{" + ", ".join(rel_props_list) + "}" if rel_props_list else ""
-            
-            # 处理可变长度路径
-            if variable_length.get('enabled'):
-                min_hops = variable_length.get('minHops', 1)
-                max_hops = variable_length.get('maxHops')
-                length_str = f"*{min_hops}..{max_hops}" if max_hops else f"*{min_hops}.."
-            else:
-                length_str = ""
-                
-            query = f"{match_clause} (a:{label})-[r:{rel_type}{length_str}{rel_props_str}]->(b)"
-            
         else:
             raise ValueError(f"Unsupported match type: {match_type}")
-            
-        # 添加WHERE子句
-        if where_clause:
-            query += f" WHERE {where_clause}"
-            
-        # 添加WITH子句
-        if use_with:
-            query += " WITH " + ", ".join(return_fields)
-            
-        # 添加RETURN子句
-        if aggregate:
-            # 这里可以添加聚合函数的处理逻辑
-            query += " RETURN " + ", ".join(return_fields)
-        else:
-            query += " RETURN " + ", ".join(return_fields)
-            
-        return query, params
 
 class Neo4jConnector:
     def __init__(self, uri, server_username, password):
@@ -308,49 +363,79 @@ class Neo4jConnector:
             return [], []
 
     def execute_match_query(self, query_params):
-        """
-        执行match查询
-        
-        Args:
-            query_params (dict): 查询参数
-            
-        Returns:
-            list: 查询结果列表
-        """
+        """执行match查询"""
         try:
+            print("Query params received:", query_params)  # 调试日志
+            
+            match_type = query_params.get('matchType')
+            if not match_type:
+                raise ValueError("matchType is required")
+            
+            # 根据查询类型验证必要参数
+            if match_type == 'labelMatch':
+                if not query_params.get('label'):
+                    raise ValueError("label is required for labelMatch")
+            elif match_type == 'relationshipMatch':
+                if not query_params.get('relationType'):
+                    raise ValueError("relationType is required for relationshipMatch")
+            
             # 使用CypherQueryBuilder构建查询
             query, params = CypherQueryBuilder.build_match_query(query_params)
+            print(f"Generated Cypher query: {query}")  # 调试日志
+            print(f"Query parameters: {params}")  # 调试日志
+            
+            if not query:
+                raise ValueError("Failed to generate query")
             
             with self.driver.session() as session:
-                # 执行参数化查询
-                result = session.run(query, params)
-                
-                # 处理结果
-                records = []
-                for record in result:
-                    # 将neo4j的Record对象转换为字典
-                    record_dict = {}
-                    for key in record.keys():
-                        value = record[key]
-                        # 如果值是Node类型，转换为字典
-                        if hasattr(value, 'labels'):
-                            record_dict[key] = {
-                                'labels': list(value.labels),
-                                'properties': dict(value)
-                            }
-                        # 如果值是Relationship类型，转换为字典
-                        elif hasattr(value, 'type'):
-                            record_dict[key] = {
-                                'type': value.type,
-                                'properties': dict(value)
-                            }
-                        else:
-                            record_dict[key] = value
-                    records.append(record_dict)
+                try:
+                    # 执行参数化查询
+                    result = session.run(query, params)
                     
-                return records
+                    # 处理结果
+                    records = []
+                    for record in result:
+                        try:
+                            record_dict = {}
+                            for key in record.keys():
+                                node = record[key]
+                                if hasattr(node, 'labels'):  # 节点
+                                    record_dict[key] = {
+                                        'id': node.id,
+                                        'labels': list(node.labels),
+                                        'properties': dict(node)
+                                    }
+                                elif hasattr(node, 'type'):  # 关系
+                                    record_dict[key] = {
+                                        'type': node.type,
+                                        'startNode': node.start_node.id,
+                                        'endNode': node.end_node.id,
+                                        'properties': dict(node)
+                                    }
+                                else:
+                                    record_dict[key] = node
+                            records.append(record_dict)
+                        except Exception as e:
+                            print(f"Error processing record: {e}")  # 调试日志
+                            continue
+                    
+                    print(f"Query results: {records}")  # 调试日志
+                    return {
+                        'success': True,
+                        'data': records
+                    }
+                    
+                except Exception as e:
+                    print(f"Error executing query: {e}")  # 调试日志
+                    return {
+                        'success': False,
+                        'error': f"Query execution error: {str(e)}"
+                    }
                 
         except Exception as e:
-            print(f"Error executing match query: {e}")
-            raise
+            print(f"Error in execute_match_query: {e}")  # 调试日志
+            return {
+                'success': False,
+                'error': str(e)
+            }
 

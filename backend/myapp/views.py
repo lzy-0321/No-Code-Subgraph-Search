@@ -363,31 +363,50 @@ def match_query(request):
             # 获取当前会话的connector
             connector = neo4j_session_manager.get_session()
             if not connector:
-                return JsonResponse({'success': False, 'error': 'No active Neo4j session found'}, status=500)
+                error_msg = 'No active Neo4j session found'
+                print(error_msg)  # 调试日志
+                return JsonResponse({
+                    'success': False,
+                    'error': error_msg
+                }, status=500)
                 
             # 解析请求体
             query_params = json.loads(request.body)
+            print(f"Received query params: {query_params}")  # 调试日志
+            
+            # 验证必要的参数
+            if 'matchType' not in query_params:
+                error_msg = 'matchType is required'
+                print(error_msg)  # 调试日志
+                return JsonResponse({
+                    'success': False,
+                    'error': error_msg
+                }, status=400)
             
             # 执行查询
-            results = connector.execute_match_query(query_params)
+            result = connector.execute_match_query(query_params)
+            print(f"Query result: {result}")  # 调试日志
             
-            return JsonResponse({
-                'success': True,
-                'data': results
-            })
+            if result['success']:
+                return JsonResponse(result)
+            else:
+                return JsonResponse(result, status=500)
             
-        except ValueError as ve:
+        except json.JSONDecodeError as e:
+            error_msg = f'Invalid JSON format: {str(e)}'
+            print(error_msg)  # 调试日志
             return JsonResponse({
                 'success': False,
-                'error': str(ve)
+                'error': error_msg
             }, status=400)
             
         except Exception as e:
-            print(f"Error in match_query view: {e}")
-            traceback.print_exc()
+            error_msg = f"Error in match_query view: {str(e)}"
+            print(error_msg)  # 调试日志
+            traceback.print_exc()  # 打印完整的错误堆栈
             return JsonResponse({
                 'success': False,
-                'error': str(e)
+                'error': error_msg
             }, status=500)
             
     return JsonResponse({

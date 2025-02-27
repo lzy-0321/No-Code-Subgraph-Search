@@ -15,20 +15,29 @@ const DrawGraph = ({ nodes, relationships, enableZoom = true }) => {
   }, []);
 
   // 定义颜色映射函数
-  const getNodeColor = (properties) => {
-    if (!properties) return 'gray';
+  const getNodeColor = (node) => {
+    if (!node || !node.label) return '#E5E5EA'; // iOS 浅灰色背景色
 
-    // 根据类型或其他属性返回颜色
-    const type = properties.type || 'default';
-    const colorMap = {
-      default: '#cccccc',
-      Tutorial: '#f39c12',
-      Person: '#3498db',
-      Company: '#e74c3c',
-    };
+    // 使用节点的原始 label（数据库中的 label）
+    const dbLabel = node.label || '';
+    let hash = 0;
+    for (let i = 0; i < dbLabel.length; i++) {
+      hash = dbLabel.charCodeAt(i) + ((hash << 5) - hash);
+    }
 
-    // 返回对应颜色或一个随机生成的颜色
-    return colorMap[type] || `#${Math.floor(Math.random() * 16777215).toString(16)}`;
+    // 高对比度的柔和配色方案
+    const colorPalette = [
+      '#7EB0D5', // 柔和的蓝色
+      '#95B47B', // 柔和的绿色
+      '#C3797B', // 柔和的红色
+      '#B595CF', // 柔和的紫色
+      '#E4C17B', // 柔和的黄色
+      '#79B4B7'  // 柔和的青色
+    ];
+
+    // 使用哈希值选择颜色
+    const index = Math.abs(hash) % colorPalette.length;
+    return colorPalette[index];
   };
 
   const priorityProperties = ["name", "title", "id"];
@@ -44,7 +53,8 @@ const DrawGraph = ({ nodes, relationships, enableZoom = true }) => {
     () => ({
       nodes: nodes.map((node) => ({
         id: node.id,
-        label: getPriorityProperty(node.properties),
+        label: node.nodeLabel,
+        displayLabel: getPriorityProperty(node.properties), // 用于显示的 label
         properties: node.properties,
       })),
       links: relationships.map((rel) => ({
@@ -67,23 +77,74 @@ const DrawGraph = ({ nodes, relationships, enableZoom = true }) => {
       enablePanInteraction={false} // 禁用全局拖动
       graphData={data}
       nodeCanvasObject={(node, ctx, globalScale) => {
-        const label = node.label;
-        const fontSize = 14 / globalScale;
+        const label = node.displayLabel;
         const nodeRadius = 15;
-        const fillColor = getNodeColor(node.properties);
+        const fillColor = getNodeColor(node);
 
+        // 绘制节点圆圈
         ctx.beginPath();
         ctx.arc(node.x, node.y, nodeRadius, 0, 2 * Math.PI, false);
         ctx.fillStyle = fillColor;
         ctx.fill();
 
+        // 文字渲染
         const lines = label.split(' ');
-        ctx.font = `${fontSize}px Sans-Serif`;
+        const maxLineWidth = nodeRadius * 1.6; // 减小最大宽度，确保有足够边距
+        
+        // 计算初始字体大小
+        let fontSize = Math.min(12 / globalScale, nodeRadius * 0.8); // 减小初始字体大小
+        ctx.font = `${fontSize}px Inter, system-ui, -apple-system, sans-serif`;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillStyle = 'white';
+
+        // 检查并调整字体大小，确保文字适合节点
+        let textFits = false;
+        while (!textFits && fontSize > 3) {
+          ctx.font = `${fontSize}px Inter, system-ui, -apple-system, sans-serif`;
+          
+          // 计算所有行的最大宽度
+          const maxWidth = Math.max(...lines.map(line => ctx.measureText(line).width));
+          
+          // 计算文本总高度
+          const lineHeight = fontSize * 1.1; // 减小行高
+          const totalHeight = lineHeight * lines.length;
+          
+          // 检查文本是否适合圆圈（考虑宽度和高度）
+          if (maxWidth <= maxLineWidth && totalHeight <= nodeRadius * 1.8) {
+            textFits = true;
+          } else {
+            fontSize *= 0.9;
+          }
+        }
+
+        // 计算最终的行高和总高度
+        const lineHeight = fontSize * 1.1;
+        const totalHeight = lineHeight * lines.length;
+        const startY = node.y - (totalHeight / 2) + (lineHeight / 2);
+
+        // 绘制文本
         lines.forEach((line, index) => {
-          ctx.fillText(line, node.x, node.y + index * (fontSize + 2) - (lines.length - 1) * fontSize / 2);
+          // 如果文本太长，添加省略号
+          let displayText = line;
+          let textWidth = ctx.measureText(displayText).width;
+          
+          // 确保即使加上省略号也不会超出
+          while (textWidth > maxLineWidth && displayText.length > 0) {
+            displayText = displayText.slice(0, -1);
+            if (displayText.length > 0) {
+              displayText += '…';
+              textWidth = ctx.measureText(displayText).width;
+            }
+          }
+          
+          if (displayText.length > 0) {
+            ctx.fillText(
+              displayText,
+              node.x,
+              startY + (index * lineHeight)
+            );
+          }
         });
       }}
       nodeLabel={(node) => {
@@ -212,7 +273,7 @@ const DrawGraph = ({ nodes, relationships, enableZoom = true }) => {
       onNodeClick={(node, event) => {
         // 仅阻止默认交互，不移动整个图形
         event.stopPropagation();
-        alert(`Node clicked: ${node.label}\nProperties:\n${JSON.stringify(node.properties, null, 2)}`);
+        alert(`Node clicked: ${node.displayLabel}\nProperties:\n${JSON.stringify(node.properties, null, 2)}`);
       }}
       onLinkClick={(link, event) => {
         // 仅阻止默认交互，不移动整个图形

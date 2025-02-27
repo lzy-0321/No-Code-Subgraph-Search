@@ -10,93 +10,10 @@ import { TbCrosshair, TbTrash } from 'react-icons/tb';
 import DatabaseManager from '../components/Database/DatabaseManager';
 import TabManager from '../components/TabSystem/TabManager';
 import { useTabManager } from '../hooks/useTabManager';
+import { QueryParamsGenerator, QueryManager } from '../utils/queryGenerator';
 
 // 动态加载 GraphComponent
 const DrawGraph = dynamic(() => import('../components/DrawGraph'), { ssr: false });
-
-class QueryParamsGenerator {
-  constructor() {
-    this.queryParams = {
-      matchType: 'allNodes',
-      label: '',
-      nodeProperties: {},
-      relationship: {},
-      whereClause: '',
-      returnFields: ['n'],
-      optional: false,
-      useWithClause: false,
-      aggregate: false,
-      multipleMatches: false,
-      variableLength: {
-        enabled: false,
-        minHops: 1,
-        maxHops: null
-      }
-    };
-  }
-
-  // 根据节点标签生成查询
-  generateLabelQuery(label) {
-    return {
-      ...this.queryParams,
-      matchType: 'labelMatch',
-      label: label,
-      returnFields: ['n']
-    };
-  }
-
-  // 根据节点属性生成查询
-  generatePropertyQuery(label, properties) {
-    return {
-      ...this.queryParams,
-      matchType: 'propertyMatch',
-      label: label,
-      nodeProperties: properties,
-      returnFields: ['n']
-    };
-  }
-
-  // 根据关系生成查询
-  generateRelationshipQuery(startLabel, relationType, endLabel, relationshipProps = {}, variableLength = null) {
-    const query = {
-      ...this.queryParams,
-      matchType: 'relationshipMatch',
-      label: startLabel,
-      relationship: {
-        type: relationType,
-        properties: relationshipProps
-      },
-      returnFields: ['a', 'b']
-    };
-
-    if (variableLength) {
-      query.variableLength = {
-        enabled: true,
-        minHops: variableLength.minHops || 1,
-        maxHops: variableLength.maxHops
-      };
-    }
-
-    return query;
-  }
-
-  // 添加WHERE子句
-  addWhereClause(query, whereClause) {
-    return {
-      ...query,
-      whereClause: whereClause
-    };
-  }
-
-  // 添加聚合
-  addAggregation(query, aggregateFields) {
-    return {
-      ...query,
-      aggregate: true,
-      returnFields: aggregateFields
-    };
-  }
-}
 
 export default function Playground() {
   const [nodeLabels, setNodeLabels] = useState([]);
@@ -119,17 +36,8 @@ export default function Playground() {
   });
 
   const [graphNodes, setGraphNodes] = useState([
-    { id: 1, nodeLabel: 'PERSON', properties: { name: 'Alice', age: 30, role: 'Engineer' } },
-    { id: 2, nodeLabel: 'PERSON', properties: { name: 'Bob', age: 25, role: 'Designer' } },
-    { id: 3, nodeLabel: 'KNOWLEDGE', properties: { title: 'Graph Database', type: 'Tutorial', category: 'Technology' } },
-    { id: 4, nodeLabel: 'PERSON', properties: { name: 'Charlie', age: 35, role: 'Manager' } },
-    { id: 5, nodeLabel: 'KNOWLEDGE', properties: { title: 'Graph Science', type: 'Tutorial', category: 'Technology' } },
   ]);
   const [graphRelationships, setGraphRelationships] = useState([
-    { startNode: 1, endNode: 2, type: 'FRIEND', properties: { since: '2020', frequency: 'Weekly' } },
-    { startNode: 1, endNode: 3, type: 'LIKES', properties: { since: '2019', frequency: 'Monthly' } },
-    { startNode: 2, endNode: 3, type: 'LIKES', properties: { since: '2018', frequency: 'Daily' } },
-    { startNode: 4, endNode: 5, type: 'LIKES', properties: { since: '2016', frequency: 'Monthly' } },
   ]);
   const [graphNodesBuffer, setGraphNodesBuffer] = useState([]);
   const [graphRelationshipsBuffer, setGraphRelationshipsBuffer] = useState([]);
@@ -252,6 +160,101 @@ export default function Playground() {
       graphRelationshipsBuffer: []
     }
   });
+
+  const queryManager = new QueryManager();
+
+  const handleQueryGenerated = async (queryData) => {
+    const { type, params } = queryData;
+    
+    try {
+      let queryId;
+      switch (type) {
+        case 'node':
+          queryId = queryManager.createLabelQuery(params.label);
+          if (params.properties) {
+            queryManager.updateQueryParams(queryId, {
+              properties: params.properties
+            });
+          }
+          if (params.limit) {
+            queryManager.updateQueryParams(queryId, {
+              limit: params.limit
+            });
+          }
+          break;
+
+        case 'relationship':
+          // 直接传递完整的params对象并执行查询
+          const result = await queryManager.executeQuery({
+            type: 'relationship',
+            params: {
+              matchType: 'relationshipMatch',
+              relationType: params.relationType,
+              properties: params.properties,
+              startNodeProps: params.startNodeProps,
+              endNodeProps: params.endNodeProps
+            }
+          });
+          
+          if (result) {
+            // 确保节点数据格式正确
+            const newNodes = result.nodes.map(node => ({
+              id: node.id || Math.random().toString(),  // 确保每个节点都有唯一的id
+              nodeLabel: Array.isArray(node.labels) ? node.labels[0] : node.labels,
+              properties: node.properties || {}
+            }));
+
+            // 确保关系数据格式正确
+            const newRelationships = result.relationships.map(rel => ({
+              startNode: rel.startNode,  // 使用节点的id
+              endNode: rel.endNode,      // 使用节点的id
+              type: rel.type || params.relationType,
+              properties: rel.properties || {}
+            }));
+
+            // 更新图形状态
+            setGraphNodes(prevNodes => [...prevNodes, ...newNodes]);
+            setGraphRelationships(prevRels => [...prevRels, ...newRelationships]);
+          }
+          return;
+
+        case 'path':
+          queryId = queryManager.createPathQuery(
+            params.startNode.label,
+            params.endNode.label,
+            params
+          );
+          break;
+      }
+
+      if (queryId) {
+        const result = await queryManager.executeQuery(queryId);
+        
+        if (result) {
+          // 确保节点数据格式正确
+          const newNodes = result.nodes?.map(node => ({
+            id: node.id || Math.random().toString(),  // 确保每个节点都有唯一的id
+            nodeLabel: Array.isArray(node.labels) ? node.labels[0] : node.labels,
+            properties: node.properties || {}
+          })) || [];
+
+          // 确保关系数据格式正确
+          const newRelationships = result.relationships?.map(rel => ({
+            startNode: rel.startNode,  // 使用节点的id
+            endNode: rel.endNode,      // 使用节点的id
+            type: rel.type,
+            properties: rel.properties || {}
+          })) || [];
+
+          // 更新图形状态
+          setGraphNodes(prevNodes => [...prevNodes, ...newNodes]);
+          setGraphRelationships(prevRels => [...prevRels, ...newRelationships]);
+        }
+      }
+    } catch (error) {
+      console.error('Error executing query:', error);
+    }
+  };
 
   // 处理tab状态变化
   const handleTabStateChange = (action) => {
@@ -422,21 +425,9 @@ export default function Playground() {
     setExpandedRelationship(expandedRelationship === type ? null : type); // Toggle between expanded and collapsed
   };
 
-  const [queryGenerator] = useState(new QueryParamsGenerator());
-
   // 处理节点标签点击
   const handleLabelClick = async (label) => {
     try {
-      const query = queryGenerator.generateLabelQuery(label);
-      const response = await fetch('http://localhost:8000/match_query/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify(query)
-      });
-
       const data = await response.json();
       if (data.success) {
         // 更新图形显示
@@ -455,16 +446,6 @@ export default function Playground() {
   // 处理关系类型点击
   const handleRelationshipClick = async (relationType) => {
     try {
-      // 这里假设我们知道起始节点的标签
-      const query = queryGenerator.generateRelationshipQuery('Person', relationType, 'Person');
-      const response = await fetch('http://localhost:8000/match_query/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify(query)
-      });
 
       const data = await response.json();
       if (data.success) {
@@ -868,9 +849,10 @@ export default function Playground() {
                 </div>
                 <div className={styles.flexRowGalleryImages}>
                   <div className={styles.iconContainer}>
-                    <AddTab nodeEntities
-                      AddTabNodeEntities = {nodeEntities}
-                      AddTabRelationshipEntities = {relationshipEntities}
+                    <AddTab 
+                      AddTabNodeEntities={nodeEntities}
+                      AddTabRelationshipEntities={relationshipEntities}
+                      onQueryGenerated={handleQueryGenerated}
                     />
                   </div>
                   <div className={styles.iconContainer}>

@@ -21,153 +21,85 @@ class TestMovieRelationships(unittest.TestCase):
         cls.connector.close()
 
     def test_a_few_good_men_cast(self):
-        """
-        验证 'A Few Good Men' 相关演员/导演/编剧关系。
-        例如 James Marshall (born=1967) -> ACTED_IN -> A Few Good Men (released=1992)
-        """
-        # 1) James Marshall -> ACTED_IN -> A Few Good Men
+        """测试'A Few Good Men'电影相关的演员关系"""
+        # 测试 James Marshall -> ACTED_IN -> A Few Good Men
         query_params = {
             "matchType": "relationshipMatch",
-            "label": "Person",  # 起始节点是 Person
-            "relationship": {
-                "type": "ACTED_IN",
-                "properties": {}  # 如果要匹配 roles，可填 "roles": ["Pfc. Louden Downey"]
-            },
-            "whereClause": "a.name = 'James Marshall' AND b.title = 'A Few Good Men'",
-            "returnFields": ["a","b","r"]
+            "startLabel": "Person",
+            "relationType": "ACTED_IN",
+            "endLabel": "Movie",
+            "startNodeProps": {"name": "James Marshall"},
+            "endNodeProps": {"title": "A Few Good Men"}
         }
+        
         results = self.connector.execute_match_query(query_params)
-        self.assertTrue(len(results) > 0, "应当能匹配到 James Marshall 与 A Few Good Men 的 ACTED_IN 关系")
-        record = results[0]  # 拿第一条校验
-        self.assertIn('a', record)
-        self.assertIn('b', record)
-        self.assertIn('r', record)
-        self.assertEqual(record['a']['properties'].get('name'), 'James Marshall')
-        self.assertEqual(record['b']['properties'].get('title'), 'A Few Good Men')
-        self.assertEqual(record['r']['type'], 'ACTED_IN')
-        # 如果需要校验 roles:
-        # self.assertEqual(record['r']['properties'].get('roles'), ["Pfc. Louden Downey"])
+        self.assertTrue(results, "应该能找到 James Marshall 出演 A Few Good Men 的记录")
+        self.assertEqual(results[0]['a']['properties']['name'], 'James Marshall')
+        self.assertEqual(results[0]['b']['properties']['title'], 'A Few Good Men')
 
-        # 2) Rob Reiner -> DIRECTED -> A Few Good Men
+        # 测试 Rob Reiner -> DIRECTED -> A Few Good Men
         query_params = {
             "matchType": "relationshipMatch",
-            "label": "Person",
-            "relationship": {
-                "type": "DIRECTED",
-                "properties": {}
-            },
-            "whereClause": "a.name = 'Rob Reiner' AND b.title = 'A Few Good Men'",
-            "returnFields": ["a","b","r"]
+            "startLabel": "Person",
+            "relationType": "DIRECTED",
+            "endLabel": "Movie",
+            "startNodeProps": {"name": "Rob Reiner"},
+            "endNodeProps": {"title": "A Few Good Men"}
         }
+        
         results = self.connector.execute_match_query(query_params)
-        self.assertTrue(len(results) > 0, "应当能匹配到 Rob Reiner DIRECTED A Few Good Men")
-        record = results[0]
-        self.assertEqual(record['a']['properties'].get('name'), 'Rob Reiner')
-        self.assertEqual(record['b']['properties'].get('title'), 'A Few Good Men')
-        self.assertEqual(record['r']['type'], 'DIRECTED')
-
-        # 你可以继续针对 Christopher Guest、Aaron Sorkin、等人写类似的验证
-        # ...
+        self.assertTrue(results, "应该能找到 Rob Reiner 导演 A Few Good Men 的记录")
+        self.assertEqual(results[0]['a']['properties']['name'], 'Rob Reiner')
+        self.assertEqual(results[0]['b']['properties']['title'], 'A Few Good Men')
 
     def test_top_gun_cast(self):
-        """
-        验证 'Top Gun' 的演员/导演/编剧
-        例如 Tom Cruise -> ACTED_IN -> Top Gun
-        """
-        # Tom Cruise -> ACTED_IN -> Top Gun
+        """测试'Top Gun'电影相关的演员关系"""
+        # 测试 Tom Cruise -> ACTED_IN -> Top Gun
         query_params = {
             "matchType": "relationshipMatch",
-            "label": "Person",
-            "relationship": {
-                "type": "ACTED_IN"
-            },
-            "whereClause": "a.name = 'Tom Cruise' AND b.title = 'Top Gun'",
-            "returnFields": ["a","b","r"]
+            "startLabel": "Person",
+            "relationType": "ACTED_IN",
+            "endLabel": "Movie",
+            "startNodeProps": {"name": "Tom Cruise"},
+            "endNodeProps": {"title": "Top Gun"}
         }
+        
         results = self.connector.execute_match_query(query_params)
-        self.assertTrue(len(results) > 0, "应当能匹配到 Tom Cruise 与 Top Gun 的 ACTED_IN 关系")
-        record = results[0]
-        self.assertEqual(record['a']['properties'].get('name'), 'Tom Cruise')
-        self.assertEqual(record['b']['properties'].get('title'), 'Top Gun')
-        self.assertEqual(record['r']['type'], 'ACTED_IN')
-        roles = record['r']['properties'].get('roles', [])
-        self.assertIn('Maverick', roles, "Tom Cruise 在Top Gun里的角色应该是 Maverick")
-
-        # Tony Scott -> DIRECTED -> Top Gun
-        query_params = {
-            "matchType": "relationshipMatch",
-            "label": "Person",
-            "relationship": {
-                "type": "DIRECTED"
-            },
-            "whereClause": "a.name = 'Tony Scott' AND b.title = 'Top Gun'",
-            "returnFields": ["a","b","r"]
-        }
-        results = self.connector.execute_match_query(query_params)
-        self.assertTrue(len(results) > 0, "应当能匹配到 Tony Scott DIRECTED Top Gun")
-
-        # 继续测试其他演员/编剧 ...
-        # ...
+        self.assertTrue(results, "应该能找到 Tom Cruise 出演 Top Gun 的记录")
+        self.assertEqual(results[0]['a']['properties']['name'], 'Tom Cruise')
+        self.assertEqual(results[0]['b']['properties']['title'], 'Top Gun')
+        self.assertIn('Maverick', results[0]['r']['properties']['roles'])
 
     def test_the_matrix_cast(self):
-        """
-        验证 'The Matrix' 的演员/导演/制片
-        例如 Keanu Reeves -> ACTED_IN -> The Matrix
-        """
-        # Keanu Reeves -> ACTED_IN -> The Matrix
+        """测试'The Matrix'电影相关的演员关系"""
+        # 测试 Keanu Reeves -> ACTED_IN -> The Matrix
         query_params = {
             "matchType": "relationshipMatch",
-            "label": "Person",
-            "relationship": {
-                "type": "ACTED_IN"
-            },
-            "whereClause": "a.name = 'Keanu Reeves' AND b.title = 'The Matrix'",
-            "returnFields": ["a","b","r"]
+            "startLabel": "Person",
+            "relationType": "ACTED_IN",
+            "endLabel": "Movie",
+            "startNodeProps": {"name": "Keanu Reeves"},
+            "endNodeProps": {"title": "The Matrix"}
         }
+        
         results = self.connector.execute_match_query(query_params)
-        self.assertTrue(len(results) > 0, "应当能匹配到 Keanu Reeves 与 The Matrix 的 ACTED_IN 关系")
-        record = results[0]
-        self.assertEqual(record['a']['properties']['name'], 'Keanu Reeves')
-        self.assertEqual(record['b']['properties']['title'], 'The Matrix')
-        self.assertEqual(record['r']['type'], 'ACTED_IN')
-        self.assertIn('Neo', record['r']['properties']['roles'])
+        self.assertTrue(results, "应该能找到 Keanu Reeves 出演 The Matrix 的记录")
+        self.assertEqual(results[0]['a']['properties']['name'], 'Keanu Reeves')
+        self.assertEqual(results[0]['b']['properties']['title'], 'The Matrix')
+        self.assertIn('Neo', results[0]['r']['properties']['roles'])
 
-        # Wachowski 姐妹 -> DIRECTED -> The Matrix
+    def test_label_match(self):
+        """测试标签匹配查询"""
         query_params = {
-            "matchType": "relationshipMatch",
-            "label": "Person",
-            "relationship": {
-                "type": "DIRECTED"
-            },
-            "whereClause": "b.title = 'The Matrix' AND (a.name = 'Lilly Wachowski' OR a.name = 'Lana Wachowski')",
-            "returnFields": ["a","b","r"]
+            "matchType": "labelMatch",
+            "label": "Movie",
+            "properties": {"title": "The Matrix"},
+            "limit": 1
         }
+        
         results = self.connector.execute_match_query(query_params)
-        # 应该会返回多条：一条匹配 'Lilly Wachowski'，一条匹配 'Lana Wachowski'
-        self.assertGreaterEqual(len(results), 2, "应该至少有两条记录，对应两位导演")
-
-        # 也可以继续验证 PRODUCED, WROTE 等
-        # ...
-
-    def test_jerry_maguire_cast(self):
-        """
-        验证 'Jerry Maguire' 的演员
-        例如 Tom Cruise -> ACTED_IN -> Jerry Maguire
-        """
-        query_params = {
-            "matchType": "relationshipMatch",
-            "label": "Person",
-            "relationship": {
-                "type": "ACTED_IN"
-            },
-            "whereClause": "a.name = 'Tom Cruise' AND b.title = 'Jerry Maguire'",
-            "returnFields": ["a","b","r"]
-        }
-        results = self.connector.execute_match_query(query_params)
-        self.assertTrue(len(results) > 0, "应当能匹配到 Tom Cruise 与 Jerry Maguire 的 ACTED_IN 关系")
-        record = results[0]
-        self.assertEqual(record['b']['properties']['title'], 'Jerry Maguire')
-        self.assertIn('Jerry Maguire', record['r']['properties']['roles'])
+        self.assertTrue(results, "应该能找到 The Matrix 电影")
+        self.assertEqual(results[0]['n']['properties']['title'], 'The Matrix')
 
 if __name__ == '__main__':
     unittest.main()

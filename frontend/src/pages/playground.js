@@ -164,92 +164,12 @@ export default function Playground() {
   const queryManager = new QueryManager();
 
   const handleQueryGenerated = async (queryData) => {
-    const { type, params } = queryData;
-    
+    console.log('handleQueryGenerated received:', queryData);  // 添加日志
     try {
-      let queryId;
-      switch (type) {
-        case 'node':
-          queryId = queryManager.createLabelQuery(params.label);
-          if (params.properties) {
-            queryManager.updateQueryParams(queryId, {
-              properties: params.properties
-            });
-          }
-          if (params.limit) {
-            queryManager.updateQueryParams(queryId, {
-              limit: params.limit
-            });
-          }
-          break;
-
-        case 'relationship':
-          // 直接传递完整的params对象并执行查询
-          const result = await queryManager.executeQuery({
-            type: 'relationship',
-            params: {
-              matchType: 'relationshipMatch',
-              relationType: params.relationType,
-              properties: params.properties,
-              startNodeProps: params.startNodeProps,
-              endNodeProps: params.endNodeProps
-            }
-          });
-          
-          if (result) {
-            // 确保节点数据格式正确
-            const newNodes = result.nodes.map(node => ({
-              id: node.id || Math.random().toString(),  // 确保每个节点都有唯一的id
-              nodeLabel: Array.isArray(node.labels) ? node.labels[0] : node.labels,
-              properties: node.properties || {}
-            }));
-
-            // 确保关系数据格式正确
-            const newRelationships = result.relationships.map(rel => ({
-              startNode: rel.startNode,  // 使用节点的id
-              endNode: rel.endNode,      // 使用节点的id
-              type: rel.type || params.relationType,
-              properties: rel.properties || {}
-            }));
-
-            // 更新图形状态
-            setGraphNodes(prevNodes => [...prevNodes, ...newNodes]);
-            setGraphRelationships(prevRels => [...prevRels, ...newRelationships]);
-          }
-          return;
-
-        case 'path':
-          queryId = queryManager.createPathQuery(
-            params.startNode.label,
-            params.endNode.label,
-            params
-          );
-          break;
-      }
-
-      if (queryId) {
-        const result = await queryManager.executeQuery(queryId);
-        
-        if (result) {
-          // 确保节点数据格式正确
-          const newNodes = result.nodes?.map(node => ({
-            id: node.id || Math.random().toString(),  // 确保每个节点都有唯一的id
-            nodeLabel: Array.isArray(node.labels) ? node.labels[0] : node.labels,
-            properties: node.properties || {}
-          })) || [];
-
-          // 确保关系数据格式正确
-          const newRelationships = result.relationships?.map(rel => ({
-            startNode: rel.startNode,  // 使用节点的id
-            endNode: rel.endNode,      // 使用节点的id
-            type: rel.type,
-            properties: rel.properties || {}
-          })) || [];
-
-          // 更新图形状态
-          setGraphNodes(prevNodes => [...prevNodes, ...newNodes]);
-          setGraphRelationships(prevRels => [...prevRels, ...newRelationships]);
-        }
+      const result = await queryManager.executeQuery(queryData);
+      if (result) {
+        setGraphNodes(prevNodes => [...prevNodes, ...result.nodes]);
+        setGraphRelationships(prevRels => [...prevRels, ...result.relationships]);
       }
     } catch (error) {
       console.error('Error executing query:', error);

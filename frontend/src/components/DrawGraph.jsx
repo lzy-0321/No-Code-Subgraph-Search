@@ -16,13 +16,13 @@ const DrawGraph = ({ nodes, relationships, enableZoom = true }) => {
 
   // 定义颜色映射函数
   const getNodeColor = (node) => {
-    if (!node || !node.label) return '#E5E5EA'; // iOS 浅灰色背景色
+    if (!node || !node.nodeLabel) return '#E5E5EA'; // iOS 浅灰色背景色
 
-    // 使用节点的原始 label（数据库中的 label）
-    const dbLabel = node.label || '';
+    // 使用节点的 nodeLabel
+    const nodeLabel = node.nodeLabel || '';
     let hash = 0;
-    for (let i = 0; i < dbLabel.length; i++) {
-      hash = dbLabel.charCodeAt(i) + ((hash << 5) - hash);
+    for (let i = 0; i < nodeLabel.length; i++) {
+      hash = nodeLabel.charCodeAt(i) + ((hash << 5) - hash);
     }
 
     // 高对比度的柔和配色方案
@@ -53,7 +53,7 @@ const DrawGraph = ({ nodes, relationships, enableZoom = true }) => {
     () => ({
       nodes: nodes.map((node) => ({
         id: node.id,
-        label: node.nodeLabel,
+        nodeLabel: node.nodeLabel,
         displayLabel: getPriorityProperty(node.properties), // 用于显示的 label
         properties: node.properties,
       })),

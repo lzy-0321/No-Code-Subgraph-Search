@@ -273,14 +273,14 @@ export class QueryManager {
         // 处理起始节点 'a'
         nodesMap.set(record.a.id, {
           id: record.a.id,
-          labels: record.a.labels,
+          nodeLabel: record.a.labels[0], // 取第一个标签作为节点标签
           properties: record.a.properties
         });
         
         // 处理终止节点 'b'
         nodesMap.set(record.b.id, {
           id: record.b.id,
-          labels: record.b.labels,
+          nodeLabel: record.b.labels[0], // 取第一个标签作为节点标签
           properties: record.b.properties
         });
       });
@@ -309,18 +309,34 @@ export class QueryManager {
   // 执行路径查询
   async executePathQuery(params) {
     try {
+      console.log('Executing path query with params:', params);
+
+      const requestBody = {
+        matchType: 'pathMatch',
+        startNode: {
+          label: params.startNode.label,
+          properties: params.startNode.properties || {}
+        },
+        endNode: {
+          label: params.endNode.label,
+          properties: params.endNode.properties || {}
+        },
+        relationship: {
+          types: params.relationship?.types || [],
+          minHops: params.relationship?.minHops || 1,
+          maxHops: params.relationship?.maxHops || null
+        }
+      };
+
+      console.log('Request body:', requestBody);
+
       const response = await fetch('http://localhost:8000/match_query/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         credentials: 'include',
-        body: JSON.stringify({
-          matchType: 'pathMatch',
-          startNode: params.startNode,
-          endNode: params.endNode,
-          relationship: params.relationship
-        })
+        body: JSON.stringify(requestBody)
       });
 
       const data = await response.json();
@@ -334,20 +350,25 @@ export class QueryManager {
 
       data.data.forEach(record => {
         const path = record.p;
+        
+        // 处理节点
         path.nodes.forEach(node => {
-          nodes.set(node.id, {
-            id: node.id,
-            labels: Array.isArray(node.labels) ? node.labels : [node.labels],
-            properties: node.properties
-          });
+          if (!nodes.has(node.id)) {
+            nodes.set(node.id, {
+              id: node.id,
+              labels: Array.isArray(node.labels) ? node.labels : [node.labels],
+              properties: node.properties || {}
+            });
+          }
         });
 
+        // 处理关系
         path.relationships.forEach(rel => {
           relationships.add({
             startNode: rel.startNode,
             endNode: rel.endNode,
             type: rel.type,
-            properties: rel.properties
+            properties: rel.properties || {}
           });
         });
       });
@@ -366,22 +387,26 @@ export class QueryManager {
   async executeQuery(queryIdOrParams) {
     try {
       let params;
+      console.log('executeQuery received:', queryIdOrParams);  // 添加日志
       
       // 检查是否传入的是查询ID还是直接的参数
       if (typeof queryIdOrParams === 'string') {
-        // 如果是查询ID，从查询状态获取参数
         const queryState = this.queries.get(queryIdOrParams);
         if (!queryState) return null;
         params = queryState.params;
       } else {
-        // 如果直接传入参数，直接使用
         params = queryIdOrParams;
       }
 
-      console.log('Final query params:', params); // 调试日志
+      console.log('Processed params:', params);  // 添加日志
 
-      // 根据matchType决定使用哪个查询执行方法
+      // 根据type决定使用哪个查询执行方法
       let result;
+      if (!params.type) {
+        console.error('Missing type in params:', params);  // 添加错误日志
+        throw new Error('Query type is required');
+      }
+
       switch (params.type) {
         case 'node':
           result = await this.executeLabelQuery(params.params);
@@ -394,11 +419,6 @@ export class QueryManager {
           break;
         default:
           throw new Error(`Unknown query type: ${params.type}`);
-      }
-
-      // 如果是查询ID，存储结果
-      if (typeof queryIdOrParams === 'string') {
-        this.queryResults.set(queryIdOrParams, result);
       }
 
       return result;
@@ -530,22 +550,25 @@ export class QueryParamsGenerator {
 
   // 生成路径查询
   generatePathQuery(startLabel, endLabel, pathProperties) {
+    console.log('generatePathQuery inputs:', { startLabel, endLabel, pathProperties });  // 添加日志
     return {
-      ...this.queryParams,
-      matchType: 'pathMatch',
-      startNode: {
-        label: startLabel,
-        properties: pathProperties.startNode || {}
-      },
-      endNode: {
-        label: endLabel,
-        properties: pathProperties.endNode || {}
-      },
-      relationship: {
-        types: pathProperties.relationship.types || [],
-        minHops: parseInt(pathProperties.relationship.minHops) || 1,
-        maxHops: pathProperties.relationship.maxHops ? 
-          parseInt(pathProperties.relationship.maxHops) : null
+      type: 'path',  // 确保包含 type
+      params: {
+        matchType: 'pathMatch',
+        startNode: {
+          label: startLabel,
+          properties: pathProperties.startNode || {}
+        },
+        endNode: {
+          label: endLabel,
+          properties: pathProperties.endNode || {}
+        },
+        relationship: {
+          types: pathProperties.relationship?.types || [],
+          minHops: parseInt(pathProperties.relationship?.minHops) || 1,
+          maxHops: pathProperties.relationship?.maxHops ? 
+            parseInt(pathProperties.relationship.maxHops) : null
+        }
       }
     };
   }

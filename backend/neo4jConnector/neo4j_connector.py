@@ -68,9 +68,6 @@ class CypherQueryBuilder:
             if limit:
                 query += f" LIMIT {limit}"
             
-            print(f"Built query: {query}")  # 调试日志
-            print(f"Query params: {params}")  # 调试日志
-            
             return query, params
         
         elif match_type == 'relationshipMatch':
@@ -100,9 +97,6 @@ class CypherQueryBuilder:
             # 返回语句
             query += " RETURN a, r, b"
             
-            print(f"Built relationship query: {query}")  # 调试日志
-            print(f"With params: {params}")  # 调试日志
-            
             return query, params
         
         elif match_type == 'pathMatch':
@@ -117,16 +111,6 @@ class CypherQueryBuilder:
             # 起始节点
             start_label = start_node.get('label')
             start_props = start_node.get('properties', {})
-            query_parts.append(f"MATCH (start:{start_label})")
-            
-            if start_props:
-                conditions = []
-                for key, value in start_props.items():
-                    param_name = f"start_{key}"
-                    conditions.append(f"start.{key} = ${param_name}")
-                    params[param_name] = value
-                if conditions:
-                    query_parts.append("WHERE " + " AND ".join(conditions))
             
             # 终止节点
             end_label = end_node.get('label')
@@ -137,35 +121,48 @@ class CypherQueryBuilder:
             min_hops = relationship.get('minHops', 1)
             max_hops = relationship.get('maxHops')
             
-            # 构建关系类型字符串
-            rel_type_str = "|".join(rel_types) if rel_types else ""
+            # 构建基本查询
+            query = f"MATCH p=(start:{start_label})"
+            
+            # 添加起始节点属性条件
+            if start_props:
+                conditions = []
+                for key, value in start_props.items():
+                    param_name = f"start_{key}"
+                    conditions.append(f"start.{key} = ${param_name}")
+                    params[param_name] = value
+                if conditions:
+                    query += " WHERE " + " AND ".join(conditions)
+            
+            # 构建关系部分
+            rel_type_str = "|".join(f"`{t}`" for t in rel_types) if rel_types else ""
             rel_type_part = f":{rel_type_str}" if rel_type_str else ""
             
             # 构建可变长度部分
             length_part = f"*{min_hops}"
-            if max_hops:
+            if max_hops is not None:
                 length_part += f"..{max_hops}"
             
-            # 组合路径匹配
-            path_match = f"-[r{rel_type_part}{length_part}]->"
+            # 添加关系和终止节点
+            query += f"-[r{rel_type_part}{length_part}]->(end:{end_label})"
             
-            # 终止节点匹配
-            query_parts.append(f"MATCH (start){path_match}(end:{end_label})")
-            
-            # 终止节点属性条件
+            # 添加终止节点属性条件
             if end_props:
-                conditions = []
+                end_conditions = []
                 for key, value in end_props.items():
                     param_name = f"end_{key}"
-                    conditions.append(f"end.{key} = ${param_name}")
+                    end_conditions.append(f"end.{key} = ${param_name}")
                     params[param_name] = value
-                if conditions:
-                    query_parts.append("AND " + " AND ".join(conditions))
+                if end_conditions:
+                    query += " AND " + " AND ".join(end_conditions)
             
             # 返回完整路径
-            query_parts.append("RETURN start, r, end")
+            query += " RETURN p"
             
-            return " ".join(query_parts), params
+            print(f"Generated path query: {query}")  # 调试日志
+            print(f"With params: {params}")  # 调试日志
+            
+            return query, params
         
         else:
             raise ValueError(f"Unsupported match type: {match_type}")
@@ -371,18 +368,8 @@ class Neo4jConnector:
             if not match_type:
                 raise ValueError("matchType is required")
             
-            # 根据查询类型验证必要参数
-            if match_type == 'labelMatch':
-                if not query_params.get('label'):
-                    raise ValueError("label is required for labelMatch")
-            elif match_type == 'relationshipMatch':
-                if not query_params.get('relationType'):
-                    raise ValueError("relationType is required for relationshipMatch")
-            
             # 使用CypherQueryBuilder构建查询
             query, params = CypherQueryBuilder.build_match_query(query_params)
-            print(f"Generated Cypher query: {query}")  # 调试日志
-            print(f"Query parameters: {params}")  # 调试日志
             
             if not query:
                 raise ValueError("Failed to generate query")
@@ -398,28 +385,54 @@ class Neo4jConnector:
                         try:
                             record_dict = {}
                             for key in record.keys():
-                                node = record[key]
-                                if hasattr(node, 'labels'):  # 节点
-                                    record_dict[key] = {
-                                        'id': node.id,
-                                        'labels': list(node.labels),
-                                        'properties': dict(node)
+                                if key == 'p':  # 处理路径
+                                    path = record[key]
+                                    path_dict = {
+                                        'nodes': [],
+                                        'relationships': []
                                     }
-                                elif hasattr(node, 'type'):  # 关系
-                                    record_dict[key] = {
-                                        'type': node.type,
-                                        'startNode': node.start_node.id,
-                                        'endNode': node.end_node.id,
-                                        'properties': dict(node)
-                                    }
-                                else:
-                                    record_dict[key] = node
+                                    
+                                    # 处理路径中的节点
+                                    for node in path.nodes:
+                                        path_dict['nodes'].append({
+                                            'id': node.id,
+                                            'labels': list(node.labels),
+                                            'properties': dict(node)
+                                        })
+                                    
+                                    # 处理路径中的关系
+                                    for rel in path.relationships:
+                                        path_dict['relationships'].append({
+                                            'id': rel.id,
+                                            'type': rel.type,
+                                            'startNode': rel.start_node.id,
+                                            'endNode': rel.end_node.id,
+                                            'properties': dict(rel)
+                                        })
+                                    
+                                    record_dict[key] = path_dict
+                                else:  # 处理其他类型的记录
+                                    node = record[key]
+                                    if hasattr(node, 'labels'):  # 节点
+                                        record_dict[key] = {
+                                            'id': node.id,
+                                            'labels': list(node.labels),
+                                            'properties': dict(node)
+                                        }
+                                    elif hasattr(node, 'type'):  # 关系
+                                        record_dict[key] = {
+                                            'type': node.type,
+                                            'startNode': node.start_node.id,
+                                            'endNode': node.end_node.id,
+                                            'properties': dict(node)
+                                        }
+                                    else:
+                                        record_dict[key] = node
                             records.append(record_dict)
                         except Exception as e:
                             print(f"Error processing record: {e}")  # 调试日志
                             continue
                     
-                    print(f"Query results: {records}")  # 调试日志
                     return {
                         'success': True,
                         'data': records

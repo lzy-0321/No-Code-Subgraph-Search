@@ -60,185 +60,6 @@ const AddTab = ({
     }
   };
 
-  const renderPathMatchStep = () => (
-    <div className={styles.stepTwo}>
-      <div className={styles.headerContainer}>
-        <h3 className={styles.headerText}>Define Path</h3>
-      </div>
-      
-      <div className={styles.scrollContainer}>
-        <div className={styles.pathMatchContainer}>
-          {/* Start Node Section */}
-          <div className={styles.nodeSection}>
-            <h4>Start Node</h4>
-            <select
-              value={selectedStartLabel}
-              onChange={(e) => setSelectedStartLabel(e.target.value)}
-              className={styles.selectBox}
-            >
-              <option value="" disabled>Select start node label</option>
-              {Object.keys(nodeEntities).map((label) => (
-                <option key={label} value={label}>{label}</option>
-              ))}
-            </select>
-            {selectedStartLabel && (
-              <div className={styles.propertyContainer}>
-                {nodeEntities[selectedStartLabel]?.map((property, index) => (
-                  <div key={index} className={styles.propertyRow}>
-                    <span className={styles.propertyLabel}>{property}</span>
-                    <span className={styles.propertyIcon}>=</span>
-                    <input
-                      type="text"
-                      placeholder={`Enter ${property}`}
-                      className={styles.propertyInput}
-                      onChange={(e) => setPathProperties(prev => ({
-                        ...prev,
-                        startNode: {
-                          ...prev.startNode,
-                          [property]: e.target.value
-                        }
-                      }))}
-                    />
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* End Node Section */}
-          <div className={styles.nodeSection}>
-            <h4>End Node</h4>
-            <select
-              value={selectedEndLabel}
-              onChange={(e) => setSelectedEndLabel(e.target.value)}
-              className={styles.selectBox}
-            >
-              <option value="" disabled>Select end node label</option>
-              {Object.keys(nodeEntities).map((label) => (
-                <option key={label} value={label}>{label}</option>
-              ))}
-            </select>
-            {selectedEndLabel && (
-              <div className={styles.propertyContainer}>
-                {nodeEntities[selectedEndLabel]?.map((property, index) => (
-                  <div key={index} className={styles.propertyRow}>
-                    <span className={styles.propertyLabel}>{property}</span>
-                    <span className={styles.propertyIcon}>=</span>
-                    <input
-                      type="text"
-                      placeholder={`Enter ${property}`}
-                      className={styles.propertyInput}
-                      onChange={(e) => setPathProperties(prev => ({
-                        ...prev,
-                        endNode: {
-                          ...prev.endNode,
-                          [property]: e.target.value
-                        }
-                      }))}
-                    />
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Path Properties Section */}
-          <div className={styles.pathPropertiesSection}>
-            <h4>Path Properties</h4>
-            
-            {/* Relationship Types Selection */}
-            <div className={styles.propertyRow}>
-              <span className={styles.propertyLabel}>Relationship types</span>
-              <span className={styles.propertyIcon}>=</span>
-              <div className={styles.relationshipTypeSelect}>
-                <select
-                  className={styles.propertyInput}
-                  value=""
-                  onChange={(e) => {
-                    if (e.target.value && !selectedRelationshipTypes.includes(e.target.value)) {
-                      setSelectedRelationshipTypes([...selectedRelationshipTypes, e.target.value]);
-                    }
-                  }}
-                >
-                  <option value="">Select relationship types</option>
-                  {Object.keys(relationshipEntities).map((type) => (
-                    <option key={type} value={type}>{type}</option>
-                  ))}
-                </select>
-                <div className={styles.selectedTypes}>
-                  {selectedRelationshipTypes.map((type) => (
-                    <div key={type} className={styles.typeTag}>
-                      {type}
-                      <button
-                        className={styles.removeType}
-                        onClick={() => setSelectedRelationshipTypes(
-                          selectedRelationshipTypes.filter(t => t !== type)
-                        )}
-                      >
-                        ×
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Min hops */}
-            <div className={styles.propertyRow}>
-              <span className={styles.propertyLabel}>Min hops</span>
-              <span className={styles.propertyIcon}>=</span>
-              <input
-                type="number"
-                min="1"
-                placeholder="Minimum hops"
-                className={styles.propertyInput}
-                onChange={(e) => setPathProperties(prev => ({
-                  ...prev,
-                  relationship: {
-                    ...prev.relationship,
-                    minHops: e.target.value
-                  }
-                }))}
-              />
-            </div>
-
-            {/* Max hops */}
-            <div className={styles.propertyRow}>
-              <span className={styles.propertyLabel}>Max hops</span>
-              <span className={styles.propertyIcon}>=</span>
-              <input
-                type="number"
-                min="1"
-                placeholder="Maximum hops (optional)"
-                className={styles.propertyInput}
-                onChange={(e) => setPathProperties(prev => ({
-                  ...prev,
-                  relationship: {
-                    ...prev.relationship,
-                    maxHops: e.target.value
-                  }
-                }))}
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className={styles.buttonContainer}>
-        <button className={styles.backButton} onClick={() => setStep(1)}>
-          Back
-        </button>
-        <button 
-          className={styles.addButton} 
-          onClick={handleAddPath}
-          disabled={!selectedStartLabel || !selectedEndLabel}
-        >
-          Add Path
-        </button>
-      </div>
-    </div>
-  );
-
   const handleAddPath = () => {
     console.log('Starting handleAddPath');  // 添加日志
     const queryParams = {
@@ -271,152 +92,6 @@ const AddTab = ({
       onQueryGenerated(queryParams);
     }
   };
-
-  const renderRelationshipStep = () => (
-    <div className={styles.stepTwo}>
-      <div className={styles.headerContainer}>
-        <h3 className={styles.headerText}>Set {selectedLabel} Properties</h3>
-        <button 
-          className={styles.advancedButton} 
-          onClick={() => setShowAdvanced(!showAdvanced)}
-        >
-          {showAdvanced ? 'Hide Advanced' : 'Show Advanced'}
-        </button>
-      </div>
-      
-      <div className={styles.scrollContainer}>
-        {showAdvanced && (
-          <div className={styles.advancedSection}>
-            {/* Start Node Section */}
-            <div className={styles.nodeSection}>
-              <h4>Start Node (Optional)</h4>
-              <select
-                value={selectedStartLabel}
-                onChange={(e) => setSelectedStartLabel(e.target.value)}
-                className={styles.selectBox}
-              >
-                <option value="">Any node label</option>
-                {Object.keys(nodeEntities).map((label) => (
-                  <option key={label} value={label}>{label}</option>
-                ))}
-              </select>
-              {selectedStartLabel && (
-                <div className={styles.propertyContainer}>
-                  {nodeEntities[selectedStartLabel]?.map((property, index) => (
-                    <div key={index} className={styles.propertyRow}>
-                      <span className={styles.propertyLabel}>{property}</span>
-                      <span className={styles.propertyIcon}>=</span>
-                      <input
-                        type="text"
-                        placeholder={`Enter ${property}`}
-                        className={styles.propertyInput}
-                        onChange={(e) => setRelationshipProperties(prev => ({
-                          ...prev,
-                          startNode: {
-                            ...prev.startNode,
-                            [property]: e.target.value
-                          }
-                        }))}
-                      />
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* End Node Section */}
-            <div className={styles.nodeSection}>
-              <h4>End Node (Optional)</h4>
-              <select
-                value={selectedEndLabel}
-                onChange={(e) => setSelectedEndLabel(e.target.value)}
-                className={styles.selectBox}
-              >
-                <option value="">Any node label</option>
-                {Object.keys(nodeEntities).map((label) => (
-                  <option key={label} value={label}>{label}</option>
-                ))}
-              </select>
-              {selectedEndLabel && (
-                <div className={styles.propertyContainer}>
-                  {nodeEntities[selectedEndLabel]?.map((property, index) => (
-                    <div key={index} className={styles.propertyRow}>
-                      <span className={styles.propertyLabel}>{property}</span>
-                      <span className={styles.propertyIcon}>=</span>
-                      <input
-                        type="text"
-                        placeholder={`Enter ${property}`}
-                        className={styles.propertyInput}
-                        onChange={(e) => setRelationshipProperties(prev => ({
-                          ...prev,
-                          endNode: {
-                            ...prev.endNode,
-                            [property]: e.target.value
-                          }
-                        }))}
-                      />
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Relationship Properties */}
-        <div className={styles.propertyContainer}>
-          <h4>Relationship Properties</h4>
-          {relationshipEntities[selectedLabel]?.map((property, index) => (
-            <div key={index} className={styles.propertyRow}>
-              <span className={styles.propertyLabel}>{property}</span>
-              <span className={styles.propertyIcon}>=</span>
-              <input
-                type="text"
-                placeholder={`Enter ${property}`}
-                className={styles.propertyInput}
-                onChange={(e) => setRelationshipProperties(prev => ({
-                  ...prev,
-                  relationship: {
-                    ...prev.relationship,
-                    [property]: e.target.value
-                  }
-                }))}
-              />
-            </div>
-          ))}
-          <div className={styles.propertyRow}>
-            <span className={styles.propertyLabel}>Path limit</span>
-            <span className={styles.propertyIcon}>=</span>
-            <input
-              type="number"
-              min="1"
-              placeholder="Enter Number"
-              className={styles.propertyInput}
-              onChange={(e) => setRelationshipProperties(prev => ({
-                ...prev,
-                relationship: {
-                  ...prev.relationship,
-                  limit: e.target.value
-                }
-              }))}
-            />
-          </div>
-        </div>
-      </div>
-
-      <div className={styles.buttonContainer}>
-        <button className={styles.backButton} onClick={() => setStep(1)}>
-          Back
-        </button>
-        <button 
-          className={styles.addButton} 
-          onClick={handleAddRelationship}
-        >
-          Add
-        </button>
-      </div>
-    </div>
-  );
 
   const handleAddNode = () => {
     const queryParams = {
@@ -647,7 +322,151 @@ const AddTab = ({
                       </div>
                     </div>
                   )}
-                  {step === 2 && renderRelationshipStep()}
+                  {step === 2 && (
+                    <div className={styles.stepTwo}>
+                      <div className={styles.headerContainer}>
+                        <h3 className={styles.headerText}>Set {selectedLabel} Properties</h3>
+                        <button 
+                          className={styles.advancedButton} 
+                          onClick={() => setShowAdvanced(!showAdvanced)}
+                        >
+                          {showAdvanced ? 'Hide Advanced' : 'Show Advanced'}
+                        </button>
+                      </div>
+                      
+                      <div className={styles.scrollContainer}>
+                        {showAdvanced && (
+                          <div className={styles.advancedSection}>
+                            {/* Start Node Section */}
+                            <div className={styles.nodeSection}>
+                              <h4>Start Node (Optional)</h4>
+                              <select
+                                value={selectedStartLabel}
+                                onChange={(e) => setSelectedStartLabel(e.target.value)}
+                                className={styles.selectBox}
+                              >
+                                <option value="">Any node label</option>
+                                {Object.keys(nodeEntities).map((label) => (
+                                  <option key={label} value={label}>{label}</option>
+                                ))}
+                              </select>
+                              {selectedStartLabel && (
+                                <div className={styles.propertyContainer}>
+                                  {nodeEntities[selectedStartLabel]?.map((property, index) => (
+                                    <div key={index} className={styles.propertyRow}>
+                                      <span className={styles.propertyLabel}>{property}</span>
+                                      <span className={styles.propertyIcon}>=</span>
+                                      <input
+                                        type="text"
+                                        placeholder={`Enter ${property}`}
+                                        className={styles.propertyInput}
+                                        onChange={(e) => setRelationshipProperties(prev => ({
+                                          ...prev,
+                                          startNode: {
+                                            ...prev.startNode,
+                                            [property]: e.target.value
+                                          }
+                                        }))}
+                                      />
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                
+                            {/* End Node Section */}
+                            <div className={styles.nodeSection}>
+                              <h4>End Node (Optional)</h4>
+                              <select
+                                value={selectedEndLabel}
+                                onChange={(e) => setSelectedEndLabel(e.target.value)}
+                                className={styles.selectBox}
+                              >
+                                <option value="">Any node label</option>
+                                {Object.keys(nodeEntities).map((label) => (
+                                  <option key={label} value={label}>{label}</option>
+                                ))}
+                              </select>
+                              {selectedEndLabel && (
+                                <div className={styles.propertyContainer}>
+                                  {nodeEntities[selectedEndLabel]?.map((property, index) => (
+                                    <div key={index} className={styles.propertyRow}>
+                                      <span className={styles.propertyLabel}>{property}</span>
+                                      <span className={styles.propertyIcon}>=</span>
+                                      <input
+                                        type="text"
+                                        placeholder={`Enter ${property}`}
+                                        className={styles.propertyInput}
+                                        onChange={(e) => setRelationshipProperties(prev => ({
+                                          ...prev,
+                                          endNode: {
+                                            ...prev.endNode,
+                                            [property]: e.target.value
+                                          }
+                                        }))}
+                                      />
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                
+                        {/* Relationship Properties */}
+                        <div className={styles.propertyContainer}>
+                          <h4>Relationship Properties</h4>
+                          {relationshipEntities[selectedLabel]?.map((property, index) => (
+                            <div key={index} className={styles.propertyRow}>
+                              <span className={styles.propertyLabel}>{property}</span>
+                              <span className={styles.propertyIcon}>=</span>
+                              <input
+                                type="text"
+                                placeholder={`Enter ${property}`}
+                                className={styles.propertyInput}
+                                onChange={(e) => setRelationshipProperties(prev => ({
+                                  ...prev,
+                                  relationship: {
+                                    ...prev.relationship,
+                                    [property]: e.target.value
+                                  }
+                                }))}
+                              />
+                            </div>
+                          ))}
+                          <div className={styles.propertyRow}>
+                            <span className={styles.propertyLabel}>Path limit</span>
+                            <span className={styles.propertyIcon}>=</span>
+                            <input
+                              type="number"
+                              min="1"
+                              placeholder="Enter Number"
+                              className={styles.propertyInput}
+                              onChange={(e) => setRelationshipProperties(prev => ({
+                                ...prev,
+                                relationship: {
+                                  ...prev.relationship,
+                                  limit: e.target.value
+                                }
+                              }))}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                
+                      <div className={styles.buttonContainer}>
+                        <button className={styles.backButton} onClick={() => setStep(1)}>
+                          Back
+                        </button>
+                        <button 
+                          className={styles.addButton} 
+                          onClick={handleAddRelationship}
+                        >
+                          Add
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 

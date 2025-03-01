@@ -154,10 +154,18 @@ const DrawGraph = ({ nodes, relationships, enableZoom = true }) => {
         return `<div style="text-align: left;">${props}</div>`;
       }}
       linkCanvasObject={(link, ctx, globalScale) => {
-        const fontSize = 14 / globalScale; // 根据缩放比例调整字体大小
-        const curvature = 0.2; // 曲率值，调整连接线的弯曲程度
-        const nodeRadius = 15; // 假设节点半径为15
-        const lineWidth = 0.8 / globalScale; // 连接线宽度
+        const fontSize = Math.min(14 / globalScale, 8);
+        const curvature = 0.2;
+        const nodeRadius = 15;
+        
+        // 使用更粗的线条
+        const lineWidth = Math.min(2 / globalScale, 1.2);
+        
+        // 优化的颜色方案
+        const lineColor = '#A0AEC0';  // 更深的线条颜色
+        const arrowColor = '#718096';  // 更深的箭头颜色
+        const textColor = '#2D3748';   // 更深的文字颜色
+        const bgColor = 'rgba(255, 255, 255, 0.95)'; // 更不透明的背景
 
         // 计算控制点
         const controlX = (link.source.x + link.target.x) / 2 + curvature * (link.target.y - link.source.y);
@@ -165,82 +173,126 @@ const DrawGraph = ({ nodes, relationships, enableZoom = true }) => {
 
         // 绘制连接线（曲线）
         ctx.beginPath();
-        ctx.moveTo(link.source.x, link.source.y); // 起点
-        ctx.quadraticCurveTo(controlX, controlY, link.target.x, link.target.y); // 使用控制点绘制曲线
-        ctx.strokeStyle = '#444444'; // 设置连接线颜色
-        ctx.lineWidth = lineWidth; // 设置线宽
+        ctx.moveTo(link.source.x, link.source.y);
+        ctx.quadraticCurveTo(controlX, controlY, link.target.x, link.target.y);
+        ctx.strokeStyle = lineColor;
+        ctx.lineWidth = lineWidth;
+        
+        // 增强阴影效果
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.2)';
+        ctx.shadowBlur = 3;
+        ctx.shadowOffsetX = 0;
+        ctx.shadowOffsetY = 1;
+        
         ctx.stroke();
+        ctx.shadowColor = 'transparent';
 
-        // 计算曲线末端坐标（箭头尖的位置）
-        const tEnd = 1; // 参数化曲线末端
-        const endX =
-          (1 - tEnd) * (1 - tEnd) * link.source.x +
-          2 * (1 - tEnd) * tEnd * controlX +
-          tEnd * tEnd * link.target.x; // 曲线末端X坐标
-        const endY =
-          (1 - tEnd) * (1 - tEnd) * link.source.y +
-          2 * (1 - tEnd) * tEnd * controlY +
-          tEnd * tEnd * link.target.y; // 曲线末端Y坐标
+        // 优化箭头尺寸和位置
+        const arrowLength = Math.min(12 / globalScale, 8);  // 增大箭头
+        const arrowWidth = Math.min(8 / globalScale, 6);    // 增大箭头宽度
+        const arrowDistance = nodeRadius + lineWidth;
 
-        // 计算曲线末端的切线方向
+        // 计算箭头位置
+        const tEnd = 1;
+        const endX = (1 - tEnd) * (1 - tEnd) * link.source.x +
+                    2 * (1 - tEnd) * tEnd * controlX +
+                    tEnd * tEnd * link.target.x;
+        const endY = (1 - tEnd) * (1 - tEnd) * link.source.y +
+                    2 * (1 - tEnd) * tEnd * controlY +
+                    tEnd * tEnd * link.target.y;
+
         const tangentEndX = 2 * (1 - tEnd) * (controlX - link.source.x) + 2 * tEnd * (link.target.x - controlX);
         const tangentEndY = 2 * (1 - tEnd) * (controlY - link.source.y) + 2 * tEnd * (link.target.y - controlY);
         const lineLength = Math.sqrt(tangentEndX * tangentEndX + tangentEndY * tangentEndY);
-        const endAngle = Math.atan2(tangentEndY, tangentEndX); // 曲线末端的切线方向角度
+        const endAngle = Math.atan2(tangentEndY, tangentEndX);
 
-        // 计算箭头尖的实际位置（考虑节点半径和线条宽度）
-        const arrowTipX = endX - (nodeRadius + lineWidth / 2) * (tangentEndX / lineLength);
-        const arrowTipY = endY - (nodeRadius + lineWidth / 2) * (tangentEndY / lineLength);
-
-        // 计算箭头中心位置（从箭头尖往后退箭头长度的一半）
-        const arrowLength = 8 / globalScale; // 动态调整箭头长度
+        const arrowTipX = endX - arrowDistance * (tangentEndX / lineLength);
+        const arrowTipY = endY - arrowDistance * (tangentEndY / lineLength);
         const arrowCenterX = arrowTipX - (arrowLength / 2) * (tangentEndX / lineLength);
         const arrowCenterY = arrowTipY - (arrowLength / 2) * (tangentEndY / lineLength);
 
-        // 绘制箭头
-        const arrowWidth = 5 / globalScale; // 动态调整箭头宽度
+        // 绘制增强的箭头
         ctx.save();
-        ctx.translate(arrowCenterX, arrowCenterY); // 将画布的坐标系移动到箭头中心
-        ctx.rotate(endAngle); // 旋转画布到切线方向
+        ctx.translate(arrowCenterX, arrowCenterY);
+        ctx.rotate(endAngle);
+        
+        // 绘制箭头轮廓
         ctx.beginPath();
-        ctx.moveTo(arrowLength / 2, 0); // 箭头尖
-        ctx.lineTo(-arrowLength / 2, arrowWidth / 2); // 箭头右侧
-        ctx.lineTo(-arrowLength / 2, -arrowWidth / 2); // 箭头左侧
+        ctx.moveTo(arrowLength / 2, 0);
+        ctx.lineTo(-arrowLength / 2, arrowWidth / 2);
+        ctx.lineTo(-arrowLength / 3, 0);  // 添加一个中间点使箭头更立体
+        ctx.lineTo(-arrowLength / 2, -arrowWidth / 2);
         ctx.closePath();
-        ctx.fillStyle = '#444444'; // 设置箭头颜色
+        
+        // 添加箭头阴影
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.2)';
+        ctx.shadowBlur = 2;
+        ctx.shadowOffsetX = 1;
+        ctx.shadowOffsetY = 1;
+        
+        ctx.fillStyle = arrowColor;
         ctx.fill();
         ctx.restore();
 
-        // 计算曲线中点
-        const t = 0.5; // 参数化曲线的中点
-        const midX =
-          (1 - t) * (1 - t) * link.source.x +
-          2 * (1 - t) * t * controlX +
-          t * t * link.target.x; // 二次贝塞尔曲线公式
-        const midY =
-          (1 - t) * (1 - t) * link.source.y +
-          2 * (1 - t) * t * controlY +
-          t * t * link.target.y;
+        // 绘制关系类型文本
+        const text = link.type;
+        const t = 0.5;
+        const midX = (1 - t) * (1 - t) * link.source.x +
+                    2 * (1 - t) * t * controlX +
+                    t * t * link.target.x;
+        const midY = (1 - t) * (1 - t) * link.source.y +
+                    2 * (1 - t) * t * controlY +
+                    t * t * link.target.y;
 
-        // 计算曲线中点的切线方向（角度）
         const tangentX = 2 * (1 - t) * (controlX - link.source.x) + 2 * t * (link.target.x - controlX);
         const tangentY = 2 * (1 - t) * (controlY - link.source.y) + 2 * t * (link.target.y - controlY);
-        const angle = Math.atan2(tangentY, tangentX); // 切线的方向角度
+        const angle = Math.atan2(tangentY, tangentX);
 
-        // 绘制关系类型文本
-        const text = link.type; // 获取关系类型文本
+        // 绘制增强的文本背景
         ctx.save();
-        ctx.translate(midX, midY); // 将画布的坐标系移动到曲线中点
-        ctx.rotate(angle); // 旋转画布坐标系到切线方向
-        ctx.font = `${fontSize}px Sans-Serif`;
-        ctx.textAlign = 'center'; // 文本水平居中
-        ctx.textBaseline = 'middle'; // 文本垂直居中
-        ctx.fillStyle = 'black'; // 文本颜色
-        ctx.fillText(text, 0, -5); // 在中点绘制文本，稍微偏移
+        ctx.translate(midX, midY);
+        ctx.rotate(angle);
+        ctx.font = `${fontSize}px Inter, system-ui, -apple-system, sans-serif`;
+        const textWidth = ctx.measureText(text).width;
+        const padding = 6;  // 增加内边距
+        const borderRadius = 3;  // 添加圆角
+
+        // 绘制圆角背景
+        ctx.fillStyle = bgColor;
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.1)';
+        ctx.shadowBlur = 3;
+        ctx.shadowOffsetX = 0;
+        ctx.shadowOffsetY = 1;
+        
+        const boxWidth = textWidth + padding * 2;
+        const boxHeight = fontSize + padding * 2;
+        const x = -boxWidth / 2;
+        const y = -boxHeight / 2;
+        
+        // 绘制圆角矩形
+        ctx.beginPath();
+        ctx.moveTo(x + borderRadius, y);
+        ctx.lineTo(x + boxWidth - borderRadius, y);
+        ctx.quadraticCurveTo(x + boxWidth, y, x + boxWidth, y + borderRadius);
+        ctx.lineTo(x + boxWidth, y + boxHeight - borderRadius);
+        ctx.quadraticCurveTo(x + boxWidth, y + boxHeight, x + boxWidth - borderRadius, y + boxHeight);
+        ctx.lineTo(x + borderRadius, y + boxHeight);
+        ctx.quadraticCurveTo(x, y + boxHeight, x, y + boxHeight - borderRadius);
+        ctx.lineTo(x, y + borderRadius);
+        ctx.quadraticCurveTo(x, y, x + borderRadius, y);
+        ctx.closePath();
+        ctx.fill();
+
+        // 绘制文本
+        ctx.shadowColor = 'transparent';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillStyle = textColor;
+        ctx.fillText(text, 0, 0);
         ctx.restore();
 
-        link.__labelX = midX; // 将 Type 的位置保存到 link 上
-        link.__labelY = midY; // 将 Type 的位置保存到 link 上
+        link.__labelX = midX;
+        link.__labelY = midY;
       }}
       linkCurvature={0.2}
       linkLabel={(link) => {
@@ -266,7 +318,7 @@ const DrawGraph = ({ nodes, relationships, enableZoom = true }) => {
         if (graphRef.current) {
           const chargeForce = graphRef.current.d3Force('charge');
           const linkForce = graphRef.current.d3Force('link');
-          if (chargeForce) chargeForce.strength(-1500); // 增强节点间的排斥力
+          if (chargeForce) chargeForce.strength(-800); // 增强节点间的排斥力
           if (linkForce) linkForce.distance(200); // 设置节点之间的距离
         }
       }}

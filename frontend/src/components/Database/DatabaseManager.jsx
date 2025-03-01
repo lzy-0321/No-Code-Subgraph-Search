@@ -96,8 +96,10 @@ const DatabaseManager = ({
         propertyKeys: dbInfo.property_keys || [],
         nodePrimeEntities: {},
         nodeEntities: {},
+        nodeDisplayInfo: {},  // 新增: 存储显示属性信息
         relationshipPrimeEntities: {},
-        relationshipEntities: {}
+        relationshipEntities: {},
+        relationshipDisplayInfo: {}  // 新增: 存储关系显示属性信息
       };
 
       // 第三步：获取实体信息
@@ -114,8 +116,9 @@ const DatabaseManager = ({
           
           const data = await response.json();
           if (data.success) {
-            fullDbInfo.nodePrimeEntities[label] = data.nodeEntities[0];
-            fullDbInfo.nodeEntities[label] = data.nodeEntities[1];
+            fullDbInfo.nodePrimeEntities[label] = data.nodeEntities[0];  // [display_value, id_value] 对的列表
+            fullDbInfo.nodeEntities[label] = data.nodeEntities[1];       // 属性名列表
+            fullDbInfo.nodeDisplayInfo[label] = data.nodeEntities[2]?.[label];  // 显示属性信息
           }
         } catch (error) {
           console.warn(`Failed to fetch entities for label ${label}:`, error);
@@ -135,8 +138,16 @@ const DatabaseManager = ({
           
           const data = await response.json();
           if (data.success) {
-            fullDbInfo.relationshipPrimeEntities[type] = data.relationshipEntities[0];
-            fullDbInfo.relationshipEntities[type] = data.relationshipEntities[1];
+            // 调试日志：检查返回的数据结构
+            console.log(`Relationship entities data for type ${type}:`, {
+              'Prime Entities': data.relationshipEntities[0]?.slice(0, 3),
+              'Display Info': data.relationshipEntities[2]?.[type],
+              'Raw Response': data.relationshipEntities
+            });
+
+            fullDbInfo.relationshipPrimeEntities[type] = data.relationshipEntities[0];  // [[start_display, start_id], [end_display, end_id]] 对的列表
+            fullDbInfo.relationshipEntities[type] = data.relationshipEntities[1];       // 属性名列表
+            fullDbInfo.relationshipDisplayInfo[type] = data.relationshipEntities[2]?.[type];  // 显示属性信息
           }
         } catch (error) {
           console.warn(`Failed to fetch entities for relationship type ${type}:`, error);
@@ -145,6 +156,16 @@ const DatabaseManager = ({
 
       // 等待所有请求完成
       await Promise.all([...nodePromises, ...relationshipPromises]);
+
+      // 最终调试日志：检查完整的数据结构
+      console.log('Final database info:', {
+        'Labels': fullDbInfo.labels,
+        'Sample Node Prime Entities': Object.fromEntries(
+          Object.entries(fullDbInfo.nodePrimeEntities)
+            .map(([label, entities]) => [label, entities?.slice(0, 3)])
+        ),
+        'Node Display Info': fullDbInfo.nodeDisplayInfo,
+      });
 
       // 更新数据库选择状态
       onDatabaseSelect(url, activeTab);

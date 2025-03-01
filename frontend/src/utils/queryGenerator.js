@@ -187,7 +187,7 @@ export class QueryManager {
   // 执行标签查询
   async executeLabelQuery(params) {
     try {
-      console.log('Executing label query with params:', params); // 调试日志
+      console.log('Executing label query with params:', params);
 
       const requestBody = {
         matchType: 'labelMatch',
@@ -196,57 +196,7 @@ export class QueryManager {
         limit: params.limit
       };
       
-      console.log('Request body:', requestBody); // 调试日志
-
-      const response = await fetch('http://localhost:8000/match_query/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify(requestBody)
-      });
-
-      console.log('Response status:', response.status); // 调试日志
-      const data = await response.json();
-      console.log('Response data:', data); // 调试日志
-
-      if (!data.success) {
-        throw new Error(data.error || 'Query failed');
-      }
-
-      return {
-        nodes: data.data.map(record => ({
-          id: record.n.properties.id || Math.random(),
-          labels: Array.isArray(record.n.labels) ? record.n.labels : [record.n.labels],
-          properties: record.n.properties
-        })),
-        relationships: []
-      };
-    } catch (error) {
-      console.error('Label query execution failed:', error);
-      throw error;
-    }
-  }
-
-  // 执行关系查询
-  async executeRelationshipQuery(params) {
-    try {
-      console.log('Executing relationship query with params:', params);
-
-      if (!params.relationType) {
-        throw new Error('relationType is required');
-      }
-
-      const requestBody = {
-        matchType: 'relationshipMatch',
-        relationType: params.relationType,
-        properties: params.properties || {},
-        startNodeProps: params.startNodeProps || {},
-        endNodeProps: params.endNodeProps || {}
-      };
-
-      console.log('Sending request with body:', requestBody);
+      console.log('Request body:', requestBody);
 
       const response = await fetch('http://localhost:8000/match_query/', {
         method: 'POST',
@@ -265,41 +215,86 @@ export class QueryManager {
         throw new Error(data.error || 'Query failed');
       }
 
-      // 创建一个 Map 来存储唯一的节点
-      const nodesMap = new Map();
-      
-      // 处理所有节点
+      // 修改结果处理逻辑
+      return {
+        nodes: data.data.map(record => ({
+          id: record.n.id,  // 使用Neo4j返回的实际ID
+          nodeLabel: record.n.labels[0],  // 使用第一个标签
+          properties: record.n.properties  // 保持原有属性
+        })),
+        relationships: []
+      };
+    } catch (error) {
+      console.error('Label query execution failed:', error);
+      throw error;
+    }
+  }
+
+  // 执行关系查询
+  async executeRelationshipQuery(params) {
+    try {
+      console.log('Executing relationship query with params:', params);
+
+      // 构建精确的查询请求
+      const requestBody = {
+        matchType: 'relationshipMatch',
+        query: {
+          relationType: params.relationType,
+          startNodeProps: params.startNodeProps,
+          endNodeProps: params.endNodeProps,
+          exactMatch: true  // 添加标志表明需要精确匹配
+        }
+      };
+
+      console.log('Request body:', requestBody);
+
+      const response = await fetch('http://localhost:8000/match_query/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify(requestBody)
+      });
+
+      const data = await response.json();
+      if (!data.success) {
+        throw new Error(data.error || 'Query failed');
+      }
+
+      // 直接处理返回的精确结果
+      const nodes = new Map();
+      const relationships = [];
+
       data.data.forEach(record => {
-        // 处理起始节点 'a'
-        nodesMap.set(record.a.id, {
+        // 添加起始节点
+        nodes.set(record.a.id, {
           id: record.a.id,
-          nodeLabel: record.a.labels[0], // 取第一个标签作为节点标签
+          nodeLabel: record.a.labels[0],
           properties: record.a.properties
         });
-        
-        // 处理终止节点 'b'
-        nodesMap.set(record.b.id, {
+
+        // 添加终止节点
+        nodes.set(record.b.id, {
           id: record.b.id,
-          nodeLabel: record.b.labels[0], // 取第一个标签作为节点标签
+          nodeLabel: record.b.labels[0],
           properties: record.b.properties
+        });
+
+        // 添加关系
+        relationships.push({
+          startNode: record.a.id,
+          endNode: record.b.id,
+          type: record.r.type,
+          properties: record.r.properties
         });
       });
 
-      // 转换为数组格式
-      const nodes = Array.from(nodesMap.values());
-      
-      // 处理关系
-      const relationships = data.data.map(record => ({
-        startNode: record.r.startNode,  // 使用关系中存储的 startNode id
-        endNode: record.r.endNode,      // 使用关系中存储的 endNode id
-        type: record.r.type,
-        properties: record.r.properties || {}
-      }));
-
       return {
-        nodes,
-        relationships
+        nodes: Array.from(nodes.values()),
+        relationships: relationships
       };
+
     } catch (error) {
       console.error('Relationship query execution failed:', error);
       throw error;

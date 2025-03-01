@@ -71,33 +71,30 @@ class CypherQueryBuilder:
             return query, params
         
         elif match_type == 'relationshipMatch':
-            rel_type = query_params.get('relationType')
-            if not rel_type:
-                raise ValueError("relationType is required")
-            
-            properties = query_params.get('properties', {})
-            
-            # 构建查询
-            query_parts = []
-            params = {}
-            
-            # 构建基本的关系匹配模式
-            query = f"MATCH (a)-[r:{rel_type}]->(b)"
-            
-            # 添加关系属性条件
-            if properties:
-                props_list = []
-                for key, value in properties.items():
-                    param_name = f"rel_{key}"
-                    props_list.append(f"r.{key} = ${param_name}")
-                    params[param_name] = value
-                if props_list:
-                    query += " WHERE " + " AND ".join(props_list)
-            
-            # 返回语句
-            query += " RETURN a, r, b"
-            
-            return query, params
+            query_details = query_params.get('query', {})
+            rel_type = query_details.get('relationType')
+            start_props = query_details.get('startNodeProps', {})
+            end_props = query_details.get('endNodeProps', {})
+            exact_match = query_details.get('exactMatch', False)
+
+            if exact_match:
+                # 构建节点属性条件
+                start_props_str = '{' + ', '.join(f"{k}: ${k}" for k in start_props.keys()) + '}'
+                end_props_str = '{' + ', '.join(f"{k}: ${k}" for k in end_props.keys()) + '}'
+                
+                # 构建精确的查询，注意节点标签和属性的正确语法
+                query = (
+                    f"MATCH (a:Person {start_props_str})-[r:{rel_type}]->(b:Movie {end_props_str}) "
+                    "RETURN a, r, b"
+                )
+                
+                # 合并所有参数
+                params = {**start_props, **end_props}
+                
+                print(f"Generated query: {query}")  # 调试日志
+                print(f"Query parameters: {params}")  # 调试日志
+                
+                return query, params
         
         elif match_type == 'pathMatch':
             start_node = query_params.get('startNode', {})
@@ -237,127 +234,180 @@ class Neo4jConnector:
     def get_node_entities(self, label):
         """
         Retrieves entities (nodes) for the specified label from the Neo4j database,
-        prioritizing properties that best represent each node.
+        including display properties and IDs.
 
         Parameters:
         label (str): The label of the nodes to retrieve.
 
         Returns:
-        tuple: A tuple containing two lists:
-            - prioritized_entities: A sorted list containing the prioritized property value for each node.
-            - property_names: A list of unique property names from the first node of the specified label.
+        tuple: A tuple containing:
+            - prime_entities: A list of [display_value, id_value] pairs for each node
+            - property_names: A list of unique property names
+            - display_info: A dictionary containing display and id property information
         """
-        # Define a list of properties to prioritize
+        # Define priority properties
         priority_properties = ["name", "title", "id"]
+        id_properties = ["id", "uid", "nodeId"]
 
         try:
             with self.driver.session() as session:
-                # Query to match nodes with the specified label and return their properties
-                query = f"MATCH (n:{label}) RETURN properties(n) AS properties LIMIT 100"
+                query = f"MATCH (n:{label}) RETURN n LIMIT 100"
                 result = session.run(query)
 
-                # Extract prioritized property values and property names
-                prioritized_entities = []
+                prime_entities = []
                 property_names = set()
+                display_info = {
+                    'displayProperty': None,
+                    'idProperty': None,
+                }
 
-                for i, record in enumerate(result):
-                    properties = record["properties"]
-                    if properties:
-                        # Extract property names from the first node only
-                        if i == 0:
-                            property_names.update(properties.keys())
+                # 第一次遍历确定显示属性和ID属性
+                first_node = None
+                for record in result:
+                    node = record["n"]
+                    properties = dict(node)
+                    
+                    if not first_node:
+                        first_node = properties
+                        property_names.update(properties.keys())
 
-                        # Find the first available priority property
-                        selected_property = next(
-                            (properties[prop] for prop in priority_properties if prop in properties),
-                            None
-                        )
-                        # Default to the first available property if no priority property is found
-                        if selected_property is None and properties:
-                            selected_property = list(properties.values())[0]
-                        prioritized_entities.append(selected_property)
+                        # 确定显示属性
+                        for prop in priority_properties:
+                            if prop in properties:
+                                display_info['displayProperty'] = prop
+                                break
+                        if not display_info['displayProperty'] and properties:
+                            display_info['displayProperty'] = list(properties.keys())[0]
 
-                # Sort prioritized entities alphabetically
-                prioritized_entities.sort()
+                        # 确定ID属性
+                        for prop in id_properties:
+                            if prop in properties:
+                                display_info['idProperty'] = prop
+                                break
+                        if not display_info['idProperty']:
+                            display_info['idProperty'] = 'id'  # 使用Neo4j内部ID作为后备
 
-            return_value = []
-            return_value.append(prioritized_entities)
-            return_value.append(list(property_names))
+                    # 获取显示值和ID值
+                    display_value = properties.get(display_info['displayProperty'])
+                    id_value = properties.get(display_info['idProperty'], node.id)  # 如果没有指定的ID属性，使用Neo4j的内部ID
 
-            return return_value
+                    # 将显示值和ID值作为一对添加到结果中
+                    if display_value is not None:
+                        prime_entities.append([display_value, id_value])
+
+                # 按显示值排序
+                prime_entities.sort(key=lambda x: str(x[0]))
+
+                return [
+                    prime_entities,  # 第一个元素：[display_value, id_value] 对的列表
+                    list(property_names),  # 第二个元素：属性名列表
+                    {label: display_info}  # 第三个元素：将label作为键的display_info字典
+                ]
+
         except Exception as e:
             print(f"Error fetching entities for label {label}: {e}")
-            return [], []
-
+            return [], [], {label: {'displayProperty': None, 'idProperty': None}}
 
     def get_relationship_entities(self, label):
         """
         Retrieves relationships for the specified label from the Neo4j database,
-        prioritizing properties that best represent each relationship.
+        including display properties and IDs.
 
         Parameters:
         label (str): The label of the relationships to retrieve.
 
         Returns:
-        tuple: A tuple containing two elements:
-            - relationships: A sorted list containing pairs of start and end node properties.
-                            Each entry is formatted as [[start_property, end_property], ...]
-            - relationship_property_names: A list of unique property names for the specified relationship type.
+        tuple: A tuple containing:
+            - prime_entities: A list of [[start_display, start_id], [end_display, end_id]] pairs
+            - property_names: A list of unique property names
+            - display_info: A dictionary containing display and id property information
         """
-        # Define a list of properties to prioritize
-        priority_properties = ["type", "name", "title", "id"]
+        # Define priority properties
+        priority_properties = ["name", "title", "id"]
+        id_properties = ["id", "uid", "nodeId"]
 
         try:
             with self.driver.session() as session:
-                # Query to match relationships with the specified label and return start, end, and relationship properties
-                query = (
-                    f"MATCH (start)-[r:{label}]->(end) "
-                    "RETURN start, end, properties(r) AS relationship_properties LIMIT 100"
-                )
+                query = f"MATCH (start)-[r:{label}]->(end) RETURN start, end, r LIMIT 100"
                 result = session.run(query)
 
-                # Extract relationships as start and end node property pairs
-                relationships = []
+                prime_entities = []
                 relationship_property_names = set()
+                display_info = {
+                    'displayProperty': None,
+                    'idProperty': None,
+                }
 
-                for i, record in enumerate(result):
+                # 第一次遍历确定显示属性和ID属性
+                first_rel = None
+                for record in result:
                     start_node = record["start"]
                     end_node = record["end"]
-                    relationship_properties = record["relationship_properties"]
+                    rel = record["r"]
+                    
+                    start_props = dict(start_node)
+                    end_props = dict(end_node)
+                    rel_props = dict(rel)
 
-                    # Extract relationship property names from the first relationship only
-                    if i == 0 and relationship_properties:
-                        relationship_property_names.update(relationship_properties.keys())
+                    if not first_rel:
+                        first_rel = rel_props
+                        relationship_property_names.update(rel_props.keys())
 
-                    # Select the prioritized property for start and end nodes
-                    start_property = next(
-                        (start_node.get(prop) for prop in priority_properties if prop in start_node),
-                        None
+                        # 确定显示属性
+                        for prop in priority_properties:
+                            if prop in rel_props:
+                                display_info['displayProperty'] = prop
+                                break
+                        if not display_info['displayProperty'] and rel_props:
+                            display_info['displayProperty'] = list(rel_props.keys())[0]
+
+                        # 确定ID属性
+                        for prop in id_properties:
+                            if prop in rel_props:
+                                display_info['idProperty'] = prop
+                                break
+                        if not display_info['idProperty']:
+                            display_info['idProperty'] = 'id'
+
+                    # 获取起始节点的显示值和ID
+                    start_display = next(
+                        (start_props.get(prop) for prop in priority_properties if prop in start_props),
+                        list(start_props.values())[0] if start_props else None
                     )
-                    end_property = next(
-                        (end_node.get(prop) for prop in priority_properties if prop in end_node),
-                        None
+                    start_id = next(
+                        (start_props.get(prop) for prop in id_properties if prop in start_props),
+                        start_node.id
                     )
 
-                    # Use a fallback property if no prioritized properties are found
-                    if start_property is None:
-                        start_property = list(start_node.values())[0] if start_node else None
-                    if end_property is None:
-                        end_property = list(end_node.values())[0] if end_node else None
+                    # 获取终止节点的显示值和ID
+                    end_display = next(
+                        (end_props.get(prop) for prop in priority_properties if prop in end_props),
+                        list(end_props.values())[0] if end_props else None
+                    )
+                    end_id = next(
+                        (end_props.get(prop) for prop in id_properties if prop in end_props),
+                        end_node.id
+                    )
 
-                    relationships.append([start_property, end_property])
+                    # 将节点对添加到结果中
+                    if start_display is not None and end_display is not None:
+                        prime_entities.append([
+                            [start_display, start_id],
+                            [end_display, end_id]
+                        ])
 
-                # Sort relationships by start and end properties alphabetically
-                relationships.sort(key=lambda x: (x[0], x[1]))
+                # 按起始节点的显示值排序
+                prime_entities.sort(key=lambda x: (str(x[0][0]), str(x[1][0])))
 
-            return_value = []
-            return_value.append(relationships)
-            return_value.append(list(relationship_property_names))
+                return [
+                    prime_entities,  # 第一个元素：[[start_display, start_id], [end_display, end_id]] 对的列表
+                    list(relationship_property_names),  # 第二个元素：属性名列表
+                    {label: display_info}  # 第三个元素：将label作为键的display_info字典
+                ]
 
-            return relationships, list(relationship_property_names)
         except Exception as e:
             print(f"Error fetching relationships for label {label}: {e}")
-            return [], []
+            return [], [], {label: {'displayProperty': None, 'idProperty': None}}
 
     def execute_match_query(self, query_params):
         """执行match查询"""

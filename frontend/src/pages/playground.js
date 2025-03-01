@@ -176,6 +176,89 @@ export default function Playground() {
     }
   };
 
+  
+  // 添加处理节点查询的函数
+  const handleNodeQuery = (label, entity) => {
+    const displayValue = entity[0];  // 显示值
+    const displayProperty = displayProperties[label]?.displayProperty;  // 获取显示属性名
+    
+    if (!displayProperty) {
+      console.error(`No display property found for label: ${label}`);
+      return;
+    }
+
+    // 构建查询数据，遵循 queryGenerator 的格式
+    const queryData = {
+      type: 'node',  // 添加类型标识
+      params: {      // 将查询参数放在 params 对象中
+        matchType: 'labelMatch',
+        label: label,
+        properties: {
+          [displayProperty]: displayValue
+        }
+      }
+    };
+
+    console.log('Generating query for node:', queryData);
+    handleQueryGenerated(queryData);
+  };
+
+  // 添加处理关系查询的函数
+  const handleRelationshipQuery = (type, entity) => {
+    const [startNode, endNode] = entity;  // entity 是 [[startDisplay, startId], [endDisplay, endId]]
+    const startDisplay = startNode[0];
+    const endDisplay = endNode[0];
+    
+    // 通过ID在 nodeEntities 中查找对应的标签
+    const startNodeLabel = findNodeLabelById(startNode[1]);
+    const endNodeLabel = findNodeLabelById(endNode[1]);
+    
+    if (!startNodeLabel || !endNodeLabel) {
+      console.error('Could not find node labels for relationship');
+      return;
+    }
+
+    // 获取对应标签的显示属性
+    const startDisplayProperty = displayProperties[startNodeLabel]?.displayProperty;
+    const endDisplayProperty = displayProperties[endNodeLabel]?.displayProperty;
+
+    if (!startDisplayProperty || !endDisplayProperty) {
+      console.error('Display properties not found for nodes');
+      return;
+    }
+
+    // 构建查询数据
+    const queryData = {
+      type: 'relationship',
+      params: {
+        matchType: 'relationshipMatch',
+        relationType: type,
+        startNodeProps: {
+          [startDisplayProperty]: startDisplay
+        },
+        endNodeProps: {
+          [endDisplayProperty]: endDisplay
+        }
+      }
+    };
+
+    console.log('Generating query for relationship:', queryData);
+    handleQueryGenerated(queryData);
+  };
+
+  // 辅助函数：通过ID查找节点标签
+  const findNodeLabelById = (nodeId) => {
+    // 遍历所有标签和它们的实体
+    for (const [label, entities] of Object.entries(nodePrimeEntities)) {
+      // 在每个标签的实体列表中查找匹配的ID
+      const found = entities.some(entity => entity[1] === nodeId);
+      if (found) {
+        return label;
+      }
+    }
+    return null;
+  };
+
   // 处理tab状态变化
   const handleTabStateChange = (action) => {
     switch (action.type) {
@@ -258,6 +341,7 @@ export default function Playground() {
       setExpandedLabel(tabState.nodeInfo?.expandedLabel || null);
       setNodeEntities(tabState.nodeInfo?.nodeEntities || {});
       setNodePrimeEntities(tabState.nodeInfo?.nodePrimeEntities || {});
+      setDisplayProperties(tabState.nodeInfo?.displayProperties || {});
 
       // 恢复关系信息
       setRelationshipTypes(tabState.relationshipInfo?.relationshipTypes || []);
@@ -286,7 +370,7 @@ export default function Playground() {
       setGraphRelationshipsBuffer(tabState.graphData?.graphRelationshipsBuffer || []);
     } catch (error) {
       console.error('Error restoring tab state:', error);
-      cleanUp(); // 发生错误时清空状态
+      cleanUp();
     }
   };
 
@@ -295,13 +379,48 @@ export default function Playground() {
     updateTabDatabase(tabId, url);
   };
 
+  // 新增状态变量来存储显示属性信息
+  const [displayProperties, setDisplayProperties] = useState({});
+  
   // 处理数据库信息获取
   const handleDatabaseInfoFetch = (dbInfo) => {
     try {
+      // 打印完整的数据库信息以便调试
+      console.log('Received database info:', {
+        'Labels': dbInfo.labels,
+        'Node Display Info': dbInfo.nodeDisplayInfo,
+        'Node Prime Entities': dbInfo.nodePrimeEntities,
+        'Node Entities': dbInfo.nodeEntities,
+        'Relationship Types': dbInfo.relationshipTypes,
+        'Relationship Prime Entities': dbInfo.relationshipPrimeEntities,
+        'Relationship Entities': dbInfo.relationshipEntities,
+        'Property Keys': dbInfo.propertyKeys
+      });
+
       // 更新节点信息
       setNodeLabels(dbInfo.labels || []);
       setNodePrimeEntities(dbInfo.nodePrimeEntities || {});
       setNodeEntities(dbInfo.nodeEntities || {});
+      
+      // 存储节点的显示属性和ID信息
+      const nodeDisplayProperties = {};
+      const nodeIdProperties = {};
+      const displayProps = {};  // 新增：用于存储显示属性
+      
+      Object.keys(dbInfo.nodePrimeEntities || {}).forEach(label => {
+        const displayInfo = dbInfo.nodeDisplayInfo?.[label];
+        if (displayInfo) {
+          nodeDisplayProperties[label] = displayInfo.displayProperty;
+          nodeIdProperties[label] = displayInfo.idProperty;
+          displayProps[label] = {
+            displayProperty: displayInfo.displayProperty,
+            idProperty: displayInfo.idProperty
+          };
+        }
+      });
+      
+      // 更新显示属性状态
+      setDisplayProperties(displayProps);
 
       // 更新关系信息
       setRelationshipTypes(dbInfo.relationshipTypes || []);
@@ -317,7 +436,10 @@ export default function Playground() {
           nodeInfo: {
             nodeLabels: dbInfo.labels || [],
             nodeEntities: dbInfo.nodeEntities || {},
-            nodePrimeEntities: dbInfo.nodePrimeEntities || {}
+            nodePrimeEntities: dbInfo.nodePrimeEntities || {},
+            nodeDisplayProperties,
+            nodeIdProperties,
+            displayProperties: displayProps  // 新增：保存到tab状态中
           },
           relationshipInfo: {
             relationshipTypes: dbInfo.relationshipTypes || [],
@@ -604,14 +726,19 @@ export default function Playground() {
                         <div className={styles.entityList}>
                           {nodePrimeEntities[label].map((entity, idx) => (
                             <div key={idx} className={styles.entityItemContainer}>
-                              <p className={styles.entityItem}>{entity}</p>
+                              <p className={styles.entityItem}>
+                                {entity[0]}
+                              </p>
                               <Image
                                 src="/assets/add.svg"
                                 alt="add"
                                 width={20}
                                 height={20}
                                 className={styles.addButton}
-                                onClick={() => handleAddEntity(entity)}
+                                onClick={(e) => {
+                                  e.stopPropagation();  // 防止事件冒泡
+                                  handleNodeQuery(label, entity);
+                                }}
                               />
                             </div>
                           ))}
@@ -667,10 +794,7 @@ export default function Playground() {
                                 <div key={idx} className={styles.entityGroup}>
                                   <div className={styles.entityItemContainer}>
                                     <div className={styles.relationshipEntityItemContainer}>
-                                      {/* First line: Display the first element of the entity */}
-                                      <p className={styles.entityItem}>{entity[0]}</p>
-
-                                      {/* Second line: Centered arrow icon */}
+                                      <p className={styles.entityItem}>{entity[0][0]}</p>
                                       <div className={styles.arrowContainer}>
                                         <Image
                                           src="/assets/cc-arrow-down.svg"
@@ -680,9 +804,7 @@ export default function Playground() {
                                           className={styles.arrowIcon}
                                         />
                                       </div>
-
-                                      {/* Third line: Display the second element of the entity */}
-                                      <p className={styles.entityItem}>{entity[1]}</p>
+                                      <p className={styles.entityItem}>{entity[1][0]}</p>
                                     </div>
                                     <Image
                                       src="/assets/add.svg"
@@ -690,10 +812,12 @@ export default function Playground() {
                                       width={20}
                                       height={20}
                                       className={styles.addButton}
-                                      onClick={() => handleAddEntity(entity)}
+                                      onClick={(e) => {
+                                        e.stopPropagation();  // 防止事件冒泡
+                                        handleRelationshipQuery(type, entity);
+                                      }}
                                     />
                                   </div>
-                                  {/* Separator line */}
                                   <div className={styles.separator}></div>
                                 </div>
                               ))}

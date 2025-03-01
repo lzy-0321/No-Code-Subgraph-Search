@@ -1,3 +1,119 @@
+// 查询示例:
+
+// 1. 标签查询示例
+// 查询所有 Person 标签的节点
+// {
+//   type: 'node',
+//   params: {
+//     matchType: 'labelMatch',
+//     label: 'Person',
+//     properties: {}
+//   }
+// }
+
+// 2. 带属性的标签查询示例
+// 查询 name 为 'John' 的 Person 节点
+// {
+//   type: 'node', 
+//   params: {
+//     matchType: 'labelMatch',
+//     label: 'Person',
+//     properties: {
+//       name: 'John'
+//     }
+//   }
+// }
+
+// 3. 关系查询示例
+// 查询从 Person(name='John') 到 Movie(title='Matrix') 的 ACTED_IN 关系
+// {
+//   type: 'relationship',
+//   params: {
+//     matchType: 'relationshipMatch',
+//     relationType: 'ACTED_IN',
+//     startNodeProps: {
+//       name: 'John'
+//     },
+//     endNodeProps: {
+//       title: 'Matrix'  
+//     }
+//   }
+// }
+
+// 4. 多节点关系查询示例
+// 查询所有 Person 和 Movie 之间的 ACTED_IN 关系
+// {
+//   type: 'relationship',
+//   params: {
+//     matchType: 'relationshipMatch',
+//     relationType: 'ACTED_IN',
+//     startNodeLabel: 'Person',
+//     endNodeLabel: 'Movie'
+//   }
+// }
+
+// 5. 属性查询示例
+// 查询所有带有 age 属性且值大于 30 的 Person 节点
+// {
+//   type: 'node',
+//   params: {
+//     matchType: 'propertyMatch',
+//     label: 'Person',
+//     properties: {
+//       age: {
+//         operator: '>',
+//         value: 30
+//       }
+//     }
+//   }
+// }
+// 6. 路径查询示例
+// 查询从 Person(name='John') 到 Movie(title='Matrix') 的所有路径
+// {
+//   type: 'path',
+//   params: {
+//     matchType: 'pathMatch',
+//     startNodeProps: {
+//       label: 'Person', 
+//       properties: {
+//         name: 'John'
+//       }
+//     },
+//     endNodeProps: {
+//       label: 'Movie',
+//       properties: {
+//         title: 'Matrix'
+//       }
+//     },
+//     maxDepth: 3  // 可选,限制路径深度
+//   }
+// }
+
+// 7. 模式匹配查询示例
+// 查询满足特定模式的子图,如 (Person)-[FOLLOWS]->(Person)-[RATED]->(Movie)
+// {
+//   type: 'pattern',
+//   params: {
+//     matchType: 'patternMatch',
+//     pattern: [
+//       {
+//         nodeLabel: 'Person',
+//         relationship: 'FOLLOWS',
+//         direction: 'out'
+//       },
+//       {
+//         nodeLabel: 'Person', 
+//         relationship: 'RATED',
+//         direction: 'out'
+//       },
+//       {
+//         nodeLabel: 'Movie'
+//       }
+//     ]
+//   }
+// }
+
+
 // 查询类型枚举
 export const QueryType = {
   LABEL: 'LABEL',

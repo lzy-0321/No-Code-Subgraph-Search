@@ -1,4 +1,3 @@
-
 # Graph Database Visual Interface
 
 This project is a modern web application that provides a no-code visual interface for interacting with graph databases. It allows users to visualize, query, and manipulate graph data through an intuitive drag-and-drop interface.
@@ -106,3 +105,31 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - React and Next.js communities for their excellent frameworks
 - All contributors who have helped shape this project
 - [magic ui](https://magicui.design/) for animations
+
+## License Information
+
+This project is released under the GNU General Public License v3.
+
+### Third-Party Components
+
+This project uses the following major third-party components:
+
+- Next.js (MIT)
+- React (MIT)
+- TailwindCSS (MIT)
+- Django (BSD)
+- Django REST framework (BSD)
+
+### License Compliance
+
+When using this project, you must:
+
+1. Keep the source code open
+2. Prominently indicate the use of this project
+3. Provide the complete license text
+4. Mark any code changes
+5. Use the same GPLv3 license
+
+For detailed terms, please see:
+- [LICENSE](LICENSE) - Project License
+- [COPYING](COPYING) - Complete GPLv3 Text

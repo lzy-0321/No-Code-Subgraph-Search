@@ -1,0 +1,13 @@
+name: License Check
+
+on: [push, pull_request]
+
+jobs:
+  license-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Check License Headers
+        run: |
+          # 检查所有源代码文件是否包含许可证头
+          find . -type f \( -name "*.py" -o -name "*.js" -o -name "*.tsx" \) -exec grep -l "GNU General Public License" {} \; 

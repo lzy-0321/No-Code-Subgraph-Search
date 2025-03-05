@@ -326,7 +326,7 @@ const DatabaseManager = ({
                     {db.url.replace(/^(neo4j:\/\/|bolt:\/\/|neo4j\+s:\/\/|bolt\+s:\/\/)/, '')}
                   </span>
                   {tabDatabases[activeTab] === db.url && (
-                    <span className={styles.selectedIndicator}>✓</span>
+                    <span className={styles.selectedIndicator}></span>
                   )}
                 </div>
                 <Image

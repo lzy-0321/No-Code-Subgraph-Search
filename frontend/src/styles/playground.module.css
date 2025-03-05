@@ -271,10 +271,12 @@
 .playground .entityItemContainer {
   display: flex;
   flex-direction: row;
-  align-items: center; /* Aligns items vertically */
-  justify-content: space-between; /* Ensures the button is to the right of the text */
-  width: 100%; /* Full width */
-  gap: 15px; /* Adds space between entityItem and addButton */
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: 15px;
+  padding: 5px 10px;
+  transition: background-color 0.2s ease;
 }
 .playground .entityGroup {
   display: flex;
@@ -299,9 +301,16 @@
   font-size: 14px;
   color: #414040;
   width: 75%;
+  margin: 0;
 }
-.playground .addButton {
+.playground .addButton, .deleteButton {
   cursor: pointer;
+  transition: all 0.2s ease;
+  opacity: 0.8;
+}
+.playground .addButton:hover, .deleteButton:hover {
+  opacity: 1;
+  transform: scale(1.1);
 }
 .playground .separator {
   width: 100%;
@@ -353,14 +362,31 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  width: 50px; /* 容器宽度 */
-  height: 50px; /* 容器高度 */
-  background-color: #f5f5f5; /* 浅灰色背景 */
-  border-radius: 15px; /* 圆角 */
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* 阴影 */
+  width: 50px;
+  height: 50px;
+  background-color: #f5f5f5;
+  border-radius: 15px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
+.iconContainer:hover {
+  background-color: #e0e0e0;
+  transform: scale(1.05);
+}
+
+/* 特别为清除按钮添加的样式 */
+.iconContainer:last-child:hover {
+  background-color: #ffe0e0; /* 轻微的红色背景 */
+}
+
+.iconContainer:last-child:hover .icon {
+  color: #ff4444; /* 鼠标悬停时图标变红 */
+}
+
 .icon {
-  color: #333; /* 图标颜色 */
+  color: #333;
+  transition: color 0.2s ease;
 }
 .databaseSection {
   margin-bottom: 20px;
@@ -776,4 +802,29 @@
   .resultName {
     font-size: 14px;
   }
+}
+
+.deleteButton {
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.deleteButton:hover {
+  transform: scale(1.1);
+  filter: brightness(0.9);
+}
+
+.entityItemContainer:hover {
+  background-color: #f5f5f5;
+}
+
+.addButton, .deleteButton {
+  cursor: pointer;
+  transition: all 0.2s ease;
+  opacity: 0.8;
+}
+
+.addButton:hover, .deleteButton:hover {
+  opacity: 1;
+  transform: scale(1.1);
 }

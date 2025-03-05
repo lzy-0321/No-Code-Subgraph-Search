@@ -170,7 +170,7 @@ export default function Home() {
               <Link href="/" className={styles.navHomeText}>Home</Link>
               <Link href="/playground" className={styles.navPlaygroundText} id="playgroundLink">Playground</Link>
               <a href="#tutorialsSection" className={styles.navTutorialText}>Tutorial</a>
-              <p className={styles.navAboutText}>About</p>
+              <Link href="/about" className={styles.navAboutText}>About</Link>
             </div>
 
             {/* Authentication buttons section */}

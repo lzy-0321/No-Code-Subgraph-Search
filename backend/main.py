@@ -1,4 +1,4 @@
-# Copyright (C) 2024 [你的名字/组织名]
+# Copyright (C) 2024 [Ziyao Lu]
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by

@@ -604,6 +604,28 @@ export default function Playground() {
     };
   }, []);
 
+  // 添加删除节点查询的处理函数
+  const handleDeleteNodeQuery = (nodeId) => {
+    setGraphNodes(prevNodes => prevNodes.filter(node => node.id !== nodeId));
+    // 同时删除与该节点相关的所有关系
+    setGraphRelationships(prevRels => prevRels.filter(rel => 
+      rel.startNode !== nodeId && rel.endNode !== nodeId
+    ));
+  };
+
+  // 添加删除关系查询的处理函数
+  const handleDeleteRelationshipQuery = (startNode, endNode, type) => {
+    setGraphRelationships(prevRels => prevRels.filter(rel => 
+      !(rel.startNode === startNode && rel.endNode === endNode && rel.type === type)
+    ));
+  };
+
+  // 添加清除所有节点和关系的处理函数
+  const handleClearAll = () => {
+    setGraphNodes([]);
+    setGraphRelationships([]);
+  };
+
   return (
     <div className={styles.flexColumn}>
       <section className={`${styles.playground} ${styles.mainContentSection}`}>
@@ -624,8 +646,8 @@ export default function Playground() {
             </div>
             <a href="/" className={styles.navItemHome}>Home</a>
             <a href="/playground" className={styles.navItemPlayground}>Playground</a>
-            <p className={styles.navItemTutorial}>Tutorial</p>
-            <p className={styles.navItemAbout}>About</p>
+            <a href="/home#tutorialsSection" className={styles.navTutorialText}>Tutorial</a>
+            <a href="/about" className={styles.navAboutText}>About</a>
           </div>
         </div>
 
@@ -729,17 +751,31 @@ export default function Playground() {
                               <p className={styles.entityItem}>
                                 {entity[0]}
                               </p>
-                              <Image
-                                src="/assets/add.svg"
-                                alt="add"
-                                width={20}
-                                height={20}
-                                className={styles.addButton}
-                                onClick={(e) => {
-                                  e.stopPropagation();  // 防止事件冒泡
-                                  handleNodeQuery(label, entity);
-                                }}
-                              />
+                              {graphNodes.some(node => node.id === entity[1]) ? (
+                                <Image
+                                  src="/assets/delete.svg"
+                                  alt="delete"
+                                  width={20}
+                                  height={20}
+                                  className={styles.deleteButton}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleDeleteNodeQuery(entity[1]);
+                                  }}
+                                />
+                              ) : (
+                                <Image
+                                  src="/assets/add.svg"
+                                  alt="add"
+                                  width={20}
+                                  height={20}
+                                  className={styles.addButton}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleNodeQuery(label, entity);
+                                  }}
+                                />
+                              )}
                             </div>
                           ))}
                           </div>
@@ -806,17 +842,35 @@ export default function Playground() {
                                       </div>
                                       <p className={styles.entityItem}>{entity[1][0]}</p>
                                     </div>
-                                    <Image
-                                      src="/assets/add.svg"
-                                      alt="add"
-                                      width={20}
-                                      height={20}
-                                      className={styles.addButton}
-                                      onClick={(e) => {
-                                        e.stopPropagation();  // 防止事件冒泡
-                                        handleRelationshipQuery(type, entity);
-                                      }}
-                                    />
+                                    {graphRelationships.some(rel => 
+                                      rel.startNode === entity[0][1] && 
+                                      rel.endNode === entity[1][1] && 
+                                      rel.type === type
+                                    ) ? (
+                                      <Image
+                                        src="/assets/delete.svg"
+                                        alt="delete"
+                                        width={20}
+                                        height={20}
+                                        className={styles.deleteButton}
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleDeleteRelationshipQuery(entity[0][1], entity[1][1], type);
+                                        }}
+                                      />
+                                    ) : (
+                                      <Image
+                                        src="/assets/add.svg"
+                                        alt="add"
+                                        width={20}
+                                        height={20}
+                                        className={styles.addButton}
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleRelationshipQuery(type, entity);
+                                        }}
+                                      />
+                                    )}
                                   </div>
                                   <div className={styles.separator}></div>
                                 </div>
@@ -899,8 +953,15 @@ export default function Playground() {
                       onQueryGenerated={handleQueryGenerated}
                     />
                   </div>
-                  <div className={styles.iconContainer}>
-                    <TbTrash size={50} className={styles.icon} />
+                  <div 
+                    className={styles.iconContainer}
+                    onClick={handleClearAll}
+                    title="Clear all nodes and relationships"
+                  >
+                    <TbTrash 
+                      size={50} 
+                      className={styles.icon} 
+                    />
                   </div>
                 </div>
               </div>

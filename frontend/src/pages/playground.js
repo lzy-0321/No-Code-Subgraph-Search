@@ -702,9 +702,8 @@ export default function Playground() {
                     </div>
                   )}
                 </div>
-                <div className={styles.flexRowGraphInfo}>
-                  <GraphInfoDisplay graphNodes={graphNodes} graphRelationships={graphRelationships} />
-                </div>
+                
+                <GraphInfoDisplay graphNodes={graphNodes} graphRelationships={graphRelationships} />
 
                 <div className={styles.nodeLabelsContentBox}>
                   <div className={styles.flexRowNodeLabels}  onClick={toggleNodeLabels}>
@@ -748,9 +747,12 @@ export default function Playground() {
                         <div className={styles.entityList}>
                           {nodePrimeEntities[label].map((entity, idx) => (
                             <div key={idx} className={styles.entityItemContainer}>
-                              <p className={styles.entityItem}>
+                              <div 
+                                className={styles.entityItem} 
+                                title={entity[0]}
+                              >
                                 {entity[0]}
-                              </p>
+                              </div>
                               {graphNodes.some(node => node.id === entity[1]) ? (
                                 <Image
                                   src="/assets/delete.svg"
@@ -828,19 +830,27 @@ export default function Playground() {
                             <div className={styles.entityList}>
                               {relationshipPrimeEntities[type].map((entity, idx) => (
                                 <div key={idx} className={styles.entityGroup}>
-                                  <div className={styles.entityItemContainer}>
+                                  <div 
+                                    className={styles.entityItemContainer}
+                                    title={`${entity[0][0]} → ${entity[1][0]}`}
+                                  >
                                     <div className={styles.relationshipEntityItemContainer}>
-                                      <p className={styles.entityItem}>{entity[0][0]}</p>
+                                      <p className={styles.entityItem}>
+                                        {entity[0][0]}
+                                      </p>
                                       <div className={styles.arrowContainer}>
                                         <Image
                                           src="/assets/cc-arrow-down.svg"
-                                          alt="arrow down"
-                                          width={20}
-                                          height={20}
-                                          className={styles.arrowIcon}
+                                          alt="arrow right"
+                                          width={16}
+                                          height={16}
+                                          className={`${styles.arrowIcon} rotate-90`}
+                                          style={{ transform: 'rotate(-90deg)' }}
                                         />
                                       </div>
-                                      <p className={styles.entityItem}>{entity[1][0]}</p>
+                                      <p className={styles.entityItem}>
+                                        {entity[1][0]}
+                                      </p>
                                     </div>
                                     {graphRelationships.some(rel => 
                                       rel.startNode === entity[0][1] && 
@@ -850,8 +860,8 @@ export default function Playground() {
                                       <Image
                                         src="/assets/delete.svg"
                                         alt="delete"
-                                        width={20}
-                                        height={20}
+                                        width={16}
+                                        height={16}
                                         className={styles.deleteButton}
                                         onClick={(e) => {
                                           e.stopPropagation();
@@ -862,8 +872,8 @@ export default function Playground() {
                                       <Image
                                         src="/assets/add.svg"
                                         alt="add"
-                                        width={20}
-                                        height={20}
+                                        width={16}
+                                        height={16}
                                         className={styles.addButton}
                                         onClick={(e) => {
                                           e.stopPropagation();
@@ -872,7 +882,9 @@ export default function Playground() {
                                       />
                                     )}
                                   </div>
-                                  <div className={styles.separator}></div>
+                                  {idx < relationshipPrimeEntities[type].length - 1 && (
+                                    <div className={styles.separator} />
+                                  )}
                                 </div>
                               ))}
                             </div>
@@ -903,10 +915,27 @@ export default function Playground() {
                   </div>
                   {isPropertyKeysOpen && (
                     <div id="propertyKeysList" className={styles.propertyKeysList}>
-                        {/* 动态加载 property keys */}
-                        {propertyKeys.map((key, index) => (
-                            <p key={index} className={styles.keyItem}>{key}</p>
-                        ))}
+                      {propertyKeys.map((key, index) => (
+                        <div key={index} className={styles.entityItemContainer}>
+                          <div 
+                            className={styles.entityItem}
+                            title={key}
+                          >
+                            {key}
+                          </div>
+                          <Image
+                            src="/assets/add.svg"
+                            alt="add"
+                            width={20}
+                            height={20}
+                            className={styles.addButton}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              // 处理添加属性的逻辑
+                            }}
+                          />
+                        </div>
+                      ))}
                     </div>
                   )}
                 </div>

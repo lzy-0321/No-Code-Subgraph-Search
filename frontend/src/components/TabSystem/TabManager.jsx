@@ -90,7 +90,7 @@ const TabManager = ({
         </div>
       ))}
       <button className={styles.addTabButton} onClick={handleAddTab}>
-        + Add Tab
+        +
       </button>
     </div>
   );

@@ -3,14 +3,16 @@ import styles from '../styles/playground.module.css';
 import Image from 'next/image';
 import { searchData } from '../utils/searchUtils';
 import dynamic from 'next/dynamic';
-import Filter from '../components/Filter';
-import AddTab from "../components/AddTab";
+import Filter from '../components/Filter.jsx';
+import AddTab from "../components/AddQuery";
 import GraphInfoDisplay from '../components/GraphInfoDisplay';
 import { TbCrosshair, TbTrash } from 'react-icons/tb';
 import DatabaseManager from '../components/Database/DatabaseManager';
 import TabManager from '../components/TabSystem/TabManager';
 import { useTabManager } from '../hooks/useTabManager';
 import { QueryParamsGenerator, QueryManager } from '../utils/queryGenerator';
+import AddQuery from '../components/AddQuery';
+import Link from 'next/link';
 
 // 动态加载 GraphComponent
 const DrawGraph = dynamic(() => import('../components/DrawGraph'), { ssr: false });
@@ -631,23 +633,30 @@ export default function Playground() {
       <section className={`${styles.playground} ${styles.mainContentSection}`}>
         <div className={styles.contentBoxGroup}>
           <div className={styles.flexRowHeader}>
-            <div className={styles.brandingContainer}>
-              <Image
-                className={styles.brandingImage}
-                src="/assets/0fbf1a91f14780ce3fa9a491a86c9449.svg"
-                alt="alt text"
-                width={100}
-                height={50}
-              />
-              <div className={styles.brandingTextContainer}>
-                <p className={styles.brandingNameText}>SMARTD</p>
-                <p className={styles.brandingStudioText}>STUDIO</p>
+            <div style={{ display: 'flex', alignItems: 'center' }}>
+              <div className={styles.brandingContainer}>
+                <Image
+                  className={styles.brandingImage}
+                  src="/assets/0fbf1a91f14780ce3fa9a491a86c9449.svg"
+                  alt="Branding"
+                  width={28}
+                  height={28}
+                />
+                <div className={styles.brandingTextContainer}>
+                  <p className={styles.brandingNameText}>SMARTD</p>
+                  <p className={styles.brandingStudioText}>STUDIO</p>
+                </div>
+              </div>
+
+              <div className={styles.navigationContainer}>
+                <Link href="/" className={styles.footerHomeText}>Home</Link>
+                <Link href="/playground" className={styles.footerPlaygroundText}>Playground</Link>
+                <Link href="/#tutorialsSection" className={styles.footerTutorialText}>Tutorial</Link>
+                <Link href="/about" className={styles.footerAboutText}>About</Link>
               </div>
             </div>
-            <a href="/" className={styles.navItemHome}>Home</a>
-            <a href="/playground" className={styles.navItemPlayground}>Playground</a>
-            <a href="/home#tutorialsSection" className={styles.navTutorialText}>Tutorial</a>
-            <a href="/about" className={styles.navAboutText}>About</a>
+
+            <div style={{ width: '200px' }}></div>
           </div>
         </div>
 
@@ -950,22 +959,7 @@ export default function Playground() {
               />
 
               {/* 标签内容 */}
-              <div className={styles.tabContent} ref={tabContentRef}>
-                {tabContentBounds && (
-                <Filter
-                  // 把graphNodes和graphNodeBuffer合并为graphNodes，组合成一个新的数组
-                  graphRelationships = {graphRelationships}
-                  graphNodes = {graphNodes}
-                  setGraphNodes={setGraphNodes} // Pass state setter for graphNodes
-                  setGraphRelationships={setGraphRelationships} // Pass state setter for graphRelationships
-                  // buffer
-                  graphNodesBuffer = {graphNodesBuffer}
-                  graphRelationshipsBuffer = {graphRelationshipsBuffer}
-                  setGraphNodesBuffer={setGraphNodesBuffer}
-                  setGraphRelationshipsBuffer={setGraphRelationshipsBuffer}
-                  tabContentBounds={tabContentBounds}
-                />
-                )}
+              <div className={styles.tabContent} ref={tabContentRef} style={{ position: 'relative', overflow: 'hidden' }}>
                 <div className={styles.tabGraph}>
                   {isDataClean && (
                     <DrawGraph
@@ -976,21 +970,38 @@ export default function Playground() {
                 </div>
                 <div className={styles.flexRowGalleryImages}>
                   <div className={styles.iconContainer}>
-                    <AddTab 
-                      AddTabNodeEntities={nodeEntities}
-                      AddTabRelationshipEntities={relationshipEntities}
-                      onQueryGenerated={handleQueryGenerated}
-                    />
+                    {tabContentBounds && (
+                      <Filter
+                        graphRelationships={graphRelationships}
+                        graphNodes={graphNodes}
+                        setGraphNodes={setGraphNodes}
+                        setGraphRelationships={setGraphRelationships}
+                        graphNodesBuffer={graphNodesBuffer}
+                        graphRelationshipsBuffer={graphRelationshipsBuffer}
+                        setGraphNodesBuffer={setGraphNodesBuffer}
+                        setGraphRelationshipsBuffer={setGraphRelationshipsBuffer}
+                        tabContentBounds={tabContentBounds}
+                      />
+                    )}
                   </div>
-                  <div 
-                    className={styles.iconContainer}
-                    onClick={handleClearAll}
-                    title="Clear all nodes and relationships"
-                  >
-                    <TbTrash 
-                      size={50} 
-                      className={styles.icon} 
-                    />
+                  <div className={styles.rightControls}>
+                    <div className={styles.iconContainer}>
+                      <AddQuery
+                        AddTabNodeEntities={nodeEntities}
+                        AddTabRelationshipEntities={relationshipEntities}
+                        onQueryGenerated={handleQueryGenerated}
+                      />
+                    </div>
+                    <div 
+                      className={styles.iconContainer}
+                      onClick={handleClearAll}
+                      title="Clear all nodes and relationships"
+                    >
+                      <TbTrash 
+                        size={50} 
+                        className={styles.icon} 
+                      />
+                    </div>
                   </div>
                 </div>
               </div>

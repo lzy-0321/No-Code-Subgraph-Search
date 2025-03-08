@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import GraphComponent from './GraphComponent';
 import styles from '../styles/playground.module.css';
 
-const Tab = ({ tabData, onUpdateTab, onClose }) => {
+const Tab = ({ tabData, onUpdateTab, onClose, isActive }) => {
   const [selectedDatabase, setSelectedDatabase] = useState(tabData.databaseInfo.selectedDatabase || null);
 
   const handleDatabaseSelection = async (url) => {
@@ -63,22 +63,33 @@ const Tab = ({ tabData, onUpdateTab, onClose }) => {
   };
 
   return (
-    <div className={styles.tabContainer}>
-      <div className={styles.menu}>
-        <button onClick={() => handleDatabaseSelection('bolt://localhost:7687')}>
-          {selectedDatabase ? `Connected to ${selectedDatabase}` : 'Connect Database'}
-        </button>
-      </div>
-      <div className={styles.graph}>
+    <div className={`${styles.tabContainer} ${isActive ? styles.activeTab : ''}`}>
+      <div className={styles.tabContent}>
         <GraphComponent
           nodes={tabData.nodeInfo.nodeEntities}
           relationships={tabData.relationshipInfo.relationshipEntities}
           enableZoom={true}
         />
       </div>
-      <button className={styles.closeButton} onClick={onClose}>
-        Close Tab
-      </button>
+      {selectedDatabase && (
+        <div className={styles.databaseInfo}>
+          <span className={styles.databaseUrl}>{selectedDatabase}</span>
+          <button 
+            className={styles.disconnectButton}
+            onClick={() => setSelectedDatabase(null)}
+          >
+            断开连接
+          </button>
+        </div>
+      )}
+      {!selectedDatabase && (
+        <button 
+          className={styles.connectButton}
+          onClick={() => handleDatabaseSelection('bolt://localhost:7687')}
+        >
+          连接数据库
+        </button>
+      )}
     </div>
   );
 };

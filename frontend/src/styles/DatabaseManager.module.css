@@ -216,70 +216,91 @@
 
 .modal {
   background: rgba(255, 255, 255, 0.98);
-  padding: 28px;
+  padding: 24px 28px;
   border-radius: 12px;
   width: 90%;
-  max-width: 480px;
+  max-width: 420px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
 }
 
 /* 输入组样式 */
 .inputGroup,
 .inputGroupHorizontal {
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
 
 .inputGroup label,
 .inputGroupHorizontal label {
   display: block;
   margin-bottom: 8px;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
-  color: #1d1d1f;
+  color: #86868b;
 }
 
 .inputFlex {
   display: flex;
   gap: 8px;
+  align-items: stretch;
 }
 
 /* 输入框和选择框样式 */
 .inputFlex select,
 .inputFlex input,
 .inputGroupHorizontal input {
-  padding: 10px 14px;
-  height: 40px;
+  padding: 8px 12px;
+  height: 36px;
   border: 1px solid rgba(0, 0, 0, 0.1);
   border-radius: 6px;
   font-size: 14px;
+  color: #1d1d1f;
   background-color: rgba(0, 0, 0, 0.02);
   transition: all 0.2s ease;
 }
 
 .inputFlex select {
-  width: 120px;
+  width: 110px;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  background-size: 16px;
+  padding-right: 32px;
 }
 
+.inputFlex input {
+  flex: 1;
+}
+
+.inputGroupHorizontal input {
+  width: 100%;
+}
+
+/* 输入框焦点和悬停状态 */
 .inputFlex select:hover,
 .inputFlex input:hover,
 .inputGroupHorizontal input:hover {
   border-color: rgba(0, 0, 0, 0.2);
+  background-color: rgba(0, 0, 0, 0.03);
 }
 
 .inputFlex select:focus,
 .inputFlex input:focus,
 .inputGroupHorizontal input:focus {
-  border-color: rgba(0, 122, 255, 0.5);
+  border-color: #0071e3;
   outline: none;
   background-color: white;
+  box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.12);
 }
 
 /* 提交按钮样式 */
 .submitBtn {
   width: 100%;
-  padding: 12px;
-  height: 44px;
-  background-color: rgba(0, 122, 255, 0.9);
+  padding: 8px 12px;
+  height: 40px;
+  background-color: #0071e3;
   color: white;
   border: none;
   border-radius: 6px;
@@ -287,8 +308,14 @@
   font-size: 14px;
   font-weight: 500;
   transition: all 0.2s ease;
+  margin-top: 8px;
 }
 
 .submitBtn:hover {
-  background-color: rgba(0, 122, 255, 1);
+  background-color: #0077ED;
+}
+
+.submitBtn:active {
+  background-color: #006EDB;
+  transform: scale(0.98);
 } 

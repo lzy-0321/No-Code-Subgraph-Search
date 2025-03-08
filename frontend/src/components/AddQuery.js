@@ -1,9 +1,9 @@
 import React, { useState, useRef, useEffect } from "react";
-import styles from "../styles/AddTab.module.css"; // Update with your actual styles path
+import styles from "../styles/AddQuery.module.css"; // Update with your actual styles path
 import { TbCrosshair } from "react-icons/tb";
 import { QueryManager } from '../utils/queryGenerator';
 
-const AddTab = ({ 
+const AddQuery = ({ 
   AddTabNodeEntities: nodeEntities, 
   AddTabRelationshipEntities: relationshipEntities,
   onQueryGenerated  // 新增的回调属性
@@ -31,7 +31,10 @@ const AddTab = ({
   const [nodeProperties, setNodeProperties] = useState({});
   const [limit, setLimit] = useState("");
 
-  const handleOpenPopup = () => setIsPopupOpen(true);
+  const handleOpenPopup = (e) => {
+    e.stopPropagation(); // 阻止事件冒泡
+    setIsPopupOpen(true);
+  };
 
   const handleClosePopup = () => {
     setIsPopupOpen(false);
@@ -109,21 +112,39 @@ const AddTab = ({
   };
 
   const handleAddRelationship = () => {
+    // 过滤掉空属性
+    const startNodeProps = Object.fromEntries(
+      Object.entries(relationshipProperties.startNode || {})
+        .filter(([_, value]) => value !== '')
+    );
+    
+    const endNodeProps = Object.fromEntries(
+      Object.entries(relationshipProperties.endNode || {})
+        .filter(([_, value]) => value !== '')
+    );
+    
+    const relationshipProps = Object.fromEntries(
+      Object.entries(relationshipProperties.relationship || {})
+        .filter(([_, value]) => value !== '')
+    );
+
     const queryParams = {
       matchType: 'relationshipMatch',
-      relationType: selectedLabel,  // 这是关系类型
-      properties: relationshipProperties.relationship || {},
-      // 如果有高级选项，添加节点属性
-      ...(showAdvanced && {
-        startNodeProps: relationshipProperties.startNode || {},
-        endNodeProps: relationshipProperties.endNode || {}
+      relationType: selectedLabel,
+      properties: relationshipProps,
+      // 只在选择了具体标签且有属性时才包含节点信息
+      ...(selectedStartLabel && selectedStartLabel !== "Any node label" && {
+        startNodeLabel: selectedStartLabel,
+        ...(Object.keys(startNodeProps).length > 0 && { startNodeProps })
+      }),
+      ...(selectedEndLabel && selectedEndLabel !== "Any node label" && {
+        endNodeLabel: selectedEndLabel,
+        ...(Object.keys(endNodeProps).length > 0 && { endNodeProps })
       })
     };
 
-    console.log('Sending relationship query params:', queryParams);
-
     onQueryGenerated({
-      type: 'relationship',  // 这里正确添加了type
+      type: 'relationship',
       params: queryParams
     });
 
@@ -132,15 +153,18 @@ const AddTab = ({
 
   useEffect(() => {
     const handleClickOutside = (event) => {
+      // 确保点击的不是弹窗内部元素
       if (popupRef.current && !popupRef.current.contains(event.target)) {
         handleClosePopup();
       }
     };
 
+    // 只在弹窗打开时添加事件监听
     if (isPopupOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-    } else {
-      document.removeEventListener("mousedown", handleClickOutside);
+      // 使用 setTimeout 确保事件监听器在下一个事件循环中添加
+      setTimeout(() => {
+        document.addEventListener("mousedown", handleClickOutside);
+      }, 0);
     }
 
     return () => {
@@ -150,12 +174,22 @@ const AddTab = ({
 
   return (
     <>
-      <button className={styles.iconButton} onClick={handleOpenPopup}>
+      <button 
+        className={styles.iconButton} 
+        onClick={handleOpenPopup}
+        type="button" // 明确指定按钮类型
+      >
         <TbCrosshair size={24} />
       </button>
       {isPopupOpen && (
-        <div className={styles.popupOverlay}>
-          <div className={styles.popupContent} ref={popupRef}>
+        <div 
+          className={styles.popupOverlay}
+          onClick={(e) => e.stopPropagation()} // 阻止overlay的点击事件冒泡
+        >
+          <div 
+            className={styles.popupContent} 
+            ref={popupRef}
+          >
             <div className={styles.tabHeader}>
               <button
                 className={`${styles.tabButton} ${activeAddTab === "addNode" ? styles.activeTab : ""}`}
@@ -669,4 +703,4 @@ const AddTab = ({
   );
 };
 
-export default AddTab;
+export default AddQuery;

@@ -1,278 +1,241 @@
 .filterContainer {
-position: absolute;
-z-index: 1000;
-cursor: grab;
-transition: left 0.2s, top 0.2s; /* 平滑移动效果 */
-}
-
-.filterContainer:active {
-cursor: grabbing;
+  position: relative;
 }
 
 .filterButton {
   width: 50px;
   height: 50px;
-  background-color: #007bff;
+  background-color: #007aff;
+  border: none;
+  border-radius: 15px;
   display: flex;
   justify-content: center;
   align-items: center;
-  color: white;
-  border-radius: 15%;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  user-select: none;
+  cursor: pointer;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+}
+
+.filterButton:hover {
+  background-color: #0066d6;
 }
 
 .filterWindow {
   position: absolute;
-  background-color: #4f4f4f;
-  border: 1px solid #ccc;
-  border-radius: 10px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-  padding: 10px;
-  color: white;
+  bottom: 60px;
+  left: 0;
+  width: 300px;
+  background: rgba(247, 247, 247, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 12px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.1);
+  padding: 16px;
+  color: #1d1d1f;
+  border: 1px solid rgba(0, 0, 0, 0.1);
   display: flex;
   flex-direction: column;
   z-index: 1000;
-  transition: all 0.2s ease; /* 添加平滑过渡效果 */
+  transition: all 0.2s ease;
+  animation: slideIn 0.2s ease-out;
 }
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.filterHeader {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: #1d1d1f;
+  letter-spacing: -0.01em;
+}
+
+.tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 16px;
+  padding: 2px;
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 8px;
+}
+
+.tab {
+  flex: 1;
+  padding: 6px 12px;
+  text-align: center;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  cursor: pointer;
+  font-size: 13px;
+  color: #1d1d1f;
+  transition: all 0.2s ease;
+  font-weight: 400;
+  opacity: 0.8;
+}
+
+.tab:hover {
+  background: rgba(0, 0, 0, 0.03);
+  opacity: 1;
+}
+
+.activeTab {
+  background: #007aff;
+  color: white;
+  font-weight: 500;
+  opacity: 1;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.tab:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.tabContent {
+  max-height: 400px;
+  overflow-y: auto;
+  margin: 0 -8px;
+  padding: 0 8px;
+}
+
+.tabContent::-webkit-scrollbar {
+  width: 8px;
+}
+
+.tabContent::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.tabContent::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+}
+
+.relationshipRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  margin: 8px 0;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 10px;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
+}
+
+.relationshipType {
+  font-size: 13px;
+  font-weight: 500;
+  color: #1d1d1f;
+  flex: 1;
+}
+
+.relationshipCount {
+  padding: 2px 8px;
+  background: rgba(0, 122, 255, 0.1);
+  border-radius: 12px;
+  color: #007aff;
+  font-size: 12px;
+  font-weight: 500;
+  margin: 0 8px;
+}
+
+.toggleVisibilityButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  color: #1d1d1f;
+  opacity: 0.6;
+  transition: all 0.2s ease;
+}
+
+.toggleVisibilityButton:hover {
+  opacity: 1;
+}
+
+.relationshipRow:hover {
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  transform: translateY(-1px);
+}
+
+.nodeProperty {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #1d1d1f;
+}
+
+.nodeProperty strong {
+  color: #86868b;
+  font-weight: 500;
+  min-width: 60px;
+}
+
+.nodeProperty span {
+  color: #1d1d1f;
+  font-weight: 400;
+}
+
+.relationshipRow:not(:last-child), .nodeRow:not(:last-child) {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.propertyGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.propertyLabel {
+  font-size: 12px;
+  color: #86868b;
+  margin-bottom: 2px;
+}
+
+.filterContainer:active {
+  cursor: grabbing;
+}
+
 .filterWindow.downleft {
-  top: 110%;
+  top: 60px;
   right: 0;
 }
+
 .filterWindow.downright {
-  top: 110%;
+  top: 60px;
   left: 0;
 }
+
 .filterWindow.upleft {
-  bottom: 110%;
+  bottom: 60px;
   right: 0;
 }
+
 .filterWindow.upright {
-  bottom: 110%;
+  bottom: 60px;
   left: 0;
 }
+
 .filterHeader {
   font-size: 18px;
   font-weight: bold;
   margin-bottom: 10px;
 }
-.tabs {
-  display: flex;
-  gap: 5px;
-  margin-bottom: 10px;
-}
-.tab {
-  flex: 1;
-  padding: 5px;
-  text-align: center;
-  border: none;
-  background-color: #6c757d;
-  color: white;
-  cursor: pointer;
-  border-radius: 5px;
-}
-.activeTab {
-  background-color: #007bff;
-}
-.tabContent {
-  max-height: 300px;
-  padding: 0 0px;
-}
 .relationshipContent, .nodeContent {
   display: flex;
   flex-direction: column;
   gap: 5px;
-}
-.relationshipRow, .nodeRow {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 5px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  background-color: #6c757d;
-}
-.relationshipNode, .relationshipArrow, .relationshipType, .nodeProperty {
-flex: 1;
-text-align: center;
-}
-.settingsButton, .deleteButton {
-background: none;
-border: none;
-cursor: pointer;
-color: white;
-font-size: 14px;
-}
-.settingsRow {
-  display: flex;
-  align-items: center;
-  gap: 0px;
-  padding: 5px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  background-color: #6c757d;
-  justify-content: space-between; /* Label 和 Button 两端对齐 */
-}
-.settingLabel {
-  font-weight: bold;
-  font-size: 16px;
-}
-.settingsButton1 {
-  padding: 5px 10px;
-  background-color: #007bff; /* 按钮背景颜色 */
-  color: white; /* 按钮文字颜色 */
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-.settingsButton:hover {
-  background-color: #0056b3; /* 按钮悬停颜色 */
-}
-.nodeGroup {
-  margin-bottom: 15px;
-}
-
-.nodeGroup h4 {
-  margin: 5px 0;
-  font-size: 16px;
-  color: #ffffff;
-  text-transform: uppercase;
-}
-
-.propertyRow {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin: 10px 0;
-  padding: 5px;
-  background-color: #6c757d;
-  border-radius: 5px;
-}
-
-.propertyName {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: 14px;
-  font-weight: bold;
-  color: white;
-  background-color: #d3d3d3;
-  border-radius: 5px;
-  padding: 5px 10px;
-  text-align: center; /* 确保文字对齐 */
-}
-.dragIcon {
-  font-size: 16px;
-  color: white;
-  cursor: grab;
-  padding: 0 10px;
-}
-.propertyInput {
-  flex: 1;
-  padding: 5px;
-  border-radius: 5px;
-  font-size: 16px;
-  color: #333;
-  background-color: #fff;
-}
-.numberControl {
-  display: flex;
-  align-items: center;
-  background-color: #ffffff;
-  border-radius: 5px;
-  padding: 5px 10px;
-  gap: 5px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-  width: 60%;
-  justify-content: space-between;
-}
-.arrowButton {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 25px;
-  height: 25px;
-  font-size: 16px;
-  font-weight: bold;
-  color: #333;
-  background-color: #e0e0e0;
-  border: none;
-  border-radius: 15%;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-}
-.arrowButton:hover {
-  background-color: #c0c0c0;
-}
-.arrowButton:active {
-  background-color: #a0a0a0;
-}
-.animatedNumber {
-  min-width: 50px;
-  text-align: center;
-  font-size: 16px;
-  font-weight: bold;
-  color: #333;
-}
-.suggestionsList {
-  margin-top: 5px;
-  background: #fff;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  padding: 10px;
-  max-height: 150px;
-  overflow-y: auto;
-  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-  /* 悬浮 */
-  position: absolute;
-  width: 52.5%; /* Match input width */
-  z-index: 1100; /* 确保建议列表在最上层 */
-}
-
-.suggestionItem {
-  padding: 8px;
-  font-size: 14px;
-  color: #333;
-  cursor: pointer;
-}
-
-.suggestionItem:hover {
-  background: #f0f0f0;
-}
-
-.numberControl {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.arrowButton {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 30px;
-  height: 30px;
-  font-size: 18px;
-  color: #333;
-  background-color: #e0e0e0;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-}
-.selectedTag {
-  display: inline-flex;
-  align-items: center;
-  background-color: #e0e0e0;
-  border-radius: 4px;
-  padding: 4px 8px;
-  margin-right: 8px;
-  font-size: 14px;
-}
-
-.removeTag {
-  margin-left: 8px;
-  cursor: pointer;
-  color: #ff4d4f;
-  font-weight: bold;
 }

@@ -351,14 +351,24 @@ export class QueryManager {
     try {
       console.log('Executing relationship query with params:', params);
 
-      // 构建精确的查询请求
       const requestBody = {
         matchType: 'relationshipMatch',
         query: {
           relationType: params.relationType,
-          startNodeProps: params.startNodeProps,
-          endNodeProps: params.endNodeProps,
-          exactMatch: true  // 添加标志表明需要精确匹配
+          // 只在有具体标签和属性时才包含节点信息
+          ...(params.startNodeLabel && {
+            startNodeLabel: params.startNodeLabel,
+            ...(Object.keys(params.startNodeProps || {}).length > 0 && {
+              startNodeProps: params.startNodeProps
+            })
+          }),
+          ...(params.endNodeLabel && {
+            endNodeLabel: params.endNodeLabel,
+            ...(Object.keys(params.endNodeProps || {}).length > 0 && {
+              endNodeProps: params.endNodeProps
+            })
+          }),
+          exactMatch: true
         }
       };
 

@@ -75,6 +75,8 @@ class CypherQueryBuilder:
             rel_type = query_details.get('relationType')
             start_props = query_details.get('startNodeProps', {})
             end_props = query_details.get('endNodeProps', {})
+            start_label = query_details.get('startNodeLabel', '')  # 获取起始节点标签
+            end_label = query_details.get('endNodeLabel', '')      # 获取结束节点标签
             exact_match = query_details.get('exactMatch', False)
 
             if exact_match:
@@ -82,11 +84,21 @@ class CypherQueryBuilder:
                 start_props_str = '{' + ', '.join(f"{k}: ${k}" for k in start_props.keys()) + '}'
                 end_props_str = '{' + ', '.join(f"{k}: ${k}" for k in end_props.keys()) + '}'
                 
-                # 构建精确的查询，注意节点标签和属性的正确语法
-                query = (
-                    f"MATCH (a:Person {start_props_str})-[r:{rel_type}]->(b:Movie {end_props_str}) "
-                    "RETURN a, r, b"
-                )
+                # 构建节点标签部分（只在有标签时添加）
+                start_label_str = f":{start_label}" if start_label else ""
+                end_label_str = f":{end_label}" if end_label else ""
+                
+                # 构建查询，根据是否有属性决定是否添加属性条件
+                start_node = f"(a{start_label_str}"
+                start_node += f" {start_props_str}" if start_props else ""
+                start_node += ")"
+                
+                end_node = f"(b{end_label_str}"
+                end_node += f" {end_props_str}" if end_props else ""
+                end_node += ")"
+                
+                # 组装完整查询
+                query = f"MATCH {start_node}-[r:{rel_type}]->{end_node} RETURN a, r, b"
                 
                 # 合并所有参数
                 params = {**start_props, **end_props}

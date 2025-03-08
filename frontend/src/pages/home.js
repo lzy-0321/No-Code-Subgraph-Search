@@ -30,19 +30,19 @@ export default function Home() {
         { id: '2', nodeLabel: 'PERSON', properties: { name: 'Bob', age: 25, role: 'Designer' } },
         { id: '3', nodeLabel: 'KNOWLEDGE', properties: { title: 'Graph Database', type: 'Tutorial', category: 'Technology' } },
         { id: '4', nodeLabel: 'PERSON', properties: { name: 'Charlie', age: 35, role: 'Manager' } },
-        { id: '5', nodeLabel: 'PERSON', properties: { name: 'Diana', age: 28, role: 'Researcher' } },
-        { id: '6', nodeLabel: 'KNOWLEDGE', properties: { title: 'Data Science', type: 'Tutorial', category: 'Education' } },
-        { id: '7', nodeLabel: 'PERSON', properties: { name: 'Eve', age: 40, role: 'Director' } },
+        // { id: '5', nodeLabel: 'PERSON', properties: { name: 'Diana', age: 28, role: 'Researcher' } },
+        // { id: '6', nodeLabel: 'KNOWLEDGE', properties: { title: 'Data Science', type: 'Tutorial', category: 'Education' } },
+        // { id: '7', nodeLabel: 'PERSON', properties: { name: 'Eve', age: 40, role: 'Director' } },
       ]);
       setGraphRelationships([
         { startNode: '1', endNode: '2', type: 'FRIEND', properties: { since: '2020', frequency: 'Weekly' } },
         { startNode: '2', endNode: '3', type: 'LEARNED', properties: { date: '2021', confidence: 'High' } },
-        { startNode: '1', endNode: '6', type: 'LEARNED', properties: { date: '2019', confidence: 'High' } },
-        { startNode: '1', endNode: '3', type: 'MENTORED', properties: { duration: '6 months', successRate: '90%' } },
-        { startNode: '4', endNode: '5', type: 'COLLABORATED', properties: { project: 'AI Research', duration: '1 year' } },
-        { startNode: '6', endNode: '7', type: 'INSPIRED', properties: { topic: 'Machine Learning', impact: 'Significant' } },
-        { startNode: '4', endNode: '7', type: 'FRIEND', properties: { since: '2019', frequency: 'Monthly' } },
-        { startNode: '3', endNode: '6', type: 'REFERRED', properties: { reason: 'Expertise', trustLevel: 'High' } },
+        // { startNode: '1', endNode: '6', type: 'LEARNED', properties: { date: '2019', confidence: 'High' } },
+        // { startNode: '1', endNode: '3', type: 'MENTORED', properties: { duration: '6 months', successRate: '90%' } },
+        // { startNode: '4', endNode: '5', type: 'COLLABORATED', properties: { project: 'AI Research', duration: '1 year' } },
+        // { startNode: '6', endNode: '7', type: 'INSPIRED', properties: { topic: 'Machine Learning', impact: 'Significant' } },
+        // { startNode: '4', endNode: '7', type: 'FRIEND', properties: { since: '2019', frequency: 'Monthly' } },
+        // { startNode: '3', endNode: '6', type: 'REFERRED', properties: { reason: 'Expertise', trustLevel: 'High' } },
       ]);
     }, 1000);
   }, []);
@@ -258,7 +258,17 @@ export default function Home() {
               </PulsatingButton>
           </div>
           <div className={styles.graph}>
-            <DrawGraph nodes={graphNodes} relationships={graphRelationships} enableZoom={false} />
+            <DrawGraph 
+              nodes={graphNodes} 
+              relationships={graphRelationships}
+              width={800}  // 增大宽度
+              height={700} // 增大高度
+              enableZoom={false}
+              // 添加其他配置以优化显示效果
+              nodeSize={60} // 增大节点大小
+              fontSize={16} // 增大字体大小
+              linkDistance={200} // 增加节点间距
+            />
           </div>
         </div>
       </section>
@@ -274,36 +284,37 @@ export default function Home() {
       </section>
 
       {/* 页脚部分 */}
-      <section className={styles.footerSection}>
+      <footer className={styles.footerSection}>
         <div className={styles.footerWrapper}>
-          <div className={styles.footerInfoColumn}>
-            <div className={styles.footerBrandingRow}>
-              <div className={styles.brandingContainer}>
-              <Image
-                className={styles.brandingImage}
-                src="/assets/0fbf1a91f14780ce3fa9a491a86c9449.svg"
-                alt="Branding"
-                width={24}
-                height={24}
-              />
-              <div className={styles.brandingTextContainer}>
-                <p className={styles.brandingNameText}>SMARTD</p>
-                <p className={styles.brandingStudioText}>STUDIO</p>
-              </div>
-            </div>
-              <div className={styles.footerNavRow}>
-                <Link href="/" className={styles.footerHomeText}>Home</Link>
-                <Link href="/playground" className={styles.footerPlaygroundText}>Playground</Link>
-                <a href="#tutorialsSection" className={styles.footerTutorialText}>Tutorial</a>
-                <p className={styles.footerAboutText}>About</p>
-              </div>
-              <div className={styles.footerImagesRow}>
-                {/* 添加任何其他需要的图像 */}
-              </div>
+          {/* 左侧品牌标识 */}
+          <div className={styles.footerBrandingContainer}>
+            <Image
+              src="/assets/0fbf1a91f14780ce3fa9a491a86c9449.svg"
+              alt="SMARTD"
+              width={24}
+              height={24}
+              className={styles.footerBrandingImage}
+            />
+            <div className={styles.footerBrandingText}>
+              <span className={styles.footerBrandingName}>SMARTD</span>
+              <span className={styles.footerBrandingStudio}>STUDIO</span>
             </div>
           </div>
+
+          {/* 中间导航链接 */}
+          <nav className={styles.footerNavRow}>
+            <Link href="/">Home</Link>
+            <Link href="/playground">Playground</Link>
+            <Link href="/#tutorialsSection">Tutorial</Link>
+            <Link href="/about">About</Link>
+          </nav>
+
+          {/* 右侧版权信息 */}
+          <div className={styles.footerCopyright}>
+            © 2024 SMARTD STUDIO. All rights reserved.
+          </div>
         </div>
-      </section>
+      </footer>
     </div>
   );
 }

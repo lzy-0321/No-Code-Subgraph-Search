@@ -21,125 +21,148 @@
 .page1 .smartDOverviewSection {
   display: flex;
   flex-direction: column;
-  height: 6vh; /* Set the height of the header */
-  position: fixed; /* Fix the header to the top */
-  top: 0; /* Ensure it stays at the top */
-  width: 100%; /* Make sure it spans the full width */
-  z-index: 100; /* Ensure it stays above other content */
+  height: 64px;
+  position: fixed;
+  top: 0;
+  width: 100%;
+  z-index: 100;
+  background-color: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
 }
 .page1 .blockContainer {
   display: flex;
   flex-direction: column;
-  height: 100%; /* Make blockContainer fill the full height of smartDOverviewSection */
-  background-color: white;
-  border-color: #dde1e6;
-  border-style: solid;
-  border-width: 0 0 1px;
+  height: 100%;
+  background-color: transparent;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
   justify-content: center;
 }
 .page1 .flexRowContainer {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 20px; /* Ensure there's space from the edges */
-  width: 100%;
+  padding: 0 32px;
+  max-width: 1440px;
   margin: 0 auto;
+  width: 100%;
 }
 .page1 .brandingContainer {
   display: flex;
-  gap: 10px;
+  gap: 12px;
   align-items: center;
 }
 .page1 .brandingImage {
-  margin: 0; /* Remove unnecessary margin */
-  width: 24px;
+  width: 28px;
+  height: 28px;
+  opacity: 0.8;
 }
 .page1 .brandingTextContainer {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  width: 77px;
-  min-width: 0;
 }
 .page1 .brandingNameText {
-  margin: 0; /* Remove unnecessary margin */
-  font: 500 16px/1 Roboto, Helvetica, Arial, serif;
-  color: black;
-  letter-spacing: 3.06px;
+  font-size: 20px;
+  font-weight: 600;
+  color: #1d1d1f;
+  letter-spacing: 2.5px;
+  line-height: 1.2;
 }
 .page1 .brandingStudioText {
-  margin: 0; /* Remove unnecessary margin */
-  font: 500 16px/1 Roboto, Helvetica, Arial, serif;
-  color: black;
-  letter-spacing: 4.41px;
+  font-size: 16px;
+  font-weight: 500;
+  color: #86868b;
+  letter-spacing: 2px;
+  line-height: 1.2;
 }
 .page1 .navigationRowContainer {
   display: flex;
-  justify-content: center; /* Center the navigation links */
-  align-items: center; /* Vertically center all items */
-  flex-grow: 1;
-  gap: 30px;
+  justify-content: center;
+  align-items: center;
+  gap: 48px;
 }
 .page1 .navHomeText,
 .page1 .navPlaygroundText,
 .page1 .navTutorialText,
 .page1 .navAboutText {
-  font: 500 16px/1 Roboto, Helvetica, Arial, serif;
   font-size: 16px;
   font-weight: 500;
-  color: #21272a;
+  color: #1d1d1f;
   text-decoration: none;
-  cursor: pointer;
-  line-height: 1; /* Ensure consistent line height */
-  padding: 0; /* Reset any extra padding */
-  margin: 0; /* Reset any extra margin */
-  display: flex;
-  align-items: center; /* Ensure the text inside is vertically centered */
-  height: 100%; /* Ensure the links take up the full height */
+  transition: color 0.2s ease;
+  position: relative;
+  padding: 8px 0;
+}
+.page1 .navHomeText:hover,
+.page1 .navPlaygroundText:hover,
+.page1 .navTutorialText:hover,
+.page1 .navAboutText:hover {
+  color: #0071e3;
 }
 .page1 .authButtonsContainer {
   display: flex;
-  justify-content: flex-start; /* Move buttons to the left */
-  gap: 20px; /* Spacing between login and start trial buttons */
-  margin-right: 40px; /* Move buttons away from the right edge */
+  gap: 20px;
+  align-items: center;
 }
 .page1 .loginBtn {
-  display: flex;
-  justify-content: center;
-  align-items: center;
   padding: 10px 20px;
-  font-size: 16px;
-  cursor: pointer;
-  color: #0f62fe;
+  font-size: 15px;
+  font-weight: 500;
+  color: #0071e3;
   background: none;
-  border: 1px solid #0f62fe;
-  border-radius: 4px;
+  border: 1.5px solid #0071e3;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.page1 .loginBtn:hover {
+  background-color: rgba(0, 113, 227, 0.05);
 }
 .page1 .startTrialBtn {
-  display: flex;
-  justify-content: center;
-  align-items: center;
   padding: 10px 20px;
-  font-size: 16px;
+  font-size: 15px;
+  font-weight: 500;
+  color: white;
+  background-color: #0071e3;
+  border: none;
+  border-radius: 8px;
   cursor: pointer;
-  background-color: #0f62fe; /* Blue background */
-  color: white; /* White text */
-  border: none; /* Remove any border */
-  outline: none; /* Remove any outline */
-  border-radius: 4px; /* Add rounded corners */
+  transition: all 0.2s ease;
+}
+.page1 .startTrialBtn:hover {
+  background-color: #0077ED;
 }
 .userAvatarBox {
   position: relative;
-  border: 1px solid #333;
-  padding: 10px;
-  border-radius: 15%;
+  padding: 8px 16px;
+  border: 1.5px solid rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
   display: flex;
-  justify-content: center;
   align-items: center;
-  width: 40px;
-  height: 40px;
-  background-color: #f0f0f0;
+  background-color: rgba(0, 0, 0, 0.02);
   cursor: pointer;
+  transition: all 0.2s ease;
+}
+.userAvatarBox:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+  border-color: rgba(0, 0, 0, 0.2);
+}
+.userName {
+  font-size: 15px;
+  font-weight: 500;
+  color: #1d1d1f;
+}
+.userMenu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  background-color: rgba(255, 255, 255, 0.98);
+  border-radius: 10px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  min-width: 180px;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
 }
 .userMenu button {
   border: none;
@@ -162,302 +185,268 @@
   max-width: 300px;  /* 设置最大宽度 */
   box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
 }
-.userName {
-  font-size: 14px;
-  color: #333;
+.logoutBtn {
+  width: 100%;
+  padding: 12px 20px;
+  font-size: 15px;
+  font-weight: 500;
+  color: #1d1d1f;
+  background: none;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.logoutBtn:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+  color: #0071e3;
 }
 .page1 .noCodeSolutionsSection {
-  position: relative;
   display: flex;
   flex-direction: column;
-  margin-top: 6vh; /* Adjust the top margin to prevent overlap with the header */
-  height: 94vh; /* The remaining height for the section */
-  justify-content: center;
-  align-items: center; /* Horizontally center the content */
-  background-color: #f2f4f8;
+  padding: 80px 0;
+  background: linear-gradient(180deg, #fff 0%, #f5f5f7 100%);
+  min-height: calc(100vh - 64px);
+  margin-top: 64px;
 }
 .page1 .solutionsContentRow {
-  display: flex; /* 使用 Flexbox 布局 */
-  flex-direction: row; /* 水平方向排列 */
-  justify-content: space-between; /* 在两列之间分散排列 */
-  align-items: flex-start; /* 顶部对齐 */
-  gap: 20px; /* 列之间的间距 */
-  margin: 20px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 64px;
+  gap: 80px;
+  height: calc(100vh - 224px);
 }
 .page1 .solutionsContentColumn {
-  position: absolute;
-  left: 100px;
-  display: flex;
-  flex-direction: column;
-  gap: 63px 0;
-  width: 640px;
-  height: 395px;
-}
-.page1 .graph {
-  position: absolute; /* 改为绝对定位 */
-  right: 10; /* 放置在 solutionsContentColumn 的右侧（640px + 100px 间距） */
-  top: 0; /* 确保与 solutionsContentColumn 顶部对齐 */
-  width: 60%; /* 固定宽度 */
-  height: 90%; /* 固定高度 */
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  box-sizing: border-box; /* 包括 padding 和 border */
-  overflow: hidden; /* 防止内容溢出 */
+  flex: 0 1 420px;
+  padding-top: 40px;
 }
 .page1 .contentWrapper {
-  display: flex;
-  flex-direction: column;
-  gap: 48px 0;
+  margin-bottom: 40px;
 }
-.page1 .solutionsHeaderWrapper {
-  display: flex;
-  flex-direction: column;
+.page1 .solutionsHeaderWrapper p {
+  font-size: 56px;
+  line-height: 1.1;
+  font-weight: 600;
+  letter-spacing: -0.003em;
+  color: #1d1d1f;
+  margin-bottom: 24px;
 }
-.page1 .noCodeSolutionsHeader {
-  width: 640px;
-  height: 152px;
-  font: 400 64px/1.18 Rubik, Helvetica, Arial, serif;
-  color: #21272a;
-}
-.page1 .solutionsDescriptionText {
-  font: 400 18px/1.39 Roboto, Helvetica, Arial, serif;
-  color: #21272a;
+.page1 .solutionsHeaderWrapper h1 {
+  font-size: 21px;
+  line-height: 1.5;
+  font-weight: 400;
+  color: #86868b;
+  margin: 0;
+  letter-spacing: 0.011em;
 }
 .page1 .linkDatabaseBtn {
-  display: flex;
-  justify-content: center;
-  width: 195px;
-  max-width: 100%;
-  font: 500 20px/1 Roboto, Helvetica, Arial, serif;
+  display: inline-flex;
+  align-items: center;
+  padding: 16px 32px;
+  font-size: 17px;
+  font-weight: 500;
   color: white;
-  text-align: center;
-  background-color: #0f62fe;
-  padding: 18px 32px;
-  outline: 2px solid #0f62fe;
-  outline-offset: -2px;
-  letter-spacing: 0.4px;
+  background-color: #0071e3;
+  border-radius: 980px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-top: 32px;
+}
+.page1 .linkDatabaseBtn:hover {
+  background-color: #0077ED;
+  transform: scale(1.02);
+}
+.page1 .graph {
+  flex: 0 1 800px;
+  height: 700px;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 32px;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.08);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  transform: perspective(1000px) rotateY(-5deg);
+  transition: transform 0.3s ease;
+}
+.page1 .graph:hover {
+  transform: perspective(1000px) rotateY(-2deg);
 }
 .page1 .tutorialsSection {
-  display: flex;
-  flex-direction: column;
-  /* height: 64vh; */
-  min-height: 87vh;
-  max-height: auto;
-  background-color: #f2f4f8;
-  margin-bottom: 20px;
-}
-@media (min-width: 1920px) and (max-width: 99999px) {
-  .page1 .tutorialGrid {
-    row-gap: 0;
-  }
-}
-@media (max-width: 1919px) {
-  .page1 .tutorialGrid {
-    row-gap: 0;
-  }
-}
-.page1 .tutorialItem {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  flex-grow: 1; /* Make the tutorialItem grow to fill the available space */
-  width: 100%; /* Make sure it takes the full width of the section */
-  height: 100%;
-  min-height: 900px; /* Set a minimum height for the tutorial items */
+  padding: 80px 0;
+  background-color: #fff;
+  overflow: hidden;
 }
 .page1 .tutorialHeaderWrapper {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  min-height: 20px;
+  text-align: center;
+  margin-bottom: 48px;
+  padding: 0 24px;
 }
 .page1 .tutorialHeaderText {
-  display: flex;
-  justify-content: center;
-  margin: 20px auto 20px auto; /* Add top margin to move it down */
-  font: 700 20px/1 Roboto, Helvetica, Arial, serif;
-  color: #001d6c;
-  text-align: center;
-  text-transform: uppercase;
-  letter-spacing: 1px;
+  font-size: 48px;
+  line-height: 1.1;
+  font-weight: 600;
+  letter-spacing: -0.003em;
+  color: #1d1d1f;
+  margin: 0;
 }
 .page1 .tutorialContentBox {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  flex-grow: 1;
-  background-color: #f2f4f8;
-  width: 100%;    /* 设置宽度为100% */
-  max-width: 80%; /* 设置最大宽度为80% */
-  min-height: 100%; /* 设置最小高度为100% */
-  margin: 0 auto; /* 居中对齐 */
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
 }
-.BentoGrid {
+.page1 .bentoGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); /* Responsive columns */
-  grid-template-rows: repeat(auto-fill, minmax(200px, 1fr));
-  grid-gap: 20px;
-  width: 100%;
-  height: auto; /* Allow height to adjust based on content */
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+  gap: 16px;
+  height: 480px;
 }
-.BentoCard {
-  flex-grow: 1; /* Allow the cards to grow */
-  height: auto;
-  min-height: 150px; /* Adjust the minimum height as needed */
-  width: 100%; /* Responsive width */
-  max-width: 100%;
-}
-.page1 .contactUsSection {
+.page1 .bentoCard {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  border-radius: 20px;
+  padding: 24px;
+  transition: all 0.3s ease;
   display: flex;
   flex-direction: column;
-  height: 23vh; /* The remaining height for the section */
-  background-color: #f2f4f8;
-  margin-bottom: 20px;
-}
-.page1 .contactWrapper {
-  display: flex;
-  flex-direction: column;
-  justify-content: center; /* Vertically centers the content */
-  background-color: #f2f4f8;
-  height: 100%;  /* 确保占满整个 contactUsSection 的高度 */
-  min-height: auto;
-}
-.page1 .contactDetailsColumn {
-  display: flex;
-  flex-direction: column;
-  margin: 80px auto 64px;
-  width: 89.17%;
-  justify-content: center;  /* 垂直居中 */
-}
-.page1 .contactInfoColumn {
-  display: flex;
-  flex-direction: column;
-  gap: 8px 0;
-  margin: 0 0 0 4px;
-  width: 131px;
-}
-.page1 .contactHeader {
-  font: 700 20px/1 Roboto, Helvetica, Arial, serif;
-  color: #001d6c;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-.page1 .problemDescriptionText {
-  font: 700 14px/1.1 Roboto, Helvetica, Arial, serif;
-  color: #21272a;
-}
-.page1 .contactSendRow {
-  display: flex;
   justify-content: space-between;
-  gap: 0 10px;
 }
-.page1 .problemDecor {
-  display: block;
-  margin: 23px 0 0;
-  width: 1083px;
-  min-width: 0;
-  min-height: 61px;
-  background-color: #f2f4f8;
-  border-radius: 10px;
-  outline: 1px solid black;
-  outline-offset: -1px;
+.page1 .bentoCard:hover {
+  background: rgba(255, 255, 255, 0.9);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
 }
-.page1 .contactSendBtn {
+.page1 .bentoCard.featured {
+  grid-column: span 2;
+  grid-row: span 2;
+}
+.page1 .tutorialCard {
+  background: #fff;
+  border-radius: 20px;
+  padding: 32px;
+  transition: all 0.3s ease;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  height: 280px; /* 固定卡片高度 */
   display: flex;
-  justify-content: center;
-  flex: 0 0 auto;
-  margin: 23px 0 28px;
-  min-width: 111px;
-  font: 500 20px/1 Roboto, Helvetica, Arial, serif;
-  color: white;
-  text-align: center;
-  background-color: #0f62fe;
-  padding: 18px 30px;
-  outline: 2px solid #0f62fe;
-  outline-offset: -2px;
-  letter-spacing: 0.5px;
-  word-break: normal;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.page1 .tutorialCard:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+}
+.page1 .tutorialTitle {
+  font-size: 24px;
+  font-weight: 600;
+  color: #1d1d1f;
+  margin-bottom: 16px;
+}
+.page1 .tutorialDescription {
+  font-size: 17px;
+  line-height: 1.5;
+  color: #86868b;
+  margin-bottom: 24px;
+}
+.page1 .tutorialLink {
+  color: #0071e3;
+  font-size: 17px;
+  font-weight: 500;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.page1 .tutorialLink:hover {
+  text-decoration: underline;
 }
 .page1 .footerSection {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 10px 20px;
-  background-color: #697077;
-  height: 6vh;
-  min-height: 6vh;
-  width: 100%;
-  position: relative;
+  background-color: #f5f5f7;
+  padding: 20px 0; /* 增加内边距 */
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
 }
 .page1 .footerWrapper {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 64px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  width: 100%;
-  max-width: 1200px; /* Optional: limit the width of the footer content */
-  margin: 0 auto;
+  height: 44px; /* 固定高度 */
 }
-.page1 .footerInfoColumn {
+.page1 .footerBrandingContainer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.page1 .footerBrandingImage {
+  width: 28px; /* 增大图标 */
+  height: 28px;
+  opacity: 0.8;
+}
+.page1 .footerBrandingText {
   display: flex;
   flex-direction: column;
-  gap: 40px 0;
-  width: 82.36%;
-  height: 100%; /* Make footerInfoColumn take up the full height of footerWrapper */
-  justify-content: center;  /* 垂直居中 */
+  gap: 2px;
 }
-.page1 .footerBrandingRow {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  flex-shrink: 0; /* Keep branding on the left */
+.page1 .footerBrandingName {
+  font-size: 17px; /* 增大字体 */
+  font-weight: 600;
+  color: #1d1d1f;
+  letter-spacing: 1.5px;
+}
+.page1 .footerBrandingStudio {
+  font-size: 15px; /* 增大字体 */
+  font-weight: 500;
+  color: #86868b;
+  letter-spacing: 1.2px;
 }
 .page1 .footerNavRow {
   display: flex;
-  justify-content: center; /* Center the navigation links */
-  flex-grow: 1; /* Allow the navigation to grow and take available space */
-  gap: 30px; /* Add space between navigation items */
+  gap: 40px; /* 增加间距 */
+  align-items: center;
+  height: 44px;
 }
-.page1 .footerHomeText,
-.page1 .footerPlaygroundText,
-.page1 .footerTutorialText,
-.page1 .footerAboutText {
-  color: white; /* Ensure text is visible on dark background */
-  font-size: 16px; /* Consistent font size */
-  text-decoration: none; /* Remove underline from links */
-  cursor: pointer;
-  display: flex; /* Use flexbox to align the text */
-  align-items: center; /* Vertically center the text */
-  justify-content: center; /* Horizontally center the text */
-  height: 100%; /* Ensure the links take up the full height of the container */
-  padding: 0; /* Reset any extra padding */
-  margin: 0; /* Reset any extra margin */
+.page1 .footerNavRow a {
+  font-size: 14px; /* 增大字体 */
+  font-weight: 400;
+  color: #515154;
+  text-decoration: none;
+  transition: color 0.2s ease;
+  letter-spacing: -0.01em;
+  padding: 8px 0;
+  position: relative;
 }
-.page1 .footerImagesRow {
-  display: flex;
-  gap: 20px;
-  flex-shrink: 0; /* Keep images on the right */
+.page1 .footerNavRow a:hover {
+  color: #0071e3;
 }
-.page1 .footerAdditionalImageOne {
-  width: 24px;
-  min-width: 0;
+.page1 .footerNavRow a::after {
+  content: '';
+  position: absolute;
+  bottom: 4px;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background-color: #0071e3;
+  transform: scaleX(0);
+  transition: transform 0.2s ease;
 }
-.page1 .footerAdditionalImageTwo {
-  width: 24px;
-  min-width: 0;
+.page1 .footerNavRow a:hover::after {
+  transform: scaleX(1);
 }
-.page1 .footerAdditionalImageThree {
-  width: 24px;
-  min-width: 0;
-}
-.page1 .footerAdditionalImageFour {
-  width: 24px;
-  min-width: 0;
-}
-.page1 .footerAdditionalImageFive {
-  width: 24px;
-  min-width: 0;
+.page1 .footerCopyright {
+  font-size: 13px; /* 增大字体 */
+  color: #86868b;
+  letter-spacing: -0.01em;
 }
 .modal {
   display: none;
@@ -467,127 +456,177 @@
   top: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   justify-content: center;
   align-items: center;
 }
 .modalContent {
-  background-color: #fff;
-  padding: 30px; /* 增加 padding 使内容有更多内边距 */
-  border: 1px solid #888;
-  width: 600px; /* 增加宽度 */
-  max-width: 80%; /* 保持响应式设计，最大宽度不超过屏幕的80% */
-  height: auto; /* 设置为自动高度 */
-  text-align: center;
-  border-radius: 8px;
+  background-color: rgba(255, 255, 255, 0.98);
+  padding: 32px;
+  width: 460px;
+  max-width: 90%;
+  border-radius: 12px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  text-align: left;
+  animation: modalFadeIn 0.3s ease;
+}
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 .header-container {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px; /* Add padding to ensure space around elements */
-  border-bottom: 1px solid #ddd;
-  margin-bottom: 20px;
-  border-radius: 8px 8px 0 0; /* Rounded top corners */
+  margin-bottom: 32px;
+  position: relative;
 }
 .closeBtn {
-  font-size: 28px;
-  font-weight: bold;
+  position: absolute;
+  right: -12px;
+  top: -12px;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  color: #86868b;
   cursor: pointer;
-  color: #aaa;
-  margin-left: 10px; /* Add margin to push away from the left edge */
+  border-radius: 50%;
+  transition: all 0.2s ease;
 }
 .closeBtn:hover {
-  color: black;
+  color: #1d1d1f;
+  background-color: rgba(0, 0, 0, 0.05);
 }
 .tabs {
   display: flex;
-  justify-content: space-between;
-  flex-grow: 1;
-  width: 100%; /* Make the tabs container take up the full width */
-  background-color: #f9f9f9;
+  gap: 24px;
+  margin-bottom: 32px;
+  border-bottom: 1px solid #d2d2d7;
+  padding-bottom: 8px;
 }
 .tab-button {
-  flex: 1; /* Ensure each tab-button takes up equal space */
-  text-align: center; /* Center the text inside the button */
-  padding: 10px;
+  font-size: 15px;
+  font-weight: 500;
+  color: #86868b;
+  background: none;
   border: none;
-  background-color: transparent;
+  padding: 8px 0;
   cursor: pointer;
+  position: relative;
+  transition: color 0.2s ease;
 }
 .tab-button.active {
-  background-color: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  color: #1d1d1f;
+  font-weight: 600;
 }
-.tab-button:first-child {
-  border-radius: 8px 0 0 8px;
-}
-.tab-button:last-child {
-  border-radius: 0 8px 8px 0;
-}
-.tab-content {
-  display: none;
-}
-.tab-content.active {
-  display: block;
+.tab-button.active::after {
+  content: '';
+  position: absolute;
+  bottom: -9px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background-color: #0071e3;
+  border-radius: 1px;
 }
 .input-group {
-  display: flex;
-  align-items: center;
-  margin-bottom: 15px;
+  margin-bottom: 24px;
 }
 .input-group label {
-  flex: 0 0 120px; /* Label的固定宽度 */
-  margin-bottom: 0;
-  font-weight: bold;
-}
-.input-group input,
-.input-group select {
-  padding: 12px; /* 增加输入框内边距，使其看起来更高 */
-  font-size: 16px; /* 增大字体 */
-  border: 1px solid #ccc;
-  border-radius: 4px;
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  color: #86868b;
+  margin-bottom: 8px;
 }
 .input-flex {
   display: flex;
-  flex-grow: 1; /* input-flex 占据父容器的所有剩余空间 */
+  gap: 8px;
+}
+.input-flex select,
+.input-flex input,
+.input-group input {
+  width: 100%;
+  height: 36px;
+  padding: 8px 12px;
+  font-size: 14px;
+  color: #1d1d1f;
+  background-color: rgba(0, 0, 0, 0.02);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  transition: all 0.2s ease;
 }
 .input-flex select {
-  flex-basis: 30%; /* Select 框占 30% 的宽度 */
+  width: 110px;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  background-size: 16px;
+  padding-right: 32px;
 }
-.input-flex {
-  display: flex;
-  flex-grow: 1;
+.input-flex select:hover,
+.input-flex input:hover,
+.input-group input:hover {
+  background-color: rgba(0, 0, 0, 0.03);
+  border-color: rgba(0, 0, 0, 0.2);
 }
-.input-group input {
-  flex-grow: 1; /* 确保其他输入框占据剩余的宽度 */
-}
-.submit-btn {
-  width: 100%;
-  padding: 15px; /* 增加按钮内边距 */
-  font-size: 18px; /* 增大按钮字体 */
-  background-color: #007bff;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-.submit-btn:hover {
-  background-color: #0056b3;
+.input-flex select:focus,
+.input-flex input:focus,
+.input-group input:focus {
+  background-color: white;
+  border-color: #0071e3;
+  box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.12);
+  outline: none;
 }
 .remember-me {
   display: flex;
-  justify-content: flex-end;
   align-items: center;
-  margin-bottom: 15px;
+  margin: 24px 0;
+  gap: 8px;
 }
-.remember-me input {
-  margin-right: 5px; /* 缩小复选框和文字之间的距离 */
+.remember-me input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  border-radius: 4px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  cursor: pointer;
 }
 .remember-me label {
-  font-size: 14px; /* 保持文字大小 */
-  cursor: pointer; /* 鼠标移动到文本上时显示为点击手势 */
+  font-size: 13px;
+  color: #86868b;
+  cursor: pointer;
+}
+.submit-btn {
+  width: 100%;
+  height: 40px;
+  background-color: #0071e3;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.submit-btn:hover {
+  background-color: #0077ED;
+}
+.submit-btn:active {
+  background-color: #006EDB;
+  transform: scale(0.98);
 }
 #registerForm {
   display: block;

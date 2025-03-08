@@ -13,6 +13,7 @@ import { useTabManager } from '../hooks/useTabManager';
 import { QueryParamsGenerator, QueryManager } from '../utils/queryGenerator';
 import AddQuery from '../components/AddQuery';
 import Link from 'next/link';
+import SearchBox from '../components/SearchBox';
 
 // 动态加载 GraphComponent
 const DrawGraph = dynamic(() => import('../components/DrawGraph'), { ssr: false });
@@ -529,63 +530,19 @@ export default function Playground() {
     }
   };
 
-  const handleSearch = (query) => {
-    if (!query.trim()) {
-      // If the query is empty, reset the filtered results to empty
-      setFilteredResults({
-        nodeEntities: [],
-        relationshipEntities: [],
-        propertyKeys: [],
-      });
-      return;
-    }
-
-    // Normalize query and prepare data
-    const lowerCaseQuery = query.toLowerCase();
-
-    // Filter node entities
-    const filteredNodeEntities = Object.entries(nodePrimeEntities).flatMap(([label, entities]) =>
-      searchData(
-        entities, // Array of strings
-        lowerCaseQuery, // Query
-        (entity) => entity, // Directly use the string entity for filtering
-        (entity, index) => `${label}-${index}` // Generate an ID based on the label and index
-      )
-    );
-    console.log("Filtered nodeEntities:", filteredNodeEntities);
-
-    // Filter relationship entities
-    const filteredRelationshipEntities = Object.entries(relationshipPrimeEntities).flatMap(([type, entities]) =>
-      searchData(
-        entities,
-        lowerCaseQuery,
-        (entity) => entity.join(' '), // Accessor for combined entity properties
-        (entity) => entity.id // Accessor for relationship id
-      )
-    );
-
-    // Filter property keys
-    const filteredPropertyKeys = searchData(
-      propertyKeys,
-      lowerCaseQuery,
-      (key) => key // Accessor for property key
-    );
-
-    // Aggregate results
-    const results = {
-      nodeEntities: filteredNodeEntities,
-      relationshipEntities: filteredRelationshipEntities,
-      propertyKeys: filteredPropertyKeys,
+  // 添加新的搜索结果处理函数
+  const handleSearchResults = (results) => {
+    // 将 SearchBox 的搜索结果转换为 filteredResults 格式
+    const convertedResults = {
+      nodeEntities: results
+        .find(category => category.category === 'NODEENTITIES')?.items || [],
+      relationshipEntities: results
+        .find(category => category.category === 'RELATIONSHIPENTITIES')?.items || [],
+      propertyKeys: results
+        .find(category => category.category === 'Property Keys')?.items || []
     };
-
-    // Update state
-    setFilteredResults(results);
-  };
-
-  const handleSearchInput = (e) => {
-    const query = e.target.value;
-    setSearchQuery(query);
-    handleSearch(query);
+    
+    setFilteredResults(convertedResults);
   };
 
   const tabContentRef = useRef(null); // 用于获取 tabContent 的 DOM
@@ -674,42 +631,14 @@ export default function Playground() {
                   />
 
                 <div className={styles.searchFeatureContentBox}>
-                  <div className={styles.flexRowSearchFeature}>
-                    <Image
-                      className={styles.imageSearchFeature}
-                      src="/assets/5ef24176ffb1a63d056fe2471d9a3805.svg"
-                      alt="search icon"
-                      width={30}
-                      height={30}
-                    />
-                    <input
-                      type="text"
-                      placeholder="Search for..."
-                      value={searchQuery}
-                      onChange={handleSearchInput}
-                      className={styles.searchInput}
-                    />
-                  </div>
-
-                  {/* Display categorized search results */}
-                  {searchQuery.trim() && (
-                    <div className={styles.searchResults}>
-                      {Object.entries(filteredResults).map(([category, results]) => (
-                        results.length > 0 && (
-                          <div key={category} className={styles.searchCategory}>
-                            <h4 className={styles.categoryTitle}>{category}</h4>
-                            <ul className={styles.resultList}>
-                              {results.map((result, idx) => (
-                                <li key={idx} className={styles.searchResultItem}>
-                                  <span className={styles.resultName}>{result.value || result}</span> {/* Render value */}
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        )
-                      ))}
-                    </div>
-                  )}
+                  <SearchBox 
+                    data={{
+                      nodeEntities: nodePrimeEntities,
+                      relationshipEntities: relationshipPrimeEntities,
+                      propertyKeys: propertyKeys
+                    }}
+                    onSearch={handleSearchResults}
+                  />
                 </div>
                 
                 <GraphInfoDisplay graphNodes={graphNodes} graphRelationships={graphRelationships} />

@@ -8,7 +8,7 @@ const Filter = ({ graphNodes: nodes, graphRelationships: relationships, setGraph
   const [isExpanded, setIsExpanded] = useState(false);
   const [activeTab, setActiveTab] = useState("relationship");
   const [hiddenTypes, setHiddenTypes] = useState({});
-  const [selectedNode, setSelectedNode] = useState(null);
+  const [selectedNodes, setSelectedNodes] = useState(new Set());
 
   // Group nodes by their labels
   const nodeLabels = [...new Set(nodes.map((node) => node.nodeLabel))];
@@ -127,65 +127,79 @@ const Filter = ({ graphNodes: nodes, graphRelationships: relationships, setGraph
 
   // 处理节点选中
   const handleNodeSelect = async (nodeId) => {
-    if (selectedNode === nodeId) {
-      // 取消选中 - 恢复所有节点和关系
-      setSelectedNode(null);
+    const newSelectedNodes = new Set(selectedNodes);
+    
+    if (selectedNodes.has(nodeId)) {
+      // 如果节点已经被选中，则取消选中
+      newSelectedNodes.delete(nodeId);
       
-      // 恢复缓冲区中的节点
-      await setGraphNodes(prev => [...prev, ...graphNodesBuffer]);
-      await setGraphNodesBuffer([]);
-      
-      // 恢复缓冲区中的关系
-      await setGraphRelationships(prev => [...prev, ...graphRelationshipsBuffer]);
-      await setGraphRelationshipsBuffer([]);
+      if (newSelectedNodes.size === 0) {
+        // 如果没有选中的节点了，恢复所有节点和关系
+        await setGraphNodes(prev => [...prev, ...graphNodesBuffer]);
+        await setGraphNodesBuffer([]);
+        
+        await setGraphRelationships(prev => [...prev, ...graphRelationshipsBuffer]);
+        await setGraphRelationshipsBuffer([]);
+      } else {
+        // 否则，重新计算要显示的节点和关系
+        updateVisibleNodesAndRelationships(newSelectedNodes);
+      }
     } else {
       // 选中新节点
-      setSelectedNode(nodeId);
-      
-      // 找出与选中节点相关的关系
-      const relatedRelationships = relationships.filter(
-        rel => rel.startNode === nodeId || rel.endNode === nodeId
-      );
-      
-      // 找出与这些关系相关的节点ID
-      const relatedNodeIds = new Set([
-        nodeId,
-        ...relatedRelationships.map(rel => rel.startNode),
-        ...relatedRelationships.map(rel => rel.endNode)
-      ]);
-      
-      // 将不相关的节点移到缓冲区
-      const [nodesToKeep, nodesToBuffer] = nodes.reduce(
-        ([keep, buffer], node) => {
-          if (relatedNodeIds.has(node.id)) {
-            keep.push(node);
-          } else {
-            buffer.push(node);
-          }
-          return [keep, buffer];
-        },
-        [[], []]
-      );
-      
-      // 将不相关的关系移到缓冲区
-      const [relsToKeep, relsToBuffer] = relationships.reduce(
-        ([keep, buffer], rel) => {
-          if (relatedNodeIds.has(rel.startNode) && relatedNodeIds.has(rel.endNode)) {
-            keep.push(rel);
-          } else {
-            buffer.push(rel);
-          }
-          return [keep, buffer];
-        },
-        [[], []]
-      );
-
-      // 更新显示和缓冲区
-      await setGraphNodes(nodesToKeep);
-      await setGraphNodesBuffer(prev => [...prev, ...nodesToBuffer]);
-      await setGraphRelationships(relsToKeep);
-      await setGraphRelationshipsBuffer(prev => [...prev, ...relsToBuffer]);
+      newSelectedNodes.add(nodeId);
+      updateVisibleNodesAndRelationships(newSelectedNodes);
     }
+    
+    setSelectedNodes(newSelectedNodes);
+  };
+
+  // 新增辅助函数来更新可见的节点和关系
+  const updateVisibleNodesAndRelationships = async (selectedNodeIds) => {
+    // 找出所有与选中节点相关的关系
+    const relatedRelationships = relationships.concat(graphRelationshipsBuffer).filter(
+      rel => selectedNodeIds.has(rel.startNode) || selectedNodeIds.has(rel.endNode)
+    );
+    
+    // 找出所有相关节点的ID
+    const relatedNodeIds = new Set([
+      ...selectedNodeIds,
+      ...relatedRelationships.map(rel => rel.startNode),
+      ...relatedRelationships.map(rel => rel.endNode)
+    ]);
+    
+    // 将所有节点分为要显示的和要缓存的
+    const allNodes = nodes.concat(graphNodesBuffer);
+    const [nodesToShow, nodesToBuffer] = allNodes.reduce(
+      ([show, buffer], node) => {
+        if (relatedNodeIds.has(node.id)) {
+          show.push(node);
+        } else {
+          buffer.push(node);
+        }
+        return [show, buffer];
+      },
+      [[], []]
+    );
+    
+    // 将所有关系分为要显示的和要缓存的
+    const allRelationships = relationships.concat(graphRelationshipsBuffer);
+    const [relsToShow, relsToBuffer] = allRelationships.reduce(
+      ([show, buffer], rel) => {
+        if (relatedNodeIds.has(rel.startNode) && relatedNodeIds.has(rel.endNode)) {
+          show.push(rel);
+        } else {
+          buffer.push(rel);
+        }
+        return [show, buffer];
+      },
+      [[], []]
+    );
+
+    // 更新显示和缓冲区
+    await setGraphNodes(nodesToShow);
+    await setGraphNodesBuffer(nodesToBuffer);
+    await setGraphRelationships(relsToShow);
+    await setGraphRelationshipsBuffer(relsToBuffer);
   };
 
   return (
@@ -264,7 +278,7 @@ const Filter = ({ graphNodes: nodes, graphRelationships: relationships, setGraph
                       .map((node, index) => (
                         <div 
                           key={index} 
-                          className={`${styles.nodeRow} ${selectedNode === node.id ? styles.selectedNode : ''}`}
+                          className={`${styles.nodeRow} ${selectedNodes.has(node.id) ? styles.selectedNode : ''}`}
                           onClick={() => handleNodeSelect(node.id)}
                         >
                           <div className={styles.nodeProperty}>

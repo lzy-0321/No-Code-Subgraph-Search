@@ -261,13 +261,10 @@ export default function Home() {
             <DrawGraph 
               nodes={graphNodes} 
               relationships={graphRelationships}
-              width={800}  // 增大宽度
-              height={700} // 增大高度
-              enableZoom={false}
-              // 添加其他配置以优化显示效果
-              nodeSize={60} // 增大节点大小
-              fontSize={16} // 增大字体大小
-              linkDistance={200} // 增加节点间距
+              width={800}
+              height={700}
+              enableZoom={true}
+              useNormalCanvas={true}
             />
           </div>
         </div>

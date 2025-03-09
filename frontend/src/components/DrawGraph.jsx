@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { ForceGraph2D } from 'react-force-graph';
 
-const DrawGraph = ({ nodes, relationships, enableZoom = true }) => {
+const DrawGraph = ({ nodes, relationships, enableZoom = true, useNormalCanvas = false }) => {
   const containerRef = useRef(null);
   const graphRef = useRef(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -146,31 +146,49 @@ const DrawGraph = ({ nodes, relationships, enableZoom = true }) => {
     };
   }, [viewTransform]);
 
-  // 设置一个较大的画布尺寸
+  // 根据 useNormalCanvas 属性决定画布大小和初始位置
   const CANVAS_SIZE = {
-    width: window.innerWidth * 3,  // 3倍视窗宽度
-    height: window.innerHeight * 3 // 3倍视窗高度
+    width: useNormalCanvas ? 800 : window.innerWidth * 3,  // 使用固定宽度
+    height: useNormalCanvas ? 700 : window.innerHeight * 3 // 使用固定高度
   };
 
   // 初始化视图位置到中心
   useEffect(() => {
-    setViewTransform({
-      x: -CANVAS_SIZE.width / 3,  // 将视图居中
-      y: -CANVAS_SIZE.height / 3,
-      scale: 1
-    });
-  }, []);
-
-  // 监听数据变化，当节点和关系都为空时重置画布位置
-  useEffect(() => {
-    if (nodes.length === 0 && relationships.length === 0) {
+    if (useNormalCanvas) {
+      // homepage 的初始位置
+      setViewTransform({
+        x: 0,
+        y: 0,
+        scale: 1
+      });
+    } else {
+      // playground 的初始位置
       setViewTransform({
         x: -CANVAS_SIZE.width / 3,
         y: -CANVAS_SIZE.height / 3,
         scale: 1
       });
     }
-  }, [nodes.length, relationships.length]);
+  }, [useNormalCanvas]);
+
+  // 监听数据变化，当节点和关系都为空时重置画布位置
+  useEffect(() => {
+    if (nodes.length === 0 && relationships.length === 0) {
+      if (useNormalCanvas) {
+        setViewTransform({
+          x: 0,
+          y: 0,
+          scale: 1
+        });
+      } else {
+        setViewTransform({
+          x: -CANVAS_SIZE.width / 3,
+          y: -CANVAS_SIZE.height / 3,
+          scale: 1
+        });
+      }
+    }
+  }, [nodes.length, relationships.length, useNormalCanvas]);
 
   return (
     <div
@@ -210,7 +228,7 @@ const DrawGraph = ({ nodes, relationships, enableZoom = true }) => {
           width={CANVAS_SIZE.width}
           height={CANVAS_SIZE.height}
           graphData={data}
-          centerAt={[CANVAS_SIZE.width / 2, CANVAS_SIZE.height / 2]} // 将图形居中
+          centerAt={useNormalCanvas ? [CANVAS_SIZE.width / 2, CANVAS_SIZE.height / 2] : undefined}
           enableZoomInteraction={enableZoom}
           enablePanInteraction={false}
           nodeCanvasObject={(node, ctx, globalScale) => {

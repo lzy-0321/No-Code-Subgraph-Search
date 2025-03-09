@@ -8,12 +8,45 @@ const Filter = ({ graphNodes: nodes, graphRelationships: relationships, setGraph
   const [isExpanded, setIsExpanded] = useState(false);
   const [activeTab, setActiveTab] = useState("relationship");
   const [hiddenTypes, setHiddenTypes] = useState({});
+  const [selectedNode, setSelectedNode] = useState(null);
 
   // Group nodes by their labels
   const nodeLabels = [...new Set(nodes.map((node) => node.nodeLabel))];
   
   // Group relationships by type
   const groupedRelationships = groupRelationshipsByType(relationships.concat(graphRelationshipsBuffer));
+
+  // 检查是否有数据
+  const hasData = nodes.length > 0 || relationships.length > 0 || graphNodesBuffer.length > 0 || graphRelationshipsBuffer.length > 0;
+  
+  // 检查是否有关系数据
+  const hasRelationships = relationships.length > 0 || graphRelationshipsBuffer.length > 0;
+
+  // 检查是否有节点数据
+  const hasNodes = nodes.length > 0 || graphNodesBuffer.length > 0;
+
+  // 只在初始化和数据类型变化时更新激活的标签页
+  useEffect(() => {
+    // 只在以下情况更新activeTab：
+    // 1. 当前选中的标签页不可用（比如选中relationship但没有关系数据）
+    // 2. 当前没有选中的标签页
+    const isCurrentTabInvalid = 
+      (activeTab === "relationship" && !hasRelationships) || 
+      (activeTab !== "relationship" && !nodeLabels.includes(activeTab));
+
+    if (isCurrentTabInvalid) {
+      if (hasRelationships) {
+        setActiveTab("relationship");
+      } else if (hasNodes && nodeLabels.length > 0) {
+        setActiveTab(nodeLabels[0]);
+      }
+    }
+  }, [hasRelationships, hasNodes, nodeLabels, activeTab]);
+
+  // 处理标签页切换
+  const handleTabChange = (newTab) => {
+    setActiveTab(newTab);
+  };
 
   const toggleVisibilityByType = async (type) => {
     const isHidden = hiddenTypes[type];
@@ -92,6 +125,69 @@ const Filter = ({ graphNodes: nodes, graphRelationships: relationships, setGraph
     }));
   };
 
+  // 处理节点选中
+  const handleNodeSelect = async (nodeId) => {
+    if (selectedNode === nodeId) {
+      // 取消选中 - 恢复所有节点和关系
+      setSelectedNode(null);
+      
+      // 恢复缓冲区中的节点
+      await setGraphNodes(prev => [...prev, ...graphNodesBuffer]);
+      await setGraphNodesBuffer([]);
+      
+      // 恢复缓冲区中的关系
+      await setGraphRelationships(prev => [...prev, ...graphRelationshipsBuffer]);
+      await setGraphRelationshipsBuffer([]);
+    } else {
+      // 选中新节点
+      setSelectedNode(nodeId);
+      
+      // 找出与选中节点相关的关系
+      const relatedRelationships = relationships.filter(
+        rel => rel.startNode === nodeId || rel.endNode === nodeId
+      );
+      
+      // 找出与这些关系相关的节点ID
+      const relatedNodeIds = new Set([
+        nodeId,
+        ...relatedRelationships.map(rel => rel.startNode),
+        ...relatedRelationships.map(rel => rel.endNode)
+      ]);
+      
+      // 将不相关的节点移到缓冲区
+      const [nodesToKeep, nodesToBuffer] = nodes.reduce(
+        ([keep, buffer], node) => {
+          if (relatedNodeIds.has(node.id)) {
+            keep.push(node);
+          } else {
+            buffer.push(node);
+          }
+          return [keep, buffer];
+        },
+        [[], []]
+      );
+      
+      // 将不相关的关系移到缓冲区
+      const [relsToKeep, relsToBuffer] = relationships.reduce(
+        ([keep, buffer], rel) => {
+          if (relatedNodeIds.has(rel.startNode) && relatedNodeIds.has(rel.endNode)) {
+            keep.push(rel);
+          } else {
+            buffer.push(rel);
+          }
+          return [keep, buffer];
+        },
+        [[], []]
+      );
+
+      // 更新显示和缓冲区
+      await setGraphNodes(nodesToKeep);
+      await setGraphNodesBuffer(prev => [...prev, ...nodesToBuffer]);
+      await setGraphRelationships(relsToKeep);
+      await setGraphRelationshipsBuffer(prev => [...prev, ...relsToBuffer]);
+    }
+  };
+
   return (
     <div className={styles.filterContainer}>
       <button className={styles.filterButton} onClick={() => setIsExpanded(!isExpanded)}>
@@ -101,70 +197,89 @@ const Filter = ({ graphNodes: nodes, graphRelationships: relationships, setGraph
       {isExpanded && (
         <div className={styles.filterWindow}>
           {/* Header */}
-          <div className={styles.filterHeader}>
-            {activeTab === "relationship" ? "Relationship Types" : `${activeTab} Properties`}
-          </div>
+          {hasData && (
+            <div className={styles.filterHeader}>
+              {activeTab === "relationship" && hasRelationships ? "Relationship Types" : 
+               nodeLabels.includes(activeTab) ? `${activeTab} Properties` : null}
+            </div>
+          )}
 
           {/* Tabs */}
-          <div className={styles.tabs}>
-            <button
-              className={`${styles.tab} ${activeTab === "relationship" ? styles.activeTab : ""}`}
-              onClick={() => setActiveTab("relationship")}
-            >
-              Relationship
-            </button>
-            {nodeLabels.map((label) => (
-              <button
-                key={label}
-                className={`${styles.tab} ${activeTab === label ? styles.activeTab : ""}`}
-                onClick={() => setActiveTab(label)}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
+          {hasData && (
+            <div className={styles.tabs}>
+              {hasRelationships && (
+                <button
+                  className={`${styles.tab} ${activeTab === "relationship" ? styles.activeTab : ""}`}
+                  onClick={() => handleTabChange("relationship")}
+                >
+                  Relationship
+                </button>
+              )}
+              {nodeLabels.map((label) => (
+                <button
+                  key={label}
+                  className={`${styles.tab} ${activeTab === label ? styles.activeTab : ""}`}
+                  onClick={() => handleTabChange(label)}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          )}
 
           {/* Tab Content */}
           <div className={styles.tabContent}>
-            {activeTab === "relationship" && (
-              <div className={styles.relationshipContent}>
-                {Object.entries(groupedRelationships)
-                .map(([type, relationships]) => {
-                  return (
-                    <div key={type} className={styles.relationshipRow}>
-                      <span className={styles.relationshipType}>{type}</span>
-                      <span className={styles.relationshipCount}>
-                        ({relationships.length})
-                      </span>
-                      <button
-                        className={styles.toggleVisibilityButton}
-                        onClick={() => toggleVisibilityByType(type)}
-                      >
-                        {hiddenTypes[type] ? <TbEyeOff /> : <TbEye />}
-                      </button>
-                    </div>
-                  );
-                })}
+            {!hasData ? (
+              <div className={styles.noDataMessage}>
+                No entities in the graph
               </div>
-            )}
+            ) : (
+              <>
+                {activeTab === "relationship" && hasRelationships && (
+                  <div className={styles.relationshipContent}>
+                    {Object.entries(groupedRelationships)
+                    .map(([type, relationships]) => {
+                      return (
+                        <div key={type} className={styles.relationshipRow}>
+                          <span className={styles.relationshipType}>{type}</span>
+                          <span className={styles.relationshipCount}>
+                            ({relationships.length})
+                          </span>
+                          <button
+                            className={styles.toggleVisibilityButton}
+                            onClick={() => toggleVisibilityByType(type)}
+                          >
+                            {hiddenTypes[type] ? <TbEyeOff /> : <TbEye />}
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
 
-            {nodeLabels.includes(activeTab) && (
-              <div className={styles.nodeContent}>
-                {nodes
-                  .filter((node) => node.nodeLabel === activeTab)
-                  .map((node, index) => (
-                    <div key={index} className={styles.nodeRow}>
-                      <div className={styles.nodeProperty}>
-                        <strong>ID:</strong> {node.id}
-                      </div>
-                      {Object.entries(node.properties).map(([key, value]) => (
-                        <div key={key} className={styles.nodeProperty}>
-                          <strong>{key}:</strong> {value}
+                {nodeLabels.includes(activeTab) && (
+                  <div className={styles.nodeContent}>
+                    {nodes
+                      .filter((node) => node.nodeLabel === activeTab)
+                      .map((node, index) => (
+                        <div 
+                          key={index} 
+                          className={`${styles.nodeRow} ${selectedNode === node.id ? styles.selectedNode : ''}`}
+                          onClick={() => handleNodeSelect(node.id)}
+                        >
+                          <div className={styles.nodeProperty}>
+                            <strong>ID:</strong> {node.id}
+                          </div>
+                          {Object.entries(node.properties).map(([key, value]) => (
+                            <div key={key} className={styles.nodeProperty}>
+                              <strong>{key}:</strong> {value}
+                            </div>
+                          ))}
                         </div>
                       ))}
-                    </div>
-                  ))}
-              </div>
+                  </div>
+                )}
+              </>
             )}
           </div>
         </div>

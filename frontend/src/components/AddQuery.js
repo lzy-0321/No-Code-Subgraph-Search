@@ -65,21 +65,29 @@ const AddQuery = ({
 
   const handleAddPath = () => {
     console.log('Starting handleAddPath');  // 添加日志
+    
+    // 过滤掉空属性
+    const startNodeProps = Object.fromEntries(
+      Object.entries(pathProperties.startNode || {})
+        .filter(([_, value]) => value !== '')
+    );
+    
+    const endNodeProps = Object.fromEntries(
+      Object.entries(pathProperties.endNode || {})
+        .filter(([_, value]) => value !== '')
+    );
+
     const queryParams = {
       type: 'path',
       params: {
         matchType: 'pathMatch',
         startNode: {
           label: selectedStartLabel,
-          properties: Object.fromEntries(
-            Object.entries(pathProperties.startNode || {}).filter(([_, value]) => value !== '')
-          )
+          properties: startNodeProps  // 使用过滤后的属性
         },
         endNode: {
           label: selectedEndLabel,
-          properties: Object.fromEntries(
-            Object.entries(pathProperties.endNode || {}).filter(([_, value]) => value !== '')
-          )
+          properties: endNodeProps    // 使用过滤后的属性
         },
         relationship: {
           types: Array.isArray(selectedRelationshipTypes) ? selectedRelationshipTypes : [],
@@ -89,25 +97,35 @@ const AddQuery = ({
         }
       }
     };
+    
     console.log('Generated queryParams:', queryParams);  // 添加日志
     
     if (selectedStartLabel && selectedEndLabel) {
       onQueryGenerated(queryParams);
+      handleClosePopup();  // 添加这行来关闭弹窗
     }
   };
 
   const handleAddNode = () => {
+    // 过滤掉空属性
+    const filteredProperties = Object.fromEntries(
+      Object.entries(nodeProperties)
+        .filter(([_, value]) => value !== '')
+    );
+
     const queryParams = {
-      label: selectedLabel,
-      properties: nodeProperties,
-      limit: limit ? parseInt(limit) : undefined
+      type: 'node',
+      params: {
+        matchType: 'labelMatch',
+        label: selectedLabel,
+        properties: filteredProperties,
+        limit: limit ? parseInt(limit) : undefined
+      }
     };
 
-    onQueryGenerated({
-      type: 'node',
-      params: queryParams
-    });
+    console.log('Node query params:', queryParams); // 添加日志
 
+    onQueryGenerated(queryParams);
     handleClosePopup();
   };
 
@@ -125,29 +143,33 @@ const AddQuery = ({
     
     const relationshipProps = Object.fromEntries(
       Object.entries(relationshipProperties.relationship || {})
-        .filter(([_, value]) => value !== '')
+        .filter(([_, value]) => value !== '' && value !== 'limit') // 排除 limit 属性
     );
 
     const queryParams = {
-      matchType: 'relationshipMatch',
-      relationType: selectedLabel,
-      properties: relationshipProps,
-      // 只在选择了具体标签且有属性时才包含节点信息
-      ...(selectedStartLabel && selectedStartLabel !== "Any node label" && {
-        startNodeLabel: selectedStartLabel,
-        ...(Object.keys(startNodeProps).length > 0 && { startNodeProps })
-      }),
-      ...(selectedEndLabel && selectedEndLabel !== "Any node label" && {
-        endNodeLabel: selectedEndLabel,
-        ...(Object.keys(endNodeProps).length > 0 && { endNodeProps })
-      })
+      type: 'relationship',
+      params: {
+        matchType: 'relationshipMatch',
+        relationType: selectedLabel,
+        properties: relationshipProps,
+        // 只在选择了具体标签且有属性时才包含节点信息
+        ...(selectedStartLabel && selectedStartLabel !== "Any node label" && {
+          startNodeLabel: selectedStartLabel,
+          ...(Object.keys(startNodeProps).length > 0 && { startNodeProps })
+        }),
+        ...(selectedEndLabel && selectedEndLabel !== "Any node label" && {
+          endNodeLabel: selectedEndLabel,
+          ...(Object.keys(endNodeProps).length > 0 && { endNodeProps })
+        }),
+        // 添加 limit 参数
+        limit: relationshipProperties.relationship?.limit ? 
+          parseInt(relationshipProperties.relationship.limit) : undefined
+      }
     };
 
-    onQueryGenerated({
-      type: 'relationship',
-      params: queryParams
-    });
+    console.log('Relationship query params:', queryParams); // 添加日志
 
+    onQueryGenerated(queryParams);
     handleClosePopup();
   };
 
@@ -469,12 +491,12 @@ const AddQuery = ({
                             </div>
                           ))}
                           <div className={styles.propertyRow}>
-                            <span className={styles.propertyLabel}>Path limit</span>
+                            <span className={styles.propertyLabel}>Limit</span>
                             <span className={styles.propertyIcon}>=</span>
                             <input
                               type="number"
                               min="1"
-                              placeholder="Enter Number"
+                              placeholder="Enter number of results"
                               className={styles.propertyInput}
                               onChange={(e) => setRelationshipProperties(prev => ({
                                 ...prev,

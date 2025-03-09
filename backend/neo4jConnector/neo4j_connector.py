@@ -263,7 +263,7 @@ class Neo4jConnector:
 
         try:
             with self.driver.session() as session:
-                query = f"MATCH (n:{label}) RETURN n LIMIT 100"
+                query = f"MATCH (n:{label}) RETURN n"
                 result = session.run(query)
 
                 prime_entities = []
@@ -340,7 +340,7 @@ class Neo4jConnector:
 
         try:
             with self.driver.session() as session:
-                query = f"MATCH (start)-[r:{label}]->(end) RETURN start, end, r LIMIT 100"
+                query = f"MATCH (start)-[r:{label}]->(end) RETURN start, end, r"
                 result = session.run(query)
 
                 prime_entities = []

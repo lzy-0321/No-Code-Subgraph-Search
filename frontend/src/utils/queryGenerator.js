@@ -309,7 +309,8 @@ export class QueryManager {
         matchType: 'labelMatch',
         label: params.label,
         properties: params.properties || {},
-        limit: params.limit
+        limit: params.limit,
+        exactMatch: false  // 添加这个参数来获取所有匹配的节点
       };
       
       console.log('Request body:', requestBody);
@@ -331,13 +332,21 @@ export class QueryManager {
         throw new Error(data.error || 'Query failed');
       }
 
-      // 修改结果处理逻辑
+      // 确保所有节点都被正确处理
+      const uniqueNodes = new Map();
+      data.data.forEach(record => {
+        const node = record.n;
+        if (!uniqueNodes.has(node.id)) {
+          uniqueNodes.set(node.id, {
+            id: node.id,
+            nodeLabel: Array.isArray(node.labels) ? node.labels[0] : node.labels,
+            properties: node.properties || {}
+          });
+        }
+      });
+
       return {
-        nodes: data.data.map(record => ({
-          id: record.n.id,  // 使用Neo4j返回的实际ID
-          nodeLabel: record.n.labels[0],  // 使用第一个标签
-          properties: record.n.properties  // 保持原有属性
-        })),
+        nodes: Array.from(uniqueNodes.values()),
         relationships: []
       };
     } catch (error) {
@@ -355,7 +364,6 @@ export class QueryManager {
         matchType: 'relationshipMatch',
         query: {
           relationType: params.relationType,
-          // 只在有具体标签和属性时才包含节点信息
           ...(params.startNodeLabel && {
             startNodeLabel: params.startNodeLabel,
             ...(Object.keys(params.startNodeProps || {}).length > 0 && {
@@ -363,12 +371,14 @@ export class QueryManager {
             })
           }),
           ...(params.endNodeLabel && {
-            endNodeLabel: params.endNodeLabel,
+            endNodeLabel: params.endLabel,
             ...(Object.keys(params.endNodeProps || {}).length > 0 && {
               endNodeProps: params.endNodeProps
             })
           }),
-          exactMatch: true
+          exactMatch: true,
+          // 将 limit 移到 query 对象内部
+          limit: params.limit ? parseInt(params.limit) : undefined
         }
       };
 
@@ -392,7 +402,10 @@ export class QueryManager {
       const nodes = new Map();
       const relationships = [];
 
-      data.data.forEach(record => {
+      // 只处理限制数量内的结果
+      const limitedData = params.limit ? data.data.slice(0, params.limit) : data.data;
+
+      limitedData.forEach(record => {
         // 添加起始节点
         nodes.set(record.a.id, {
           id: record.a.id,
@@ -432,15 +445,24 @@ export class QueryManager {
     try {
       console.log('Executing path query with params:', params);
 
+      // 过滤掉空的属性对象
+      const startNodeProps = Object.keys(params.startNode.properties || {}).length > 0 
+        ? params.startNode.properties 
+        : {};
+        
+      const endNodeProps = Object.keys(params.endNode.properties || {}).length > 0 
+        ? params.endNode.properties 
+        : {};
+
       const requestBody = {
         matchType: 'pathMatch',
         startNode: {
           label: params.startNode.label,
-          properties: params.startNode.properties || {}
+          properties: startNodeProps
         },
         endNode: {
           label: params.endNode.label,
-          properties: params.endNode.properties || {}
+          properties: endNodeProps
         },
         relationship: {
           types: params.relationship?.types || [],
@@ -477,7 +499,7 @@ export class QueryManager {
           if (!nodes.has(node.id)) {
             nodes.set(node.id, {
               id: node.id,
-              labels: Array.isArray(node.labels) ? node.labels : [node.labels],
+              nodeLabel: Array.isArray(node.labels) ? node.labels[0] : node.labels,
               properties: node.properties || {}
             });
           }

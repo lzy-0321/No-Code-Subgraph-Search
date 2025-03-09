@@ -167,12 +167,14 @@ export default function Playground() {
   const queryManager = new QueryManager();
 
   const handleQueryGenerated = async (queryData) => {
-    console.log('handleQueryGenerated received:', queryData);  // 添加日志
+    console.log('handleQueryGenerated received:', queryData);
     try {
       const result = await queryManager.executeQuery(queryData);
       if (result) {
-        setGraphNodes(prevNodes => [...prevNodes, ...result.nodes]);
-        setGraphRelationships(prevRels => [...prevRels, ...result.relationships]);
+        // 使用 updateGraphData 来更新图数据
+        const newNodes = [...graphNodes, ...result.nodes];
+        const newRelationships = [...graphRelationships, ...result.relationships];
+        updateGraphData(newNodes, newRelationships);
       }
     } catch (error) {
       console.error('Error executing query:', error);
@@ -180,20 +182,55 @@ export default function Playground() {
   };
 
   
-  // 添加处理节点查询的函数
+  // 获取当前 tab 的图数据
+  const currentTabGraphData = activeTab ? getTabState(activeTab)?.graphData : {
+    nodes: [],
+    relationships: []
+  };
+
+  // 当 activeTab 改变时更新图数据
+  useEffect(() => {
+    if (activeTab && getTabState(activeTab)?.graphData) {
+      setGraphNodes(getTabState(activeTab).graphData.nodes || []);
+      setGraphRelationships(getTabState(activeTab).graphData.relationships || []);
+    } else {
+      setGraphNodes([]);
+      setGraphRelationships([]);
+    }
+  }, [activeTab]);
+
+  // 更新图数据时同时更新 tab 状态
+  const updateGraphData = (newNodes, newRelationships) => {
+    if (!activeTab) return;
+
+    setGraphNodes(newNodes);
+    setGraphRelationships(newRelationships);
+
+    saveTabState(activeTab, {
+      ...getTabState(activeTab),
+      graphData: {
+        nodes: newNodes,
+        relationships: newRelationships
+      }
+    });
+  };
+
+  const searchBoxRef = useRef(null);
+
+  // 修改节点处理函数
   const handleNodeQuery = (label, entity) => {
-    const displayValue = entity[0];  // 显示值
-    const displayProperty = displayProperties[label]?.displayProperty;  // 获取显示属性名
+    const displayValue = entity[0];
+    const displayProperty = displayProperties[label]?.displayProperty;
     
     if (!displayProperty) {
       console.error(`No display property found for label: ${label}`);
       return;
     }
 
-    // 构建查询数据，遵循 queryGenerator 的格式
+    // 构建查询数据
     const queryData = {
-      type: 'node',  // 添加类型标识
-      params: {      // 将查询参数放在 params 对象中
+      type: 'node',
+      params: {
         matchType: 'labelMatch',
         label: label,
         properties: {
@@ -204,15 +241,19 @@ export default function Playground() {
 
     console.log('Generating query for node:', queryData);
     handleQueryGenerated(queryData);
+
+    // 清除搜索框
+    if (searchBoxRef.current) {
+      searchBoxRef.current.clearSearch();
+    }
   };
 
-  // 添加处理关系查询的函数
+  // 修改关系处理函数，只处理查询
   const handleRelationshipQuery = (type, entity) => {
-    const [startNode, endNode] = entity;  // entity 是 [[startDisplay, startId], [endDisplay, endId]]
+    const [startNode, endNode] = entity;
     const startDisplay = startNode[0];
     const endDisplay = endNode[0];
     
-    // 通过ID在 nodeEntities 中查找对应的标签
     const startNodeLabel = findNodeLabelById(startNode[1]);
     const endNodeLabel = findNodeLabelById(endNode[1]);
     
@@ -221,7 +262,6 @@ export default function Playground() {
       return;
     }
 
-    // 获取对应标签的显示属性
     const startDisplayProperty = displayProperties[startNodeLabel]?.displayProperty;
     const endDisplayProperty = displayProperties[endNodeLabel]?.displayProperty;
 
@@ -488,45 +528,75 @@ export default function Playground() {
     }
   };
 
-  // 处理关系类型点击
-  const handleRelationshipClick = async (relationType) => {
-    try {
+  // 修改处理关系类型点击的函数
+  const handleRelationshipClick = async (relationType, entity) => {
+    if (!entity) return;
 
-      const data = await response.json();
-      if (data.success) {
-        // 更新图形显示
+    try {
+      const [startNode, endNode] = entity;
+      
+      // 通过显示值查找节点实体
+      const startNodeEntity = Object.entries(nodePrimeEntities).find(([label, entities]) => 
+        entities.some(e => e[0] === startNode[0])  // 使用显示值匹配
+      );
+      
+      const endNodeEntity = Object.entries(nodePrimeEntities).find(([label, entities]) => 
+        entities.some(e => e[0] === endNode[0])    // 使用显示值匹配
+      );
+
+      if (startNodeEntity && endNodeEntity) {
+        // 获取完整的节点信息
+        const startNodeInfo = startNodeEntity[1].find(e => e[0] === startNode[0]);
+        const endNodeInfo = endNodeEntity[1].find(e => e[0] === endNode[0]);
+
         const newNodes = new Set();
         const newRelationships = [];
 
-        data.data.forEach(record => {
-          // 添加起始节点
-          newNodes.add({
-            id: record.a.properties.id || Math.random(),
-            nodeLabel: Array.isArray(record.a.labels) ? record.a.labels[0] : record.a.labels,
-            properties: record.a.properties
-          });
-
-          // 添加终止节点
-          newNodes.add({
-            id: record.b.properties.id || Math.random(),
-            nodeLabel: Array.isArray(record.b.labels) ? record.b.labels[0] : record.b.labels,
-            properties: record.b.properties
-          });
-
-          // 添加关系
-          newRelationships.push({
-            startNode: record.a.properties.id,
-            endNode: record.b.properties.id,
-            type: relationType,
-            properties: record.r ? record.r.properties : {}
-          });
+        // 添加起始节点
+        newNodes.add({
+          id: startNodeInfo[1],  // 使用实际的节点ID
+          nodeLabel: startNodeEntity[0],
+          properties: {
+            [displayProperties[startNodeEntity[0]]?.displayProperty]: startNode[0],
+            id: startNodeInfo[1]
+          }
         });
 
-        setGraphNodes(prevNodes => [...prevNodes, ...Array.from(newNodes)]);
-        setGraphRelationships(prevRels => [...prevRels, ...newRelationships]);
+        // 添加终止节点
+        newNodes.add({
+          id: endNodeInfo[1],    // 使用实际的节点ID
+          nodeLabel: endNodeEntity[0],
+          properties: {
+            [displayProperties[endNodeEntity[0]]?.displayProperty]: endNode[0],
+            id: endNodeInfo[1]
+          }
+        });
+
+        // 添加关系
+        newRelationships.push({
+          startNode: startNodeInfo[1],
+          endNode: endNodeInfo[1],
+          type: relationType,
+          properties: {
+            startNodeProperty: startNode[0],
+            endNodeProperty: endNode[0],
+            id: `${startNodeInfo[1]}_${endNodeInfo[1]}_${relationType}`
+          }
+        });
+
+        // 更新图数据
+        const updatedNodes = [...graphNodes, ...Array.from(newNodes)];
+        const updatedRelationships = [...graphRelationships, ...newRelationships];
+        updateGraphData(updatedNodes, updatedRelationships);
+      } else {
+        console.error('Could not find node entities for:', {
+          startNode: startNode[0],
+          endNode: endNode[0]
+        });
       }
+
     } catch (error) {
-      console.error('Error executing query:', error);
+      console.error('Error adding relationship:', error);
     }
   };
 
@@ -563,26 +633,42 @@ export default function Playground() {
     };
   }, []);
 
-  // 添加删除节点查询的处理函数
+  // 修改删除节点处理函数
   const handleDeleteNodeQuery = (nodeId) => {
-    setGraphNodes(prevNodes => prevNodes.filter(node => node.id !== nodeId));
-    // 同时删除与该节点相关的所有关系
-    setGraphRelationships(prevRels => prevRels.filter(rel => 
+    const newNodes = graphNodes.filter(node => node.id !== nodeId);
+    const newRelationships = graphRelationships.filter(rel => 
       rel.startNode !== nodeId && rel.endNode !== nodeId
-    ));
+    );
+    updateGraphData(newNodes, newRelationships);
   };
 
-  // 添加删除关系查询的处理函数
+  // 修改删除关系处理函数
   const handleDeleteRelationshipQuery = (startNode, endNode, type) => {
-    setGraphRelationships(prevRels => prevRels.filter(rel => 
+    const newRelationships = graphRelationships.filter(rel => 
       !(rel.startNode === startNode && rel.endNode === endNode && rel.type === type)
-    ));
+    );
+    updateGraphData(graphNodes, newRelationships);
   };
 
-  // 添加清除所有节点和关系的处理函数
+  // 修改清除所有处理函数
   const handleClearAll = () => {
-    setGraphNodes([]);
-    setGraphRelationships([]);
+    updateGraphData([], []);
+  };
+
+  // 获取当前激活的 tab 的搜索状态
+  const currentTabSearchState = activeTab ? getTabState(activeTab)?.searchState : {
+    searchQuery: '',
+    searchResults: []
+  };
+
+  // 处理搜索状态变化
+  const handleSearchStateChange = (newSearchState) => {
+    if (!activeTab) return;
+    
+    saveTabState(activeTab, {
+      ...getTabState(activeTab),
+      searchState: newSearchState
+    });
   };
 
   return (
@@ -632,12 +718,23 @@ export default function Playground() {
 
                 <div className={styles.searchFeatureContentBox}>
                   <SearchBox 
+                    ref={searchBoxRef}
                     data={{
                       nodeEntities: nodePrimeEntities,
                       relationshipEntities: relationshipPrimeEntities,
                       propertyKeys: propertyKeys
                     }}
                     onSearch={handleSearchResults}
+                    onNodeQuery={handleNodeQuery}
+                    onDeleteNodeQuery={handleDeleteNodeQuery}
+                    onDeleteRelationshipQuery={handleDeleteRelationshipQuery}
+                    handleRelationshipClick={handleRelationshipClick}
+                    graphNodes={graphNodes}
+                    graphRelationships={graphRelationships}
+                    displayProperties={displayProperties}
+                    searchState={currentTabSearchState}
+                    onSearchStateChange={handleSearchStateChange}
+                    activeTabId={activeTab}
                   />
                 </div>
                 
@@ -711,6 +808,7 @@ export default function Playground() {
                                   height={20}
                                   className={styles.addButton}
                                   onClick={(e) => {
+                                    e.preventDefault();
                                     e.stopPropagation();
                                     handleNodeQuery(label, entity);
                                   }}
@@ -752,7 +850,7 @@ export default function Playground() {
                             className={styles.typeItem} 
                             onClick={() => {
                               toggleExpandedRelationship(type);
-                              handleRelationshipClick(type);
+                              handleRelationshipClick(type, null);
                             }}
                           >
                             {type}
@@ -815,7 +913,7 @@ export default function Playground() {
                                         className={styles.addButton}
                                         onClick={(e) => {
                                           e.stopPropagation();
-                                          handleRelationshipQuery(type, entity);
+                                          handleRelationshipClick(type, entity);
                                         }}
                                       />
                                     )}
@@ -861,17 +959,6 @@ export default function Playground() {
                           >
                             {key}
                           </div>
-                          <Image
-                            src="/assets/add.svg"
-                            alt="add"
-                            width={20}
-                            height={20}
-                            className={styles.addButton}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              // 处理添加属性的逻辑
-                            }}
-                          />
                         </div>
                       ))}
                     </div>

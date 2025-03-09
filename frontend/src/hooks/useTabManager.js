@@ -1,7 +1,18 @@
 import { useState, useEffect } from 'react';
 
 export const useTabManager = (initialTab) => {
-  const [tabs, setTabs] = useState([initialTab]);
+  const [tabs, setTabs] = useState([{
+    id: 1,
+    title: 'Tab 1',
+    searchState: {
+      searchQuery: '',
+      searchResults: []
+    },
+    graphData: {
+      nodes: [],
+      relationships: []
+    }
+  }]);
   const [activeTab, setActiveTab] = useState(initialTab.id);
   const [tabDatabases, setTabDatabases] = useState({});
 
@@ -31,6 +42,10 @@ export const useTabManager = (initialTab) => {
               graphData: {
                 ...tab.graphData,
                 ...newState.graphData
+              },
+              searchState: {
+                ...tab.searchState,
+                ...newState.searchState
               }
             }
           : tab
@@ -45,7 +60,18 @@ export const useTabManager = (initialTab) => {
 
   // 添加新tab
   const addTab = (newTab) => {
-    setTabs(prevTabs => [...prevTabs, newTab]);
+    const tabWithEmptyData = {
+      ...newTab,
+      searchState: {
+        searchQuery: '',
+        searchResults: []
+      },
+      graphData: {
+        nodes: [],
+        relationships: []
+      }
+    };
+    setTabs(prevTabs => [...prevTabs, tabWithEmptyData]);
     setActiveTab(newTab.id);
   };
 

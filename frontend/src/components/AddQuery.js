@@ -60,6 +60,17 @@ const WarningBox = ({ message }) => {
   );
 };
 
+const WarningMessage = ({ message }) => {
+  if (!message) return null;
+  
+  return (
+    <div className={styles.warningMessage}>
+      <div className={styles.warningIcon}>⚠️</div>
+      <div className={styles.warningText}>{message}</div>
+    </div>
+  );
+};
+
 const AddQuery = ({ 
   AddTabNodeEntities: nodeEntities, 
   AddTabRelationshipEntities: relationshipEntities,
@@ -246,23 +257,30 @@ const AddQuery = ({
     if (!selectedLabel || !selectedStartLabel || !selectedEndLabel) return true;
     
     return !chainQueries.some(query => {
-      // 获取开始节点的标识符
-      const existingStart = query.startNodeRef || getNodeLetter(chainQueries.indexOf(query), 'start');
-      const newStart = selectedStartLabel.startsWith('ref:') ? 
-        availableNodes.get(selectedStartLabel.substring(4))?.letter : 
-        getNodeLetter(chainQueries.length, 'start');
-
-      // 获取结束节点的标识符
-      const existingEnd = query.endNodeRef || getNodeLetter(chainQueries.indexOf(query), 'end');
-      const newEnd = selectedEndLabel.startsWith('ref:') ? 
-        availableNodes.get(selectedEndLabel.substring(4))?.letter : 
-        getNodeLetter(chainQueries.length, 'end');
-
-      // 检查节点组合和关系类型是否重复
-      const isSameNodes = existingStart === newStart && existingEnd === newEnd;
+      // 获取开始节点的实际标签
+      const existingStartLabel = query.startNodeRef ? 
+        chainQueries[parseInt(query.startNodeRef.split('.')[0])].startNodeLabel : 
+        query.startNodeLabel;
+      
+      // 获取结束节点的实际标签
+      const existingEndLabel = query.endNodeRef ? 
+        chainQueries[parseInt(query.endNodeRef.split('.')[0])].endNodeLabel : 
+        query.endNodeLabel;
+      
+      // 获取当前选择的开始节点的实际标签
+      const newStartLabel = selectedStartLabel.startsWith('ref:') ? 
+        chainQueries[parseInt(selectedStartLabel.substring(4).split('.')[0])].startNodeLabel : 
+        selectedStartLabel;
+      
+      // 获取当前选择的结束节点的实际标签
+      const newEndLabel = selectedEndLabel.startsWith('ref:') ? 
+        chainQueries[parseInt(selectedEndLabel.substring(4).split('.')[0])].endNodeLabel : 
+        selectedEndLabel;
+      
+      // 检查节点标签组合和关系类型是否重复
+      const isSameNodes = existingStartLabel === newStartLabel && existingEndLabel === newEndLabel;
       const isSameRelationType = query.relationType === selectedLabel;
 
-      // 如果节点组合和关系类型都相同，则认为是重复的查询
       return isSameNodes && isSameRelationType;
     });
   };
@@ -271,22 +289,26 @@ const AddQuery = ({
   const getErrorMessage = () => {
     if (!isValidCombination()) {
       const duplicateQuery = chainQueries.find(query => {
-        const existingStart = query.startNodeRef || getNodeLetter(chainQueries.indexOf(query), 'start');
-        const newStart = selectedStartLabel.startsWith('ref:') ? 
-          availableNodes.get(selectedStartLabel.substring(4))?.letter : 
-          getNodeLetter(chainQueries.length, 'start');
-        const existingEnd = query.endNodeRef || getNodeLetter(chainQueries.indexOf(query), 'end');
-        const newEnd = selectedEndLabel.startsWith('ref:') ? 
-          availableNodes.get(selectedEndLabel.substring(4))?.letter : 
-          getNodeLetter(chainQueries.length, 'end');
+        const existingStartLabel = query.startNodeRef ? 
+          chainQueries[parseInt(query.startNodeRef.split('.')[0])].startNodeLabel : 
+          query.startNodeLabel;
+        const existingEndLabel = query.endNodeRef ? 
+          chainQueries[parseInt(query.endNodeRef.split('.')[0])].endNodeLabel : 
+          query.endNodeLabel;
+        const newStartLabel = selectedStartLabel.startsWith('ref:') ? 
+          chainQueries[parseInt(selectedStartLabel.substring(4).split('.')[0])].startNodeLabel : 
+          selectedStartLabel;
+        const newEndLabel = selectedEndLabel.startsWith('ref:') ? 
+          chainQueries[parseInt(selectedEndLabel.substring(4).split('.')[0])].endNodeLabel : 
+          selectedEndLabel;
 
-        return existingStart === newStart && 
-               existingEnd === newEnd && 
+        return existingStartLabel === newStartLabel && 
+               existingEndLabel === newEndLabel && 
                query.relationType === selectedLabel;
       });
 
       const queryIndex = chainQueries.indexOf(duplicateQuery) + 1;
-      return `This relationship (${selectedLabel}) already exists between these nodes in Query ${queryIndex}. Please choose a different combination.`;
+      return `This relationship pattern already exists in Query ${queryIndex}. Please choose a different combination.`;
     }
     return null;
   };

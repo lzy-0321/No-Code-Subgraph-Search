@@ -113,6 +113,168 @@
 //   }
 // }
 
+// 8. 链式关系查询示例
+// 查询满足多个连续关系的节点,如 (Person)-[FOLLOWS]->(Person)-[REVIEWED]->(Movie)
+// {
+//   type: 'chainRelationship',
+//   params: {
+//     matchType: 'chainRelationshipMatch',
+//     relationships: [
+//       {
+//         startNodeLabel: 'Person',
+//         relationType: 'FOLLOWS',
+//         endNodeLabel: 'Person',
+//         startNodeProps: {}, // 可选
+//         endNodeProps: {},   // 可选
+//         relationshipProps: {} // 可选
+//       },
+//       {
+//         startNodeLabel: 'Person', // 可以引用前一个查询的节点
+//         relationType: 'REVIEWED',
+//         endNodeLabel: 'Movie',
+//         startNodeProps: {}, // 可选,如果引用前一个查询的节点则忽略
+//         endNodeProps: {},   // 可选
+//         relationshipProps: {} // 可选
+//       }
+//     ],
+//     nodeReferences: {
+//       // 指定节点之间的引用关系
+//       // key是当前查询中的节点位置,value是要引用的节点位置
+//       // 例如: "1.start": "0.end" 表示第二个关系的起始节点引用第一个关系的终止节点
+//       "1.start": "0.end"  
+//     }
+//   }
+// }
+//
+// 链式查询结果格式:
+// {
+//   data: [
+//     {
+//       nodes: [  // 所有涉及的节点
+//         {
+//           id: "节点ID",
+//           labels: ["节点标签"],
+//           properties: {节点属性}
+//         }
+//       ],
+//       relationships: [  // 所有涉及的关系
+//         {
+//           type: "关系类型",
+//           startNode: "起始节点ID",
+//           endNode: "终止节点ID",
+//           properties: {关系属性}
+//         }
+//       ]
+//     }
+//   ]
+// }
+
+// 查询结果到图形数据的转换模板:
+
+// 1. 节点查询结果格式
+// 输入数据格式:
+// {
+//   data: [
+//     {
+//       n: {
+//         id: "节点ID",
+//         labels: ["节点标签1", "节点标签2"],
+//         properties: {
+//           属性名1: "属性值1",
+//           属性名2: "属性值2"
+//         }
+//       }
+//     }
+//   ]
+// }
+//
+// 转换后的节点格式:
+// {
+//   nodes: [
+//     {
+//       id: "节点ID",
+//       nodeLabel: "节点标签1",  // 使用第一个标签
+//       properties: {
+//         属性名1: "属性值1",
+//         属性名2: "属性值2"
+//       }
+//     }
+//   ],
+//   relationships: []  // 节点查询不返回关系
+// }
+
+// 2. 关系查询结果格式
+// 输入数据格式:
+// {
+//   data: [
+//     {
+//       a: {起始节点信息},
+//       b: {终止节点信息},
+//       r: {
+//         type: "关系类型",
+//         properties: {关系属性},
+//         startNode: "起始节点ID",
+//         endNode: "终止节点ID"
+//       }
+//     }
+//   ]
+// }
+//
+// 转换后的关系格式:
+// {
+//   nodes: [
+//     {
+//       id: "起始节点ID",
+//       nodeLabel: "起始节点标签",
+//       properties: {起始节点属性}
+//     },
+//     {
+//       id: "终止节点ID",
+//       nodeLabel: "终止节点标签",
+//       properties: {终止节点属性}
+//     }
+//   ],
+//   relationships: [
+//     {
+//       startNode: "起始节点ID",
+//       endNode: "终止节点ID",
+//       type: "关系类型",
+//       properties: {关系属性}
+//     }
+//   ]
+// }
+
+// 3. 路径查询结果格式
+// 输入数据格式:
+// {
+//   data: [
+//     {
+//       p: {
+//         nodes: [节点列表],
+//         relationships: [关系列表]
+//       }
+//     }
+//   ]
+// }
+//
+// 转换后的路径格式:
+// {
+//   nodes: [
+//     {
+//       id: "节点ID",
+//       nodeLabel: "节点标签",
+//       properties: {节点属性}
+//     }
+//   ],
+//   relationships: [
+//     {
+//       startNode: "起始节点ID",
+//       endNode: "终止节点ID",
+//       type: "关系类型",
+//       properties: {关系属性}
+//     }
+//   ]
+// }
 
 // 查询类型枚举
 export const QueryType = {
@@ -530,7 +692,7 @@ export class QueryManager {
   async executeQuery(queryIdOrParams) {
     try {
       let params;
-      console.log('executeQuery received:', queryIdOrParams);  // 添加日志
+      console.log('executeQuery received:', queryIdOrParams);
       
       // 检查是否传入的是查询ID还是直接的参数
       if (typeof queryIdOrParams === 'string') {
@@ -541,12 +703,12 @@ export class QueryManager {
         params = queryIdOrParams;
       }
 
-      console.log('Processed params:', params);  // 添加日志
+      console.log('Processed params:', params);
 
       // 根据type决定使用哪个查询执行方法
       let result;
       if (!params.type) {
-        console.error('Missing type in params:', params);  // 添加错误日志
+        console.error('Missing type in params:', params);
         throw new Error('Query type is required');
       }
 
@@ -559,6 +721,9 @@ export class QueryManager {
           break;
         case 'path':
           result = await this.executePathQuery(params.params);
+          break;
+        case 'chainRelationship':
+          result = await this.executeChainRelationshipQuery(params.params);
           break;
         default:
           throw new Error(`Unknown query type: ${params.type}`);
@@ -614,6 +779,69 @@ export class QueryManager {
     // 创建获取所有标签的 Cypher 查询
     const query = 'CALL db.labels()';
     return this.addQuery(query);
+  }
+
+  // 执行链式关系查询
+  async executeChainRelationshipQuery(params) {
+    try {
+      // 添加详细的调试日志
+      console.log('Executing chain relationship query with params:', JSON.stringify(params, null, 2));
+
+      const response = await fetch('http://localhost:8000/match_query/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          matchType: 'chainRelationshipMatch',
+          relationships: params.relationships
+        })
+      });
+
+      // 添加响应调试日志
+      const data = await response.json();
+      console.log('Chain query response:', JSON.stringify(data, null, 2));
+
+      if (!data.success) {
+        throw new Error(data.error || 'Chain relationship query failed');
+      }
+
+      // 处理返回的结果
+      const nodes = new Map();
+      const relationships = new Set();
+
+      data.data.forEach(record => {
+        // 处理所有返回的节点
+        Object.values(record).forEach(value => {
+          if (value && value.labels) { // 是节点
+            if (!nodes.has(value.id)) {
+              nodes.set(value.id, {
+                id: value.id,
+                nodeLabel: value.labels[0],
+                properties: value.properties
+              });
+            }
+          } else if (value && value.type) { // 是关系
+            relationships.add({
+              startNode: value.startNode,
+              endNode: value.endNode,
+              type: value.type,
+              properties: value.properties || {}
+            });
+          }
+        });
+      });
+
+      return {
+        nodes: Array.from(nodes.values()),
+        relationships: Array.from(relationships)
+      };
+
+    } catch (error) {
+      console.error('Chain relationship query execution failed:', error);
+      throw error;
+    }
   }
 }
 
@@ -712,6 +940,17 @@ export class QueryParamsGenerator {
           maxHops: pathProperties.relationship?.maxHops ? 
             parseInt(pathProperties.relationship.maxHops) : null
         }
+      }
+    };
+  }
+
+  // 生成链式关系查询
+  generateChainRelationshipQuery(relationships, nodeReferences) {
+    return {
+      type: 'chainRelationship',
+      params: {
+        matchType: 'chainRelationshipMatch',
+        relationships: relationships  // 直接使用传入的 relationships
       }
     };
   }

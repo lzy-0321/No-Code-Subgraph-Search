@@ -3,6 +3,63 @@ import styles from "../styles/AddQuery.module.css"; // Update with your actual s
 import { TbCrosshair } from "react-icons/tb";
 import { QueryManager } from '../utils/queryGenerator';
 
+const ChainQueryDisplay = ({ queries, getNodeLetter }) => {
+  return (
+    <div className={styles.chainQueryDisplay}>
+      <h4>Current Query:</h4>
+      <div className={styles.queryList}>
+        {queries.map((query, index) => (
+          <div key={index} className={styles.queryItem}>
+            <div className={styles.queryStep}>{index + 1}:</div>
+            <div className={styles.queryDetails}>
+              {/* 显示起始节点 */}
+              <span className={styles.nodeLabel}>
+                ({query.startNodeRef || 
+                  (query.startNodeLabel ? 
+                    `${getNodeLetter(index, 'start')}: ${query.startNodeLabel}` : 
+                    getNodeLetter(index, 'start'))})
+              </span>
+              {/* 显示关系 */}
+              <span className={styles.relationshipType}>
+                -[:{query.relationType}]-{'>'}
+              </span>
+              {/* 显示终止节点 */}
+              <span className={styles.nodeLabel}>
+                ({query.endNodeRef || 
+                  (query.endNodeLabel ? 
+                    `${getNodeLetter(index, 'end')}: ${query.endNodeLabel}` : 
+                    getNodeLetter(index, 'end'))})
+              </span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+const Toast = ({ message, onClose }) => {
+  useEffect(() => {
+    const timer = setTimeout(onClose, 3000); // 3秒后自动关闭
+    return () => clearTimeout(timer);
+  }, [onClose]);
+
+  return (
+    <div className={styles.toast}>
+      {message}
+    </div>
+  );
+};
+
+const WarningBox = ({ message }) => {
+  return (
+    <div className={styles.warningBox}>
+      <div className={styles.warningIcon}>⚠️</div>
+      <div className={styles.warningMessage}>{message}</div>
+    </div>
+  );
+};
+
 const AddQuery = ({ 
   AddTabNodeEntities: nodeEntities, 
   AddTabRelationshipEntities: relationshipEntities,
@@ -30,6 +87,11 @@ const AddQuery = ({
   const queryManager = new QueryManager();
   const [nodeProperties, setNodeProperties] = useState({});
   const [limit, setLimit] = useState("");
+  const [relationshipStep, setRelationshipStep] = useState(1); // 专门用于relationship的步骤控制
+  const [chainQueries, setChainQueries] = useState([]);
+  const [isChainMode, setIsChainMode] = useState(false);
+  const [availableNodes, setAvailableNodes] = useState(new Map());
+  const [toastMessage, setToastMessage] = useState(null);
 
   const handleOpenPopup = (e) => {
     e.stopPropagation(); // 阻止事件冒泡
@@ -54,12 +116,20 @@ const AddQuery = ({
       endNode: {},
       relationship: {}
     });
+    setShowAdvanced(false);  // 重置 advanced 设置状态
+    
+    // 清空链式查询相关状态
+    setChainQueries([]);
+    setIsChainMode(false);
+    setAvailableNodes(new Map());
   };
 
   const handleAddTabSwitch = (tab) => {
     if (step === 1) {
       setActiveAddTab(tab);
       setSelectedLabel("");
+      setSelectedStartLabel("");
+      setSelectedEndLabel("");
     }
   };
 
@@ -129,48 +199,249 @@ const AddQuery = ({
     handleClosePopup();
   };
 
-  const handleAddRelationship = () => {
-    // 过滤掉空属性
-    const startNodeProps = Object.fromEntries(
-      Object.entries(relationshipProperties.startNode || {})
-        .filter(([_, value]) => value !== '')
-    );
-    
-    const endNodeProps = Object.fromEntries(
-      Object.entries(relationshipProperties.endNode || {})
-        .filter(([_, value]) => value !== '')
-    );
-    
-    const relationshipProps = Object.fromEntries(
-      Object.entries(relationshipProperties.relationship || {})
-        .filter(([_, value]) => value !== '' && value !== 'limit') // 排除 limit 属性
-    );
+  // 修改 getNodeLetter 函数
+  const getNodeLetter = (index, position) => {
+    if (position === 'start') {
+      // 如果是第一个查询或者复用前面的节点，使用 'a'
+      return 'a';
+    } else {
+      // end position
+      if (index === 0) return 'b';  // 第一个查询的终止节点用 'b'
+      if (index === 1) return 'c';  // 第二个查询的终止节点用 'c'
+      return String.fromCharCode(97 + index + 1); // 后续查询用 'd', 'e' 等
+    }
+  };
 
-    const queryParams = {
-      type: 'relationship',
-      params: {
-        matchType: 'relationshipMatch',
-        relationType: selectedLabel,
-        properties: relationshipProps,
-        // 只在选择了具体标签且有属性时才包含节点信息
-        ...(selectedStartLabel && selectedStartLabel !== "Any node label" && {
-          startNodeLabel: selectedStartLabel,
-          ...(Object.keys(startNodeProps).length > 0 && { startNodeProps })
-        }),
-        ...(selectedEndLabel && selectedEndLabel !== "Any node label" && {
-          endNodeLabel: selectedEndLabel,
-          ...(Object.keys(endNodeProps).length > 0 && { endNodeProps })
-        }),
-        // 添加 limit 参数
-        limit: relationshipProperties.relationship?.limit ? 
-          parseInt(relationshipProperties.relationship.limit) : undefined
+  // 添加一个函数来获取可用的节点选项
+  const getAvailableNodeOptions = (excludeKey = null) => {
+    const usedNodes = new Set();
+    const options = [];
+    
+    // 添加之前查询中的节点
+    Array.from(availableNodes.entries()).forEach(([key, node]) => {
+      if (key !== excludeKey && !usedNodes.has(node.letter)) {
+        options.push({
+          key: key,
+          value: `ref:${key}`,
+          label: `Node ${node.letter} (${node.label})`
+        });
+        usedNodes.add(node.letter);
       }
-    };
+    });
+    
+    // 添加新的节点标签选项
+    Object.keys(nodeEntities).forEach(label => {
+      options.push({
+        key: label,
+        value: label,
+        label: label
+      });
+    });
+    
+    return options;
+  };
 
-    console.log('Relationship query params:', queryParams); // 添加日志
+  // 修改验证逻辑，添加一个函数来检查当前选择是否有效
+  const isValidCombination = () => {
+    if (!selectedLabel || !selectedStartLabel || !selectedEndLabel) return true;
+    
+    return !chainQueries.some(query => {
+      // 获取开始节点的标识符
+      const existingStart = query.startNodeRef || getNodeLetter(chainQueries.indexOf(query), 'start');
+      const newStart = selectedStartLabel.startsWith('ref:') ? 
+        availableNodes.get(selectedStartLabel.substring(4))?.letter : 
+        getNodeLetter(chainQueries.length, 'start');
 
-    onQueryGenerated(queryParams);
+      // 获取结束节点的标识符
+      const existingEnd = query.endNodeRef || getNodeLetter(chainQueries.indexOf(query), 'end');
+      const newEnd = selectedEndLabel.startsWith('ref:') ? 
+        availableNodes.get(selectedEndLabel.substring(4))?.letter : 
+        getNodeLetter(chainQueries.length, 'end');
+
+      // 检查节点组合和关系类型是否重复
+      const isSameNodes = existingStart === newStart && existingEnd === newEnd;
+      const isSameRelationType = query.relationType === selectedLabel;
+
+      // 如果节点组合和关系类型都相同，则认为是重复的查询
+      return isSameNodes && isSameRelationType;
+    });
+  };
+
+  // 更新错误消息
+  const getErrorMessage = () => {
+    if (!isValidCombination()) {
+      const duplicateQuery = chainQueries.find(query => {
+        const existingStart = query.startNodeRef || getNodeLetter(chainQueries.indexOf(query), 'start');
+        const newStart = selectedStartLabel.startsWith('ref:') ? 
+          availableNodes.get(selectedStartLabel.substring(4))?.letter : 
+          getNodeLetter(chainQueries.length, 'start');
+        const existingEnd = query.endNodeRef || getNodeLetter(chainQueries.indexOf(query), 'end');
+        const newEnd = selectedEndLabel.startsWith('ref:') ? 
+          availableNodes.get(selectedEndLabel.substring(4))?.letter : 
+          getNodeLetter(chainQueries.length, 'end');
+
+        return existingStart === newStart && 
+               existingEnd === newEnd && 
+               query.relationType === selectedLabel;
+      });
+
+      const queryIndex = chainQueries.indexOf(duplicateQuery) + 1;
+      return `This relationship (${selectedLabel}) already exists between these nodes in Query ${queryIndex}. Please choose a different combination.`;
+    }
+    return null;
+  };
+
+  // 修改 handleMoreQuery 函数
+  const handleMoreQuery = () => {
+    // 检查是否存在重复的查询
+    if (isValidCombination()) {
+      setIsChainMode(true);
+      const currentQuery = {
+        startNodeLabel: selectedStartLabel.startsWith('ref:') ? null : selectedStartLabel,
+        endNodeLabel: selectedEndLabel.startsWith('ref:') ? null : selectedEndLabel,
+        relationType: selectedLabel,
+        startNodeProps: relationshipProperties.startNode,
+        endNodeProps: relationshipProperties.endNode,
+        relationshipProps: relationshipProperties.relationship,
+        startNodeRef: selectedStartLabel.startsWith('ref:') ? 
+          availableNodes.get(selectedStartLabel.substring(4))?.letter : null,
+        endNodeRef: selectedEndLabel.startsWith('ref:') ? 
+          availableNodes.get(selectedEndLabel.substring(4))?.letter : null
+      };
+      
+      setChainQueries([...chainQueries, currentQuery]);
+      
+      // 添加新节点到可用节点列表
+      const newNodes = new Map(availableNodes);
+      if (!selectedStartLabel.startsWith('ref:')) {
+        newNodes.set(`${chainQueries.length}.start`, {
+          label: selectedStartLabel,
+          position: 'start',
+          letter: getNodeLetter(chainQueries.length, 'start')
+        });
+      }
+      if (!selectedEndLabel.startsWith('ref:')) {
+        newNodes.set(`${chainQueries.length}.end`, {
+          label: selectedEndLabel,
+          position: 'end',
+          letter: getNodeLetter(chainQueries.length, 'end')
+        });
+      }
+      setAvailableNodes(newNodes);
+      
+      // 重置状态
+      setStep(1);
+      setShowAdvanced(false);
+      setSelectedLabel('');
+      setSelectedStartLabel('');
+      setSelectedEndLabel('');
+      setRelationshipProperties({
+        startNode: {},
+        endNode: {},
+        relationship: {}
+      });
+    } else {
+      // 使用 alert 或者其他提示组件
+      alert('This query combination already exists. Please choose different nodes or relationship type.');
+    }
+  };
+
+  // 修改 handleAddRelationship 函数
+  const handleAddRelationship = () => {
+    if (chainQueries.length > 0) {
+      // 检查是否存在重复的查询
+      if (isValidCombination()) {
+        setIsChainMode(true);
+        const relationships = [
+          ...chainQueries,
+          {
+            startNodeLabel: selectedStartLabel.startsWith('ref:') ? null : selectedStartLabel,
+            endNodeLabel: selectedEndLabel.startsWith('ref:') ? null : selectedEndLabel,
+            relationType: selectedLabel,
+            startNodeProps: relationshipProperties.startNode,
+            endNodeProps: relationshipProperties.endNode,
+            relationshipProps: relationshipProperties.relationship,
+            startNodeRef: selectedStartLabel.startsWith('ref:') ? 
+              availableNodes.get(selectedStartLabel.substring(4))?.letter : null,
+            endNodeRef: selectedEndLabel.startsWith('ref:') ? 
+              availableNodes.get(selectedEndLabel.substring(4))?.letter : null
+          }
+        ];
+
+        // 添加调试日志
+        console.log('Chain relationships:', relationships);
+        console.log('Available nodes:', Array.from(availableNodes.entries()));
+
+        const queryParams = {
+          type: 'chainRelationship',
+          params: {
+            matchType: 'chainRelationshipMatch',
+            relationships: relationships
+          }
+        };
+
+        // 添加调试日志
+        console.log('Generated chain query params:', queryParams);
+
+        onQueryGenerated(queryParams);
+      } else {
+        // 使用 alert 或者其他提示组件
+        alert('This query combination already exists. Please choose different nodes or relationship type.');
+      }
+    } else {
+      // 第一次添加关系
+      // 过滤掉空属性
+      const startNodeProps = Object.fromEntries(
+        Object.entries(relationshipProperties.startNode || {})
+          .filter(([_, value]) => value !== '')
+      );
+      
+      const endNodeProps = Object.fromEntries(
+        Object.entries(relationshipProperties.endNode || {})
+          .filter(([_, value]) => value !== '')
+      );
+      
+      const relationshipProps = Object.fromEntries(
+        Object.entries(relationshipProperties.relationship || {})
+          .filter(([_, value]) => value !== '' && value !== 'limit') // 排除 limit 属性
+      );
+
+      const queryParams = {
+        type: 'relationship',
+        params: {
+          matchType: 'relationshipMatch',
+          relationType: selectedLabel,
+          properties: relationshipProps,
+          // 只在选择了具体标签且有属性时才包含节点信息
+          ...(selectedStartLabel && selectedStartLabel !== "Any node label" && {
+            startNodeLabel: selectedStartLabel,
+            ...(Object.keys(startNodeProps).length > 0 && { startNodeProps })
+          }),
+          ...(selectedEndLabel && selectedEndLabel !== "Any node label" && {
+            endNodeLabel: selectedEndLabel,
+            ...(Object.keys(endNodeProps).length > 0 && { endNodeProps })
+          }),
+          // 添加 limit 参数
+          limit: relationshipProperties.relationship?.limit ? 
+            parseInt(relationshipProperties.relationship.limit) : undefined
+        }
+      };
+
+      console.log('Relationship query params:', queryParams); // 添加日志
+
+      onQueryGenerated(queryParams);
+    }
+    
+    // 重置状态
+    setChainQueries([]);
+    setIsChainMode(false);
+    setAvailableNodes(new Map());
     handleClosePopup();
+  };
+
+  // 修改提示方式
+  const showToast = (message) => {
+    setToastMessage(message);
   };
 
   useEffect(() => {
@@ -194,8 +465,21 @@ const AddQuery = ({
     };
   }, [isPopupOpen]);
 
+  // 监听 step 变化
+  useEffect(() => {
+    if (step !== 2) {
+      setShowAdvanced(false);  // 当不在 step 2 时，关闭 advanced 设置
+    }
+  }, [step]);
+
   return (
     <>
+      {toastMessage && (
+        <Toast 
+          message={toastMessage} 
+          onClose={() => setToastMessage(null)} 
+        />
+      )}
       <button 
         className={styles.iconButton} 
         onClick={handleOpenPopup}
@@ -260,9 +544,10 @@ const AddQuery = ({
                           </select>
                         </div>
                       </div>
+                      
                       <div className={styles.buttonContainer}>
-                        <button
-                          className={styles.cancelButton}
+                        <button 
+                          className={styles.cancelButton} 
                           onClick={handleClosePopup}
                         >
                           Cancel
@@ -345,6 +630,14 @@ const AddQuery = ({
                 <div>
                   {step === 1 && (
                     <div className={styles.stepOne}>
+                      {/* 传递 getNodeLetter 函数给 ChainQueryDisplay */}
+                      {isChainMode && chainQueries.length > 0 && (
+                        <ChainQueryDisplay 
+                          queries={chainQueries} 
+                          getNodeLetter={getNodeLetter}
+                        />
+                      )}
+
                       <div className={styles.rowSection}>
                         <div className={styles.leftSection}>Add Relationship</div>
                         <div className={styles.rightSection}>
@@ -364,14 +657,88 @@ const AddQuery = ({
                           </select>
                         </div>
                       </div>
+                      
+                      {selectedLabel && (
+                        <>
+                          <div className={styles.rowSection}>
+                            <div className={styles.leftSection}>Start Node</div>
+                            <div className={styles.rightSection}>
+                              <select
+                                value={selectedStartLabel}
+                                onChange={(e) => setSelectedStartLabel(e.target.value)}
+                                className={styles.selectBox}
+                              >
+                                <option value="">Any node label</option>
+                                {getAvailableNodeOptions().map(option => (
+                                  <option key={option.key} value={option.value}>
+                                    {option.label}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                          </div>
+
+                          <div className={styles.rowSection}>
+                            <div className={styles.leftSection}>End Node</div>
+                            <div className={styles.rightSection}>
+                              <select
+                                value={selectedEndLabel}
+                                onChange={(e) => setSelectedEndLabel(e.target.value)}
+                                className={styles.selectBox}
+                              >
+                                <option value="">Any node label</option>
+                                {getAvailableNodeOptions(selectedStartLabel.startsWith('ref:') ? selectedStartLabel.substring(4) : null)
+                                  .map(option => (
+                                    <option key={option.key} value={option.value}>
+                                      {option.label}
+                                    </option>
+                                  ))}
+                              </select>
+                            </div>
+                          </div>
+                        </>
+                      )}
+
                       <div className={styles.buttonContainer}>
-                        <button className={styles.cancelButton} onClick={handleClosePopup}>
-                          Cancel
-                        </button>
+                        {isChainMode ? (
+                          <button 
+                            className={styles.backButton} 
+                            onClick={() => {
+                              const updatedQueries = [...chainQueries];
+                              updatedQueries.pop();
+                              setChainQueries(updatedQueries);
+                              
+                              const lastQuery = chainQueries[chainQueries.length - 1];
+                              setStep(2);
+                              setSelectedLabel(lastQuery.relationType);
+                              setSelectedStartLabel(lastQuery.startNodeRef ? 
+                                `ref:${chainQueries.length - 2}.start` : 
+                                lastQuery.startNodeLabel);
+                              setSelectedEndLabel(lastQuery.endNodeRef ? 
+                                `ref:${chainQueries.length - 2}.end` : 
+                                lastQuery.endNodeLabel);
+                              setRelationshipProperties({
+                                startNode: lastQuery.startNodeProps || {},
+                                endNode: lastQuery.endNodeProps || {},
+                                relationship: lastQuery.relationshipProps || {}
+                              });
+                            }}
+                          >
+                            Back
+                          </button>
+                        ) : (
+                          <button 
+                            className={styles.cancelButton} 
+                            onClick={handleClosePopup}
+                          >
+                            Cancel
+                          </button>
+                        )}
                         <button
                           className={styles.nextButton}
                           onClick={() => selectedLabel && setStep(2)}
-                          disabled={!selectedLabel}
+                          disabled={!selectedLabel || !isValidCombination()}
+                          data-tooltip={!isValidCombination() ? getErrorMessage() : null}
                         >
                           Next
                         </button>
@@ -391,133 +758,95 @@ const AddQuery = ({
                       </div>
                       
                       <div className={styles.scrollContainer}>
-                        {showAdvanced && (
-                          <div className={styles.advancedSection}>
-                            {/* Start Node Section */}
-                            <div className={styles.nodeSection}>
-                              <h4>Start Node (Optional)</h4>
-                              <select
-                                value={selectedStartLabel}
-                                onChange={(e) => setSelectedStartLabel(e.target.value)}
-                                className={styles.selectBox}
-                              >
-                                <option value="">Any node label</option>
-                                {Object.keys(nodeEntities).map((label) => (
-                                  <option key={label} value={label}>{label}</option>
-                                ))}
-                              </select>
-                              {selectedStartLabel && (
-                                <div className={styles.propertyContainer}>
-                                  {nodeEntities[selectedStartLabel]?.map((property, index) => (
-                                    <div key={index} className={styles.propertyRow}>
-                                      <span className={styles.propertyLabel}>{property}</span>
-                                      <span className={styles.propertyIcon}>=</span>
-                                      <input
-                                        type="text"
-                                        placeholder={`Enter ${property}`}
-                                        className={styles.propertyInput}
-                                        onChange={(e) => setRelationshipProperties(prev => ({
-                                          ...prev,
-                                          startNode: {
-                                            ...prev.startNode,
-                                            [property]: e.target.value
-                                          }
-                                        }))}
-                                      />
-                                    </div>
-                                  ))}
-                                </div>
-                              )}
-                            </div>
-                
-                            {/* End Node Section */}
-                            <div className={styles.nodeSection}>
-                              <h4>End Node (Optional)</h4>
-                              <select
-                                value={selectedEndLabel}
-                                onChange={(e) => setSelectedEndLabel(e.target.value)}
-                                className={styles.selectBox}
-                              >
-                                <option value="">Any node label</option>
-                                {Object.keys(nodeEntities).map((label) => (
-                                  <option key={label} value={label}>{label}</option>
-                                ))}
-                              </select>
-                              {selectedEndLabel && (
-                                <div className={styles.propertyContainer}>
-                                  {nodeEntities[selectedEndLabel]?.map((property, index) => (
-                                    <div key={index} className={styles.propertyRow}>
-                                      <span className={styles.propertyLabel}>{property}</span>
-                                      <span className={styles.propertyIcon}>=</span>
-                                      <input
-                                        type="text"
-                                        placeholder={`Enter ${property}`}
-                                        className={styles.propertyInput}
-                                        onChange={(e) => setRelationshipProperties(prev => ({
-                                          ...prev,
-                                          endNode: {
-                                            ...prev.endNode,
-                                            [property]: e.target.value
-                                          }
-                                        }))}
-                                      />
-                                    </div>
-                                  ))}
-                                </div>
-                              )}
-                            </div>
+                        {/* Relationship Properties - 只在有属性时显示 */}
+                        {relationshipEntities[selectedLabel]?.length > 0 && (
+                          <div className={styles.propertiesSection}>
+                            <h4>Relationship Properties</h4>
+                            {relationshipEntities[selectedLabel].map((property, index) => (
+                              <div key={index} className={styles.propertyRow}>
+                                <span className={styles.propertyLabel}>{property}</span>
+                                <span className={styles.propertyIcon}>=</span>
+                                <input
+                                  type="text"
+                                  placeholder={`Enter ${property}`}
+                                  className={styles.propertyInput}
+                                  onChange={(e) => setRelationshipProperties(prev => ({
+                                    ...prev,
+                                    relationship: {
+                                      ...prev.relationship,
+                                      [property]: e.target.value
+                                    }
+                                  }))}
+                                />
+                              </div>
+                            ))}
                           </div>
                         )}
-                
-                        {/* Relationship Properties */}
-                        <div className={styles.propertyContainer}>
-                          <h4>Relationship Properties</h4>
-                          {relationshipEntities[selectedLabel]?.map((property, index) => (
-                            <div key={index} className={styles.propertyRow}>
-                              <span className={styles.propertyLabel}>{property}</span>
-                              <span className={styles.propertyIcon}>=</span>
-                              <input
-                                type="text"
-                                placeholder={`Enter ${property}`}
-                                className={styles.propertyInput}
-                                onChange={(e) => setRelationshipProperties(prev => ({
-                                  ...prev,
-                                  relationship: {
-                                    ...prev.relationship,
-                                    [property]: e.target.value
-                                  }
-                                }))}
-                              />
-                            </div>
-                          ))}
-                          <div className={styles.propertyRow}>
-                            <span className={styles.propertyLabel}>Limit</span>
-                            <span className={styles.propertyIcon}>=</span>
-                            <input
-                              type="number"
-                              min="1"
-                              placeholder="Enter number of results"
-                              className={styles.propertyInput}
-                              onChange={(e) => setRelationshipProperties(prev => ({
-                                ...prev,
-                                relationship: {
-                                  ...prev.relationship,
-                                  limit: e.target.value
-                                }
-                              }))}
-                            />
+
+                        {/* Advanced Settings */}
+                        {showAdvanced && (
+                          <div className={styles.advancedSection}>
+                            {/* Start Node Properties */}
+                            {selectedStartLabel && !selectedStartLabel.startsWith('ref:') && (
+                              <div className={styles.propertiesSection}>
+                                <h4>Start Node ({selectedStartLabel}) Properties</h4>
+                                {nodeEntities[selectedStartLabel]?.map((property, index) => (
+                                  <div key={index} className={styles.propertyRow}>
+                                    <span className={styles.propertyLabel}>{property}</span>
+                                    <span className={styles.propertyIcon}>=</span>
+                                    <input
+                                      type="text"
+                                      placeholder={`Enter ${property}`}
+                                      className={styles.propertyInput}
+                                      onChange={(e) => setRelationshipProperties(prev => ({
+                                        ...prev,
+                                        startNode: {
+                                          ...prev.startNode,
+                                          [property]: e.target.value
+                                        }
+                                      }))}
+                                    />
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+
+                            {/* End Node Properties */}
+                            {selectedEndLabel && !selectedEndLabel.startsWith('ref:') && (
+                              <div className={styles.propertiesSection}>
+                                <h4>End Node ({selectedEndLabel}) Properties</h4>
+                                {nodeEntities[selectedEndLabel]?.map((property, index) => (
+                                  <div key={index} className={styles.propertyRow}>
+                                    <span className={styles.propertyLabel}>{property}</span>
+                                    <span className={styles.propertyIcon}>=</span>
+                                    <input
+                                      type="text"
+                                      placeholder={`Enter ${property}`}
+                                      className={styles.propertyInput}
+                                      onChange={(e) => setRelationshipProperties(prev => ({
+                                        ...prev,
+                                        endNode: {
+                                          ...prev.endNode,
+                                          [property]: e.target.value
+                                        }
+                                      }))}
+                                    />
+                                  </div>
+                                ))}
+                              </div>
+                            )}
                           </div>
-                        </div>
+                        )}
                       </div>
                 
                       <div className={styles.buttonContainer}>
                         <button className={styles.backButton} onClick={() => setStep(1)}>
                           Back
                         </button>
-                        <button 
-                          className={styles.addButton} 
-                          onClick={handleAddRelationship}
-                        >
+                        <button className={styles.moreButton} onClick={handleMoreQuery}>
+                          More Query
+                        </button>
+                        <button className={styles.addButton} onClick={handleAddRelationship}>
                           Add
                         </button>
                       </div>

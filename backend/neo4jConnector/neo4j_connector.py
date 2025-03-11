@@ -173,6 +173,93 @@ class CypherQueryBuilder:
             
             return query, params
         
+        elif match_type == 'chainRelationshipMatch':
+            relationships = query_params.get('relationships', [])
+            
+            # 用于存储查询参数和变量名映射
+            params = {}
+            used_vars = {}
+            query_parts = []
+            
+            for i, rel in enumerate(relationships):
+                # 处理起始节点
+                if rel.get('startNodeRef'):
+                    # 使用引用的节点变量
+                    start_var = rel['startNodeRef']
+                else:
+                    # 为新节点生成字母变量名
+                    start_var = chr(97 + len(used_vars))
+                    used_vars[start_var] = rel['startNodeLabel']
+                
+                # 处理终止节点
+                if rel.get('endNodeRef'):
+                    # 使用引用的节点变量
+                    end_var = rel['endNodeRef']
+                else:
+                    # 为新节点生成字母变量名
+                    end_var = chr(97 + len(used_vars))
+                    used_vars[end_var] = rel['endNodeLabel']
+                
+                # 构建关系属性
+                rel_props_str = ""
+                if rel.get('relationshipProps'):
+                    rel_props_str = " {"
+                    props = []
+                    for key, value in rel['relationshipProps'].items():
+                        param_name = f"rel_{i}_{key}"
+                        props.append(f"{key}: ${param_name}")
+                        params[param_name] = value
+                    rel_props_str += ", ".join(props) + "}"
+                
+                # 构建节点属性
+                start_props_str = ""
+                if not rel.get('startNodeRef') and rel.get('startNodeProps'):
+                    start_props_str = " {"
+                    props = []
+                    for key, value in rel['startNodeProps'].items():
+                        param_name = f"start_{i}_{key}"
+                        props.append(f"{key}: ${param_name}")
+                        params[param_name] = value
+                    start_props_str += ", ".join(props) + "}"
+                
+                end_props_str = ""
+                if not rel.get('endNodeRef') and rel.get('endNodeProps'):
+                    end_props_str = " {"
+                    props = []
+                    for key, value in rel['endNodeProps'].items():
+                        param_name = f"end_{i}_{key}"
+                        props.append(f"{key}: ${param_name}")
+                        params[param_name] = value
+                    end_props_str += ", ".join(props) + "}"
+                
+                # 构建完整的匹配模式
+                start_pattern = f"({start_var}"
+                if not rel.get('startNodeRef'):
+                    start_pattern += f":{rel['startNodeLabel']}{start_props_str}"
+                start_pattern += ")"
+                
+                end_pattern = f"({end_var}"
+                if not rel.get('endNodeRef'):
+                    end_pattern += f":{rel['endNodeLabel']}{end_props_str}"
+                end_pattern += ")"
+                
+                # 构建MATCH子句
+                match_clause = f"MATCH {start_pattern}-[r{i}:{rel['relationType']}{rel_props_str}]->{end_pattern}"
+                query_parts.append(match_clause)
+            
+            # 组合所有MATCH子句
+            query = "\n".join(query_parts)
+            
+            # 添加RETURN子句，返回所有唯一的节点和关系
+            all_vars = list(used_vars.keys())  # 使用字母变量
+            all_rels = [f"r{i}" for i in range(len(relationships))]
+            query += f"\nRETURN {', '.join(all_vars)}, {', '.join(all_rels)}"
+            
+            print(f"Generated query: {query}")  # 调试日志
+            print(f"Query parameters: {params}")  # 调试日志
+            
+            return query, params
+        
         else:
             raise ValueError(f"Unsupported match type: {match_type}")
 

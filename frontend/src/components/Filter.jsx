@@ -9,6 +9,7 @@ const Filter = ({ graphNodes: nodes, graphRelationships: relationships, setGraph
   const [activeTab, setActiveTab] = useState("relationship");
   const [hiddenTypes, setHiddenTypes] = useState({});
   const [selectedNodes, setSelectedNodes] = useState(new Set());
+  const [relationshipTypeOrder, setRelationshipTypeOrder] = useState([]);
 
   // Group nodes by their labels
   const nodeLabels = [...new Set(nodes.map((node) => node.nodeLabel))];
@@ -42,6 +43,16 @@ const Filter = ({ graphNodes: nodes, graphRelationships: relationships, setGraph
       }
     }
   }, [hasRelationships, hasNodes, nodeLabels, activeTab]);
+
+  // 修改 useEffect 来初始化关系类型顺序
+  useEffect(() => {
+    // 只在第一次加载或关系类型变化时设置顺序
+    const allRelationships = relationships.concat(graphRelationshipsBuffer);
+    const types = Object.keys(groupRelationshipsByType(allRelationships));
+    if (types.length > 0 && relationshipTypeOrder.length === 0) {
+      setRelationshipTypeOrder(types);
+    }
+  }, [relationships, graphRelationshipsBuffer]);
 
   // 处理标签页切换
   const handleTabChange = (newTab) => {
@@ -251,8 +262,8 @@ const Filter = ({ graphNodes: nodes, graphRelationships: relationships, setGraph
               <>
                 {activeTab === "relationship" && hasRelationships && (
                   <div className={styles.relationshipContent}>
-                    {Object.entries(groupedRelationships)
-                    .map(([type, relationships]) => {
+                    {relationshipTypeOrder.map((type) => {
+                      const relationships = groupedRelationships[type] || [];
                       return (
                         <div key={type} className={styles.relationshipRow}>
                           <span className={styles.relationshipType}>{type}</span>

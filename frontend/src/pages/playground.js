@@ -14,6 +14,7 @@ import { QueryParamsGenerator, QueryManager } from '../utils/queryGenerator';
 import AddQuery from '../components/AddQuery';
 import Link from 'next/link';
 import SearchBox from '../components/SearchBox';
+import OnboardingTour from '../components/OnboardingTour';
 
 // 动态加载 GraphComponent
 const DrawGraph = dynamic(() => import('../components/DrawGraph'), { ssr: false });
@@ -671,13 +672,33 @@ export default function Playground() {
     });
   };
 
+  const [isFirstVisit, setIsFirstVisit] = useState(true);
+
+  useEffect(() => {
+    // 添加调试日志
+    console.log('Checking first visit status');
+    const hasVisited = sessionStorage.getItem('hasVisitedPlayground');
+    console.log('hasVisited:', hasVisited);
+    if (hasVisited) {
+      setIsFirstVisit(false);
+    }
+  }, []);
+
+  // 在渲染前添加调试日志
+  console.log('Current isFirstVisit state:', isFirstVisit);
+
+  const handleTourComplete = () => {
+    sessionStorage.setItem('hasVisitedPlayground', 'true');
+    setIsFirstVisit(false);
+  };
+
   return (
     <div className={styles.flexColumn}>
       <section className={`${styles.playground} ${styles.mainContentSection}`}>
         <div className={styles.contentBoxGroup}>
           <div className={styles.flexRowHeader}>
             <div style={{ display: 'flex', alignItems: 'center' }}>
-              <div className={styles.brandingContainer}>
+              <div className={styles.brandingContainer} data-tour="branding">
                 <Image
                   className={styles.brandingImage}
                   src="/assets/0fbf1a91f14780ce3fa9a491a86c9449.svg"
@@ -705,18 +726,17 @@ export default function Playground() {
 
         <div className={styles.featureGroup}>
           <div className={styles.flexRowFeatures}>
-            <div className={styles.featureContentBox}>
+            <div className={styles.featureContentBox} data-tour="feature-box">
               <div className={styles.featureColumnBox}>
+                <DatabaseManager 
+                  data-tour="database-manager"
+                  onDatabaseSelect={handleDatabaseSelect}
+                  onDatabaseInfoFetch={handleDatabaseInfoFetch}
+                  activeTab={activeTab}
+                  tabDatabases={tabDatabases}
+                />
 
-                  {/* 数据库菜单部分，只有在 isDatabaseMenuOpen 为 true 时才显示 */}
-                  <DatabaseManager 
-                    onDatabaseSelect={handleDatabaseSelect}
-                    onDatabaseInfoFetch={handleDatabaseInfoFetch}
-                    activeTab={activeTab}
-                    tabDatabases={tabDatabases}
-                  />
-
-                <div className={styles.searchFeatureContentBox}>
+                <div className={styles.searchFeatureContentBox} data-tour="search-box">
                   <SearchBox 
                     ref={searchBoxRef}
                     data={{
@@ -738,245 +758,254 @@ export default function Playground() {
                   />
                 </div>
                 
-                <GraphInfoDisplay graphNodes={graphNodes} graphRelationships={graphRelationships} />
-
-                <div className={styles.nodeLabelsContentBox}>
-                  <div className={styles.flexRowNodeLabels}  onClick={toggleNodeLabels}>
-                    <Image
-                      className={styles.imageNodeLabels}
-                      src="/assets/f39953aa98cdd54cef71b5b81673864d.svg"
-                      alt="node labels"
-                      width={30}
-                      height={30}
-                    />
-                    <p className={styles.featureTextNodeLabels}>Node labels</p>
-                    <Image
-                      className={`${styles.imageNodeLabelsExtra} ${isNodeLabelsOpen ? styles.rotate : ''}`}
-                      src="/assets/c1122939168fb69f50f3e2f253333e62.svg"
-                      alt="expand"
-                      width={20}
-                      height={20}
-                    />
-                  </div>
-                  {isNodeLabelsOpen && (
-                  <div id="nodeLabelsList" className={styles.nodeLabelsList}>
-                    {nodeLabels.map((label, index) => (
-                      <div key={index} className={styles.labelItemContainer}>
-                        <div 
-                          className={styles.labelItem} 
-                          onClick={() => {
-                            toggleExpandedLabel(label);
-                            handleLabelClick(label);
-                          }}
-                        >
-                          {label}
-                          <Image
-                            className={`${styles.imageNodeLabelsExtra} ${expandedLabel === label ? styles.rotate : ''}`}
-                            src="/assets/c1122939168fb69f50f3e2f253333e62.svg"
-                            alt="expand"
-                            width={20}
-                            height={20}
-                          />
-                        </div>
-                        {expandedLabel === label && nodePrimeEntities[label] && (
-                        <div className={styles.entityList}>
-                          {nodePrimeEntities[label].map((entity, idx) => (
-                            <div key={idx} className={styles.entityItemContainer}>
-                              <div 
-                                className={styles.entityItem} 
-                                title={entity[0]}
-                              >
-                                {entity[0]}
-                              </div>
-                              {graphNodes.some(node => node.id === entity[1]) ? (
-                                <Image
-                                  src="/assets/delete.svg"
-                                  alt="delete"
-                                  width={20}
-                                  height={20}
-                                  className={styles.deleteButton}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleDeleteNodeQuery(entity[1]);
-                                  }}
-                                />
-                              ) : (
-                                <Image
-                                  src="/assets/add.svg"
-                                  alt="add"
-                                  width={20}
-                                  height={20}
-                                  className={styles.addButton}
-                                  onClick={(e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    handleNodeQuery(label, entity);
-                                  }}
-                                />
-                              )}
-                            </div>
-                          ))}
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                  )}
+                <div data-tour="graph-info">
+                  <GraphInfoDisplay 
+                    graphNodes={graphNodes} 
+                    graphRelationships={graphRelationships} 
+                  />
                 </div>
 
-                <div className={styles.relationshipTypesContentBox}>
-                  <div className={styles.flexRowRelationshipTypes} onClick={toggleRelationshipTypes}>
-                    <Image
-                      className={styles.imageRelationshipTypes}
-                      src="/assets/af00d02696e9f28253626de3f4913e06.svg"
-                      alt="relationship types"
-                      width={30}
-                      height={30}
-                    />
-                    <p className={styles.featureTextRelationshipTypes}>Relationship types</p>
-                    <Image
-                      className={`${styles.imageRelationshipTypesExtra} ${isRelationshipTypesOpen ? styles.rotate : ''}`}
-                      src="/assets/c1122939168fb69f50f3e2f253333e62.svg"
-                      alt="expand"
-                      width={20}
-                      height={20}
-                    />
-                  </div>
-                  {isRelationshipTypesOpen && (
-                    <div id="relationshipTypesList" className={styles.relationshipTypesList}>
-                      {relationshipTypes.map((type, index) => (
-                        <div key={index} className={styles.typeItemContainer}>
-                          <p 
-                            className={styles.typeItem} 
+                <div data-tour="data-explorer" className={styles.dataExplorerGroup}>
+                  <div className={styles.nodeLabelsContentBox}>
+                    <div className={styles.flexRowNodeLabels} onClick={toggleNodeLabels}>
+                      <Image
+                        className={styles.imageNodeLabels}
+                        src="/assets/f39953aa98cdd54cef71b5b81673864d.svg"
+                        alt="node labels"
+                        width={30}
+                        height={30}
+                      />
+                      <p className={styles.featureTextNodeLabels}>Node labels</p>
+                      <Image
+                        className={`${styles.imageNodeLabelsExtra} ${isNodeLabelsOpen ? styles.rotate : ''}`}
+                        src="/assets/c1122939168fb69f50f3e2f253333e62.svg"
+                        alt="expand"
+                        width={20}
+                        height={20}
+                      />
+                    </div>
+                    {isNodeLabelsOpen && (
+                    <div id="nodeLabelsList" className={styles.nodeLabelsList}>
+                      {nodeLabels.map((label, index) => (
+                        <div key={index} className={styles.labelItemContainer}>
+                          <div 
+                            className={styles.labelItem} 
                             onClick={() => {
-                              toggleExpandedRelationship(type);
-                              handleRelationshipClick(type, null);
+                              toggleExpandedLabel(label);
+                              handleLabelClick(label);
                             }}
                           >
-                            {type}
+                            {label}
                             <Image
-                              className={`${styles.imageRelationshipTypesExtra} ${expandedRelationship === type ? styles.rotate : ''}`}
+                              className={`${styles.imageNodeLabelsExtra} ${expandedLabel === label ? styles.rotate : ''}`}
                               src="/assets/c1122939168fb69f50f3e2f253333e62.svg"
                               alt="expand"
                               width={20}
                               height={20}
                             />
-                          </p>
-                          {expandedRelationship === type && relationshipPrimeEntities[type] && (
-                            <div className={styles.entityList}>
-                              {relationshipPrimeEntities[type].map((entity, idx) => (
-                                <div key={idx} className={styles.entityGroup}>
-                                  <div 
-                                    className={styles.entityItemContainer}
-                                    title={`${entity[0][0]} → ${entity[1][0]}`}
-                                  >
-                                    <div className={styles.relationshipEntityItemContainer}>
-                                      <p className={styles.entityItem}>
-                                        {entity[0][0]}
-                                      </p>
-                                      <div className={styles.arrowContainer}>
-                                        <Image
-                                          src="/assets/cc-arrow-down.svg"
-                                          alt="arrow right"
-                                          width={16}
-                                          height={16}
-                                          className={`${styles.arrowIcon} rotate-90`}
-                                          style={{ transform: 'rotate(-90deg)' }}
-                                        />
-                                      </div>
-                                      <p className={styles.entityItem}>
-                                        {entity[1][0]}
-                                      </p>
-                                    </div>
-                                    {graphRelationships.some(rel => 
-                                      rel.startNode === entity[0][1] && 
-                                      rel.endNode === entity[1][1] && 
-                                      rel.type === type
-                                    ) ? (
-                                      <Image
-                                        src="/assets/delete.svg"
-                                        alt="delete"
-                                        width={16}
-                                        height={16}
-                                        className={styles.deleteButton}
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          handleDeleteRelationshipQuery(entity[0][1], entity[1][1], type);
-                                        }}
-                                      />
-                                    ) : (
-                                      <Image
-                                        src="/assets/add.svg"
-                                        alt="add"
-                                        width={16}
-                                        height={16}
-                                        className={styles.addButton}
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          handleRelationshipClick(type, entity);
-                                        }}
-                                      />
-                                    )}
-                                  </div>
-                                  {idx < relationshipPrimeEntities[type].length - 1 && (
-                                    <div className={styles.separator} />
-                                  )}
+                          </div>
+                          {expandedLabel === label && nodePrimeEntities[label] && (
+                          <div className={styles.entityList}>
+                            {nodePrimeEntities[label].map((entity, idx) => (
+                              <div key={idx} className={styles.entityItemContainer}>
+                                <div 
+                                  className={styles.entityItem} 
+                                  title={entity[0]}
+                                >
+                                  {entity[0]}
                                 </div>
-                              ))}
+                                {graphNodes.some(node => node.id === entity[1]) ? (
+                                  <Image
+                                    src="/assets/delete.svg"
+                                    alt="delete"
+                                    width={20}
+                                    height={20}
+                                    className={styles.deleteButton}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleDeleteNodeQuery(entity[1]);
+                                    }}
+                                  />
+                                ) : (
+                                  <Image
+                                    src="/assets/add.svg"
+                                    alt="add"
+                                    width={20}
+                                    height={20}
+                                    className={styles.addButton}
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      handleNodeQuery(label, entity);
+                                    }}
+                                  />
+                                )}
+                              </div>
+                            ))}
                             </div>
                           )}
                         </div>
                       ))}
                     </div>
-                  )}
-                </div>
-
-                <div className={styles.propertyKeysContentBox}>
-                  <div className={styles.flexRowPropertyKeys} onClick={togglePropertyKeys}>
-                    <Image
-                      className={styles.imagePropertyKeys}
-                      src="/assets/d819e70012ea9e1d2487b007aec7b35b.svg"
-                      alt="property keys"
-                      width={30}
-                      height={30}
-                    />
-                    <p className={styles.featureTextPropertyKeys}>Property keys</p>
-                    <Image
-                      className={`${styles.imagePropertyKeysExtra} ${isPropertyKeysOpen ? styles.rotate : ''}`}
-                      src="/assets/c1122939168fb69f50f3e2f253333e62.svg"
-                      alt="expand"
-                      width={20}
-                      height={20}
-                    />
+                    )}
                   </div>
-                  {isPropertyKeysOpen && (
-                    <div id="propertyKeysList" className={styles.propertyKeysList}>
-                      {propertyKeys.map((key, index) => (
-                        <div key={index} className={styles.entityItemContainer}>
-                          <div 
-                            className={styles.entityItem}
-                            title={key}
-                          >
-                            {key}
-                          </div>
-                        </div>
-                      ))}
+
+                  <div className={styles.relationshipTypesContentBox}>
+                    <div className={styles.flexRowRelationshipTypes} onClick={toggleRelationshipTypes}>
+                      <Image
+                        className={styles.imageRelationshipTypes}
+                        src="/assets/af00d02696e9f28253626de3f4913e06.svg"
+                        alt="relationship types"
+                        width={30}
+                        height={30}
+                      />
+                      <p className={styles.featureTextRelationshipTypes}>Relationship types</p>
+                      <Image
+                        className={`${styles.imageRelationshipTypesExtra} ${isRelationshipTypesOpen ? styles.rotate : ''}`}
+                        src="/assets/c1122939168fb69f50f3e2f253333e62.svg"
+                        alt="expand"
+                        width={20}
+                        height={20}
+                      />
                     </div>
-                  )}
+                    {isRelationshipTypesOpen && (
+                      <div id="relationshipTypesList" className={styles.relationshipTypesList}>
+                        {relationshipTypes.map((type, index) => (
+                          <div key={index} className={styles.typeItemContainer}>
+                            <p 
+                              className={styles.typeItem} 
+                              onClick={() => {
+                                toggleExpandedRelationship(type);
+                                handleRelationshipClick(type, null);
+                              }}
+                            >
+                              {type}
+                              <Image
+                                className={`${styles.imageRelationshipTypesExtra} ${expandedRelationship === type ? styles.rotate : ''}`}
+                                src="/assets/c1122939168fb69f50f3e2f253333e62.svg"
+                                alt="expand"
+                                width={20}
+                                height={20}
+                              />
+                            </p>
+                            {expandedRelationship === type && relationshipPrimeEntities[type] && (
+                              <div className={styles.entityList}>
+                                {relationshipPrimeEntities[type].map((entity, idx) => (
+                                  <div key={idx} className={styles.entityGroup}>
+                                    <div 
+                                      className={styles.entityItemContainer}
+                                      title={`${entity[0][0]} → ${entity[1][0]}`}
+                                    >
+                                      <div className={styles.relationshipEntityItemContainer}>
+                                        <p className={styles.entityItem}>
+                                          {entity[0][0]}
+                                        </p>
+                                        <div className={styles.arrowContainer}>
+                                          <Image
+                                            src="/assets/cc-arrow-down.svg"
+                                            alt="arrow right"
+                                            width={16}
+                                            height={16}
+                                            className={`${styles.arrowIcon} rotate-90`}
+                                            style={{ transform: 'rotate(-90deg)' }}
+                                          />
+                                        </div>
+                                        <p className={styles.entityItem}>
+                                          {entity[1][0]}
+                                        </p>
+                                      </div>
+                                      {graphRelationships.some(rel => 
+                                        rel.startNode === entity[0][1] && 
+                                        rel.endNode === entity[1][1] && 
+                                        rel.type === type
+                                      ) ? (
+                                        <Image
+                                          src="/assets/delete.svg"
+                                          alt="delete"
+                                          width={16}
+                                          height={16}
+                                          className={styles.deleteButton}
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleDeleteRelationshipQuery(entity[0][1], entity[1][1], type);
+                                          }}
+                                        />
+                                      ) : (
+                                        <Image
+                                          src="/assets/add.svg"
+                                          alt="add"
+                                          width={16}
+                                          height={16}
+                                          className={styles.addButton}
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleRelationshipClick(type, entity);
+                                          }}
+                                        />
+                                      )}
+                                    </div>
+                                    {idx < relationshipPrimeEntities[type].length - 1 && (
+                                      <div className={styles.separator} />
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className={styles.propertyKeysContentBox}>
+                    <div className={styles.flexRowPropertyKeys} onClick={togglePropertyKeys}>
+                      <Image
+                        className={styles.imagePropertyKeys}
+                        src="/assets/d819e70012ea9e1d2487b007aec7b35b.svg"
+                        alt="property keys"
+                        width={30}
+                        height={30}
+                      />
+                      <p className={styles.featureTextPropertyKeys}>Property keys</p>
+                      <Image
+                        className={`${styles.imagePropertyKeysExtra} ${isPropertyKeysOpen ? styles.rotate : ''}`}
+                        src="/assets/c1122939168fb69f50f3e2f253333e62.svg"
+                        alt="expand"
+                        width={20}
+                        height={20}
+                      />
+                    </div>
+                    {isPropertyKeysOpen && (
+                      <div id="propertyKeysList" className={styles.propertyKeysList}>
+                        {propertyKeys.map((key, index) => (
+                          <div key={index} className={styles.entityItemContainer}>
+                            <div 
+                              className={styles.entityItem}
+                              title={key}
+                            >
+                              {key}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
             <div className={styles.tabContainer}>
-              <TabManager 
-                tabs={tabs}
-                activeTab={activeTab}
-                onStateChange={handleTabStateChange}
-                tabDatabases={tabDatabases}
-              />
+              <div data-tour="tab-system">
+                <TabManager 
+                  tabs={tabs}
+                  activeTab={activeTab}
+                  onStateChange={handleTabStateChange}
+                  tabDatabases={tabDatabases}
+                />
+              </div>
 
               {/* 标签内容 */}
               <div className={styles.tabContent} ref={tabContentRef} style={{ position: 'relative', overflow: 'hidden' }}>
-                <div className={styles.tabGraph}>
+                <div className={styles.tabGraph} data-tour="graph-area">
                   {isDataClean && (
                     <DrawGraph
                       nodes={graphNodes}
@@ -985,7 +1014,7 @@ export default function Playground() {
                   )}
                 </div>
                 <div className={styles.flexRowGalleryImages}>
-                  <div className={styles.iconContainer}>
+                  <div className={styles.iconContainer} data-tour="filter-button">
                     {tabContentBounds && (
                       <Filter
                         graphRelationships={graphRelationships}
@@ -1001,7 +1030,7 @@ export default function Playground() {
                     )}
                   </div>
                   <div className={styles.rightControls}>
-                    <div className={styles.iconContainer}>
+                    <div className={styles.iconContainer} data-tour="add-query">
                       <AddQuery
                         AddTabNodeEntities={nodeEntities}
                         AddTabRelationshipEntities={relationshipEntities}
@@ -1012,6 +1041,7 @@ export default function Playground() {
                       className={styles.iconContainer}
                       onClick={handleClearAll}
                       title="Clear all nodes and relationships"
+                      data-tour="clear-button"
                     >
                       <TbTrash 
                         size={50} 
@@ -1025,6 +1055,10 @@ export default function Playground() {
           </div>
         </div>
       </section>
+      <OnboardingTour 
+        isFirstVisit={isFirstVisit}
+        onComplete={handleTourComplete}
+      />
     </div>
   );
 }

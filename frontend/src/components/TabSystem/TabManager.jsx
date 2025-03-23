@@ -6,6 +6,7 @@ const TabManager = ({
   activeTab,
   onStateChange, // 新增：用于通知父组件状态变化
   tabDatabases,
+  ...props  // 添加这行以接收其他属性
 }) => {
   // 创建新tab的默认状态
   const createNewTab = (id) => ({
@@ -73,7 +74,7 @@ const TabManager = ({
   };
 
   return (
-    <div className={styles.tabNav}>
+    <div {...props} className={styles.tabNav}>  {/* 添加展开运算符以应用所有传入的属性 */}
       {tabs.map((tab) => (
         <div
           key={tab.id}

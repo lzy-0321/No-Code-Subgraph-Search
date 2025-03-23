@@ -6,7 +6,7 @@ import Login from '../components/login';  // 导入登录组件
 import Register from '../components/register';  // 导入注册组件
 import styles from '../styles/Page1.module.css';
 import dynamic from 'next/dynamic';
-import { tutorialCard } from '../components/tutorialCard';
+import { TutorialCard } from '../components/tutorialCard';  // 更新导入
 import PulsatingButton from "../components/ui/pulsating-button";
 import BoxReveal from "../components/ui/box-reveal";
 const DrawGraph = dynamic(() => import('../components/DrawGraph'), { ssr: false });
@@ -16,7 +16,6 @@ export default function Home() {
   const [menuVisible, setMenuVisible] = useState(false);  // 用户菜单显示状态
   const [authModalVisible, setAuthModalVisible] = useState(false);  // 模态框显示状态
   const [activeForm, setActiveForm] = useState('login');  // 当前激活的表单 ('login' or 'register')
-  const [tutorialContent, setTutorialContent] = useState(null); // Add state to hold the tutorial content
   const router = useRouter();
 
   const [graphNodes, setGraphNodes] = useState([]);
@@ -45,19 +44,6 @@ export default function Home() {
         // { startNode: '3', endNode: '6', type: 'REFERRED', properties: { reason: 'Expertise', trustLevel: 'High' } },
       ]);
     }, 1000);
-  }, []);
-
-  useEffect(() => {
-    const fetchTutorialContent = async () => {
-      try {
-        const content = await tutorialCard();
-        setTutorialContent(content);
-      } catch (error) {
-        console.error('Error fetching tutorial content:', error);
-      }
-    };
-
-    fetchTutorialContent();
   }, []);
 
   const getCsrfToken = () => {
@@ -143,6 +129,22 @@ export default function Home() {
       modal.style.display = 'none';  // 隐藏模态框
     }
   };
+
+  useEffect(() => {
+    // 检查 URL hash
+    if (window.location.hash) {
+      // 给浏览器一点时间来完成初始渲染
+      setTimeout(() => {
+        const element = document.querySelector(window.location.hash);
+        if (element) {
+          element.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start'
+          });
+        }
+      }, 100);
+    }
+  }, []); // 空依赖数组意味着这个效果只在组件挂载时运行一次
 
   return (
     <div className={styles.page1}>
@@ -272,12 +274,12 @@ export default function Home() {
 
       {/* Tutorials Section */}
       <section id="tutorialsSection" className={styles.tutorialsSection}>
-          <div className={styles.tutorialHeaderWrapper}>
-            <h3 className={styles.tutorialHeaderText}>Tutorial</h3>
-          </div>
-          <div className={styles.tutorialContentBox} id="tutorialContentBox">
-              {tutorialContent ? tutorialContent : <p>Loading tutorials...</p>}
-          </div>
+        <div className={styles.tutorialHeaderWrapper}>
+          <h3 className={styles.tutorialHeaderText}>Tutorial</h3>
+        </div>
+        <div className={styles.tutorialContentBox} id="tutorialContentBox">
+          <TutorialCard />
+        </div>
       </section>
 
       {/* 页脚部分 */}

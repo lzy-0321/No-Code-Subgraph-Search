@@ -7,6 +7,7 @@ const DatabaseManager = ({
   onDatabaseInfoFetch,
   activeTab,  // 新增: 当前活动的tab id
   tabDatabases, // 新增: 存储每个tab的数据库URL {tabId: databaseUrl}
+  ...props  // 添加这行以接收其他属性
 }) => {
   const [databases, setDatabases] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -279,7 +280,7 @@ const DatabaseManager = ({
   };
 
   return (
-    <div className={styles.databaseManager}>
+    <div {...props} className={styles.databaseManager}>
       <div className={styles.flexRowInfoDatabase}>
         <div 
           className={styles.flexRowDatabaseImages} 

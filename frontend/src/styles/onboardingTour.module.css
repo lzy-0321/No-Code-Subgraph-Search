@@ -1,0 +1,201 @@
+.tourOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 99999;
+  pointer-events: all;
+  background: transparent;
+}
+
+/* 移除 blurBackground，因为它会造成额外的阴影层 */
+/* .blurBackground {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(3px);
+  z-index: 99999;
+} */
+
+.spotlight {
+  position: fixed;
+  border-radius: 4px;
+  background: transparent; /* 改为透明背景 */
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5); /* 只保留一层阴影 */
+  z-index: 100000;
+  pointer-events: none;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.tooltip {
+  position: fixed;
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  z-index: 100001;
+  width: 300px;
+  pointer-events: all;
+  animation: fadeIn 0.3s ease-in-out;
+  font-size: 14px;
+  line-height: 1.5;
+  transition: all 0.3s ease-in-out;
+  max-width: calc(100vw - 40px);
+  max-height: calc(100vh - 40px);
+  overflow: auto;
+}
+
+/* 为 graph-area 特别调整提示框样式 */
+.tooltip[data-target="graph-area"] {
+  width: 250px; /* 较小的宽度 */
+  font-size: 13px; /* 稍小的字体 */
+  padding: 15px; /* 较小的内边距 */
+}
+
+/* 修改定位转换，移除额外的位移 */
+.tooltip[data-position="right"],
+.tooltip[data-position="left"] {
+  transform: translateY(-50%);
+}
+
+.tooltip[data-position="top"],
+.tooltip[data-position="bottom"] {
+  transform: translateX(-50%);
+}
+
+.tooltip[data-position="center"] {
+  transform: translate(-50%, -50%);
+}
+
+.tooltip p {
+  margin: 0 0 15px 0;
+}
+
+.tooltipButtons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 15px;
+  gap: 10px;
+}
+
+.tooltipButtons button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  background: #007bff;
+  color: white;
+  transition: background-color 0.2s;
+  flex: 1;
+  white-space: nowrap;
+}
+
+.tooltipButtons button:hover {
+  background: #0056b3;
+}
+
+.tooltipButtons button:first-child {
+  background: #6c757d;
+}
+
+.tooltipButtons button:first-child:hover {
+  background: #5a6268;
+}
+
+.stepIndicator {
+  text-align: center;
+  margin-top: 10px;
+  font-size: 12px;
+  color: #666;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -48%);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+}
+
+@media (max-width: 768px) {
+  .tooltip {
+    width: calc(100vw - 40px);
+    font-size: 13px;
+    padding: 15px;
+  }
+
+  .tooltipButtons button {
+    padding: 6px 12px;
+    font-size: 13px;
+  }
+}
+
+/* 修改按钮类型的目标样式 */
+.tooltip[data-target="filter-button"],
+.tooltip[data-target="add-query"],
+.tooltip[data-target="clear-button"] {
+  width: 300px; /* 恢复到正常宽度 */
+  font-size: 14px; /* 恢复到正常字体大小 */
+  padding: 20px; /* 恢复到正常内边距 */
+}
+
+/* 调整按钮类型目标的 spotlight 样式 */
+.spotlight[data-target="filter-button"],
+.spotlight[data-target="add-query"],
+.spotlight[data-target="clear-button"] {
+  border-radius: 8px;
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.6);
+  padding: 20px; /* 增加选中框的内边距 */
+}
+
+/* 为 feature-box 添加特殊样式 */
+.spotlight[data-target="feature-box"] {
+  transition: none !important; /* 禁用过渡效果 */
+}
+
+.tooltip[data-target="feature-box"] {
+  width: 300px;
+}
+
+/* 为欢迎步骤添加特殊样式 */
+.spotlight[data-target="center"] {
+  background: rgba(0, 0, 0, 0.5) !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+}
+
+.tooltip[data-target="center"] {
+  width: 400px;
+  padding: 30px;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+}
+
+.tooltip[data-target="center"] p {
+  font-size: 1.2em;
+  line-height: 1.5;
+  margin-bottom: 20px;
+}
+
+/* 移除欢迎步骤的渐变动画 */
+.spotlight[data-target="center"],
+.tooltip[data-target="center"] {
+  animation: fadeInWelcome 0.3s ease-in-out;
+}
+
+@keyframes fadeInWelcome {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+} 

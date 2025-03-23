@@ -7,9 +7,9 @@ const features = [
     Icon: TbCrosshair,
     name: "Add node or relationship in match",
     description: "Add a node or relationship to your match query.",
-    href: "/",
+    href: "/tutorial/AddNodeRelationship",
     cta: "Learn more",
-    background: <img className="absolute -right-20 -top-20 opacity-60" />,
+    background: null,
     className: "lg:row-start-1 lg:row-end-5 lg:col-start-2 lg:col-end-3", // 调整行高
   },
   {
@@ -18,7 +18,7 @@ const features = [
     description: "Link your Neo4j databases to your account.",
     href: "/",
     cta: "Learn more",
-    background: <img className="absolute -right-20 -top-20 opacity-60" />,
+    background: null,
     className: "lg:col-start-1 lg:col-end-2 lg:row-start-1 lg:row-end-4", // 调整行高
   },
   {
@@ -27,7 +27,7 @@ const features = [
     description: "Search through all your node and relationship data.",
     href: "/",
     cta: "Learn more",
-    background: <img className="absolute -right-20 -top-20 opacity-60" />,
+    background: null,
     className: "lg:col-start-1 lg:col-end-2 lg:row-start-4 lg:row-end-5", // 调整行高
   },
   {
@@ -36,7 +36,7 @@ const features = [
     description: "Filter your graph data by date.",
     href: "/",
     cta: "Learn more",
-    background: <img className="absolute -right-20 -top-20 opacity-60" />,
+    background: null,
     className: "lg:col-start-3 lg:col-end-3 lg:row-start-1 lg:row-end-3", // 调整行高
   },
   {
@@ -45,7 +45,7 @@ const features = [
     description: "Adjust each query",
     href: "/",
     cta: "Learn more",
-    background: <img className="absolute -right-20 -top-20 opacity-60" />,
+    background: null,
     className: "lg:col-start-3 lg:col-end-3 lg:row-start-3 lg:row-end-4", // 调整行高
   },
   {
@@ -54,17 +54,22 @@ const features = [
     description: "Clean up your graph by removing unused nodes and relationships.",
     href: "/",
     cta: "Learn more",
-    background: <img className="absolute -right-20 -top-20 opacity-60" />,
+    background: null,
     className: "lg:col-start-3 lg:col-end-3 lg:row-start-4 lg:row-end-5", // 调整行高
   },
 ];
 
-export async function tutorialCard() {
+export function TutorialCard() {
   return (
-    <BentoGrid className="lg:grid-rows-3"> {/* 减少总行数 */}
-      {features.map((feature) => (
-        <BentoCard key={feature.name} {...feature} />
-      ))}
-    </BentoGrid>
+    <div className="w-full max-w-7xl mx-auto px-4">
+      <BentoGrid className="lg:grid-rows-3">
+        {features.map((feature) => (
+          <BentoCard 
+            key={feature.name} 
+            {...feature}
+          />
+        ))}
+      </BentoGrid>
+    </div>
   );
 }

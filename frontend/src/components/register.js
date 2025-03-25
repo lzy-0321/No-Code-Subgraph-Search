@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/router';
 import styles from '../styles/Page1.module.css';
+import API_ENDPOINTS from '../config/apiConfig';
 
 export default function Register() {
   const [protocol, setProtocol] = useState('bolt://');
@@ -18,7 +19,7 @@ export default function Register() {
 
     const fullUrl = protocol + url;
 
-    const res = await fetch('http://localhost:8000/test_neo4j_and_signup/', {
+    const res = await fetch(API_ENDPOINTS.register, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

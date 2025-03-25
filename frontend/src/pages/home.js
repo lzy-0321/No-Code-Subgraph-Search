@@ -9,6 +9,7 @@ import dynamic from 'next/dynamic';
 import { TutorialCard } from '../components/tutorialCard';  // 更新导入
 import PulsatingButton from "../components/ui/pulsating-button";
 import BoxReveal from "../components/ui/box-reveal";
+import API_ENDPOINTS from '../config/apiConfig';
 const DrawGraph = dynamic(() => import('../components/DrawGraph'), { ssr: false });
 
 export default function Home() {
@@ -55,7 +56,7 @@ export default function Home() {
   useEffect(() => {
     const checkLoginStatus = async () => {
       try {
-        const response = await fetch('http://localhost:8000/check_login_status/', {
+        const response = await fetch(API_ENDPOINTS.checkLoginStatus, {
           credentials: 'include',  // 确保携带 Cookie
         });
         const data = await response.json();
@@ -89,7 +90,7 @@ export default function Home() {
 
   // 处理登出逻辑
   const handleLogout = async () => {
-    const res = await fetch('http://localhost:8000/logout/', {
+    const res = await fetch(API_ENDPOINTS.logout, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

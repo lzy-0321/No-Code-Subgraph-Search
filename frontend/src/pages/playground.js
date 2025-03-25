@@ -162,6 +162,12 @@ export default function Playground() {
       graphRelationships: [],
       graphNodesBuffer: [],
       graphRelationshipsBuffer: []
+    },
+    filterState: {
+      activeFilterTab: "relationship",
+      hiddenTypes: {},
+      selectedNodes: [],
+      relationshipTypeOrder: []
     }
   });
 
@@ -189,29 +195,37 @@ export default function Playground() {
     relationships: []
   };
 
-  // 当 activeTab 改变时更新图数据
+  // 当 activeTab 改变时更新图数据和滤镜数据
   useEffect(() => {
     if (activeTab && getTabState(activeTab)?.graphData) {
-      setGraphNodes(getTabState(activeTab).graphData.nodes || []);
-      setGraphRelationships(getTabState(activeTab).graphData.relationships || []);
+      setGraphNodes(getTabState(activeTab).graphData.graphNodes || []);
+      setGraphRelationships(getTabState(activeTab).graphData.graphRelationships || []);
+      setGraphNodesBuffer(getTabState(activeTab).graphData.graphNodesBuffer || []);
+      setGraphRelationshipsBuffer(getTabState(activeTab).graphData.graphRelationshipsBuffer || []);
     } else {
       setGraphNodes([]);
       setGraphRelationships([]);
+      setGraphNodesBuffer([]);
+      setGraphRelationshipsBuffer([]);
     }
   }, [activeTab]);
 
-  // 更新图数据时同时更新 tab 状态
-  const updateGraphData = (newNodes, newRelationships) => {
+  // 更新图数据时同时更新 tab 状态，包括缓冲区数据
+  const updateGraphData = (newNodes, newRelationships, newNodesBuffer = graphNodesBuffer, newRelationshipsBuffer = graphRelationshipsBuffer) => {
     if (!activeTab) return;
 
     setGraphNodes(newNodes);
     setGraphRelationships(newRelationships);
+    setGraphNodesBuffer(newNodesBuffer);
+    setGraphRelationshipsBuffer(newRelationshipsBuffer);
 
     saveTabState(activeTab, {
       ...getTabState(activeTab),
       graphData: {
-        nodes: newNodes,
-        relationships: newRelationships
+        graphNodes: newNodes,
+        graphRelationships: newRelationships,
+        graphNodesBuffer: newNodesBuffer,
+        graphRelationshipsBuffer: newRelationshipsBuffer
       }
     });
   };
@@ -304,7 +318,7 @@ export default function Playground() {
   };
 
   // 处理tab状态变化
-  const handleTabStateChange = (action) => {
+  const handleTabStateChange = async (action) => {
     switch (action.type) {
       case 'ADD_TAB':
         saveCurrentTabState(); // 保存当前tab状态
@@ -325,15 +339,54 @@ export default function Playground() {
         break;
       case 'SWITCH_TAB':
         saveCurrentTabState(); // 保存当前tab的状态
+        
+        // 切换tab之前，清空所有状态，包括缓冲区
+        setGraphNodes([]);
+        setGraphRelationships([]);
+        setGraphNodesBuffer([]);
+        setGraphRelationshipsBuffer([]);
+        
+        // 先切换 Tab
         switchTab(action.payload.tabId);
-        restoreTabState(action.payload.tabId); // 恢复目标tab的状态
+        
+        // 第一次恢复状态
+        setTimeout(() => {
+          restoreTabState(action.payload.tabId);
+        }, 50);
+
+        // 等待一段时间
+        await new Promise(resolve => setTimeout(resolve, 50));
+      
+        saveCurrentTabState(); // 保存当前tab的状态
+        
+        // 切换tab之前，清空所有状态，包括缓冲区
+        setGraphNodes([]);
+        setGraphRelationships([]);
+        setGraphNodesBuffer([]);
+        setGraphRelationshipsBuffer([]);
+        
+        // 先切换 Tab
+        switchTab(action.payload.tabId);
+        
+        // 第一次恢复状态
+        setTimeout(() => {
+          restoreTabState(action.payload.tabId);
+        }, 50);
         break;
       default:
         console.warn('Unknown tab action:', action);
     }
   };
 
-  // 保存当前tab状态
+  // 在适当的位置添加以下状态
+  const [filterState, setFilterState] = useState({
+    activeFilterTab: "relationship",
+    hiddenTypes: {},
+    selectedNodes: [],
+    relationshipTypeOrder: [],
+  });
+
+  // 修改 saveCurrentTabState 函数，确保保存所有 filter 相关数据
   const saveCurrentTabState = () => {
     if (!activeTab) return;
     
@@ -342,7 +395,8 @@ export default function Playground() {
         nodeLabels,
         expandedLabel,
         nodeEntities,
-        nodePrimeEntities
+        nodePrimeEntities,
+        displayProperties   // 确保保存显示属性信息
       },
       relationshipInfo: {
         relationshipTypes,
@@ -365,13 +419,14 @@ export default function Playground() {
         graphRelationships,
         graphNodesBuffer,
         graphRelationshipsBuffer
-      }
+      },
+      filterState   // 保存整个 filterState
     };
 
     saveTabState(activeTab, currentState);
   };
 
-  // 恢复tab状态
+  // 修改 restoreTabState 函数，恢复 filterState
   const restoreTabState = (tabId) => {
     const tabState = getTabState(tabId);
     if (!tabState) {
@@ -380,6 +435,7 @@ export default function Playground() {
     }
 
     try {
+      
       // 恢复节点信息
       setNodeLabels(tabState.nodeInfo?.nodeLabels || []);
       setExpandedLabel(tabState.nodeInfo?.expandedLabel || null);
@@ -407,11 +463,29 @@ export default function Playground() {
         propertyKeys: [],
       });
 
-      // 恢复图数据
+      // 确保完全替换(而不是合并)缓冲区数据
       setGraphNodes(tabState.graphData?.graphNodes || []);
       setGraphRelationships(tabState.graphData?.graphRelationships || []);
       setGraphNodesBuffer(tabState.graphData?.graphNodesBuffer || []);
       setGraphRelationshipsBuffer(tabState.graphData?.graphRelationshipsBuffer || []);
+
+      // 确保恢复过滤器状态
+      if (tabState.filterState) {
+        setFilterState({
+          activeFilterTab: tabState.filterState.activeFilterTab || "relationship",
+          hiddenTypes: tabState.filterState.hiddenTypes || {},
+          selectedNodes: tabState.filterState.selectedNodes || [],
+          relationshipTypeOrder: tabState.filterState.relationshipTypeOrder || []
+        });
+      } else {
+        // 如果没有过滤器状态，重置为默认值
+        setFilterState({
+          activeFilterTab: "relationship",
+          hiddenTypes: {},
+          selectedNodes: [],
+          relationshipTypeOrder: []
+        });
+      }
     } catch (error) {
       console.error('Error restoring tab state:', error);
       cleanUp();
@@ -690,6 +764,16 @@ export default function Playground() {
   const handleTourComplete = () => {
     sessionStorage.setItem('hasVisitedPlayground', 'true');
     setIsFirstVisit(false);
+  };
+
+  // 添加处理过滤器状态变化的函数
+  const handleFilterStateChange = (newFilterState) => {
+    setFilterState(newFilterState);
+  };
+
+  // 在 Filter 组件的设置中添加更新图数据包括缓冲区的处理函数
+  const handleFilterBufferChange = (newNodes, newRelationships, newNodesBuffer, newRelationshipsBuffer) => {
+    updateGraphData(newNodes, newRelationships, newNodesBuffer, newRelationshipsBuffer);
   };
 
   return (
@@ -1026,6 +1110,10 @@ export default function Playground() {
                         setGraphNodesBuffer={setGraphNodesBuffer}
                         setGraphRelationshipsBuffer={setGraphRelationshipsBuffer}
                         tabContentBounds={tabContentBounds}
+                        activeTabId={activeTab}
+                        onFilterStateChange={handleFilterStateChange}
+                        initialFilterState={filterState}
+                        onBufferChange={handleFilterBufferChange}
                       />
                     )}
                   </div>

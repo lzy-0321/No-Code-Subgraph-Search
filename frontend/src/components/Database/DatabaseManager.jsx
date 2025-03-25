@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import styles from '../../styles/DatabaseManager.module.css';
+import API_ENDPOINTS from '../../config/apiConfig';
 
 const DatabaseManager = ({ 
   onDatabaseSelect, 
@@ -27,7 +28,7 @@ const DatabaseManager = ({
 
   const fetchDatabases = async () => {
     try {
-      const response = await fetch('http://localhost:8000/get_user_databases/', {
+      const response = await fetch(API_ENDPOINTS.getUserDatabases, {
         method: 'GET',
         credentials: 'include',
       });
@@ -56,7 +57,7 @@ const DatabaseManager = ({
         ?.split('=')[1];
 
       // 第一步：选择数据库
-      const response = await fetch('http://localhost:8000/select_database/', {
+      const response = await fetch(API_ENDPOINTS.selectDatabase, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -76,7 +77,7 @@ const DatabaseManager = ({
       }
 
       // 第二步：获取数据库信息
-      const dbInfoResponse = await fetch('http://localhost:8000/get_database_info/', {
+      const dbInfoResponse = await fetch(API_ENDPOINTS.getDatabaseInfo, {
         method: 'GET',
         credentials: 'include',
       });
@@ -106,7 +107,7 @@ const DatabaseManager = ({
       // 第三步：获取实体信息
       const nodePromises = (dbInfo.labels || []).map(async (label) => {
         try {
-          const response = await fetch('http://localhost:8000/get_nodeEntities/', {
+          const response = await fetch(API_ENDPOINTS.getNodeEntities, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -128,7 +129,7 @@ const DatabaseManager = ({
 
       const relationshipPromises = (dbInfo.relationship_types || []).map(async (type) => {
         try {
-          const response = await fetch('http://localhost:8000/get_relationshipEntities/', {
+          const response = await fetch(API_ENDPOINTS.getRelationshipEntities, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -199,7 +200,7 @@ const DatabaseManager = ({
         .find((row) => row.startsWith('csrftoken='))
         ?.split('=')[1];
 
-      const response = await fetch('http://localhost:8000/delete_database/', {
+      const response = await fetch(API_ENDPOINTS.deleteDatabase, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -244,7 +245,7 @@ const DatabaseManager = ({
     const fullUrl = `${protocol}${connectUrl}`;
 
     try {
-      const response = await fetch('http://localhost:8000/add_database/', {
+      const response = await fetch(API_ENDPOINTS.addDatabase, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
+import API_ENDPOINTS from '../config/apiConfig';
 
 const UserMenu = ({ user }) => {
   const [menuVisible, setMenuVisible] = useState(false);
@@ -28,7 +29,7 @@ const UserMenu = ({ user }) => {
 
   // 处理登出
   const handleLogout = async () => {
-    const res = await fetch('http://localhost:8000/logout/', {
+    const res = await fetch(API_ENDPOINTS.logout, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

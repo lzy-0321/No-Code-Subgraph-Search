@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import GraphComponent from './GraphComponent';
 import styles from '../styles/playground.module.css';
+import API_ENDPOINTS from '../config/apiConfig';
 
 const Tab = ({ tabData, onUpdateTab, onClose, isActive }) => {
   const [selectedDatabase, setSelectedDatabase] = useState(tabData.databaseInfo.selectedDatabase || null);
@@ -12,7 +13,7 @@ const Tab = ({ tabData, onUpdateTab, onClose, isActive }) => {
         .find((row) => row.startsWith('csrftoken='))
         ?.split('=')[1];
 
-      const response = await fetch('http://localhost:8000/select_database/', {
+      const response = await fetch(API_ENDPOINTS.selectDatabase, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -40,7 +41,7 @@ const Tab = ({ tabData, onUpdateTab, onClose, isActive }) => {
 
   const fetchDatabaseInfo = async (url) => {
     try {
-      const response = await fetch(`http://localhost:8000/get_database_info?url=${url}`, {
+      const response = await fetch(`${API_ENDPOINTS.getDatabaseInfo}?url=${url}`, {
         method: 'GET',
         credentials: 'include',
       });

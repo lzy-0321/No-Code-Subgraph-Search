@@ -1,3 +1,5 @@
+import API_ENDPOINTS from '../config/apiConfig';
+
 // 查询示例:
 
 // 1. 标签查询示例
@@ -477,7 +479,7 @@ export class QueryManager {
       
       //console.log('Request body:', requestBody);
 
-      const response = await fetch('http://localhost:8000/match_query/', {
+      const response = await fetch(API_ENDPOINTS.matchQuery, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -546,7 +548,7 @@ export class QueryManager {
 
       //console.log('Request body:', requestBody);
 
-      const response = await fetch('http://localhost:8000/match_query/', {
+      const response = await fetch(API_ENDPOINTS.matchQuery, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -635,7 +637,7 @@ export class QueryManager {
 
       //console.log('Request body:', requestBody);
 
-      const response = await fetch('http://localhost:8000/match_query/', {
+      const response = await fetch(API_ENDPOINTS.matchQuery, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -787,7 +789,7 @@ export class QueryManager {
       // 添加详细的调试日志
       //console.log('Executing chain relationship query with params:', JSON.stringify(params, null, 2));
 
-      const response = await fetch('http://localhost:8000/match_query/', {
+      const response = await fetch(API_ENDPOINTS.matchQuery, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

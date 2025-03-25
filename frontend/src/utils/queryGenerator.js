@@ -465,7 +465,7 @@ export class QueryManager {
   // 执行标签查询
   async executeLabelQuery(params) {
     try {
-      console.log('Executing label query with params:', params);
+      //console.log('Executing label query with params:', params);
 
       const requestBody = {
         matchType: 'labelMatch',
@@ -475,7 +475,7 @@ export class QueryManager {
         exactMatch: false  // 添加这个参数来获取所有匹配的节点
       };
       
-      console.log('Request body:', requestBody);
+      //console.log('Request body:', requestBody);
 
       const response = await fetch('http://localhost:8000/match_query/', {
         method: 'POST',
@@ -486,9 +486,9 @@ export class QueryManager {
         body: JSON.stringify(requestBody)
       });
 
-      console.log('Response status:', response.status);
+      //console.log('Response status:', response.status);
       const data = await response.json();
-      console.log('Response data:', data);
+      //console.log('Response data:', data);
 
       if (!data.success) {
         throw new Error(data.error || 'Query failed');
@@ -520,7 +520,7 @@ export class QueryManager {
   // 执行关系查询
   async executeRelationshipQuery(params) {
     try {
-      console.log('Executing relationship query with params:', params);
+      //console.log('Executing relationship query with params:', params);
 
       const requestBody = {
         matchType: 'relationshipMatch',
@@ -544,7 +544,7 @@ export class QueryManager {
         }
       };
 
-      console.log('Request body:', requestBody);
+      //console.log('Request body:', requestBody);
 
       const response = await fetch('http://localhost:8000/match_query/', {
         method: 'POST',
@@ -605,7 +605,7 @@ export class QueryManager {
   // 执行路径查询
   async executePathQuery(params) {
     try {
-      console.log('Executing path query with params:', params);
+      //console.log('Executing path query with params:', params);
 
       // 过滤掉空的属性对象
       const startNodeProps = Object.keys(params.startNode.properties || {}).length > 0 
@@ -633,7 +633,7 @@ export class QueryManager {
         }
       };
 
-      console.log('Request body:', requestBody);
+      //console.log('Request body:', requestBody);
 
       const response = await fetch('http://localhost:8000/match_query/', {
         method: 'POST',
@@ -692,7 +692,7 @@ export class QueryManager {
   async executeQuery(queryIdOrParams) {
     try {
       let params;
-      console.log('executeQuery received:', queryIdOrParams);
+      //console.log('executeQuery received:', queryIdOrParams);
       
       // 检查是否传入的是查询ID还是直接的参数
       if (typeof queryIdOrParams === 'string') {
@@ -703,7 +703,7 @@ export class QueryManager {
         params = queryIdOrParams;
       }
 
-      console.log('Processed params:', params);
+      //console.log('Processed params:', params);
 
       // 根据type决定使用哪个查询执行方法
       let result;
@@ -785,7 +785,7 @@ export class QueryManager {
   async executeChainRelationshipQuery(params) {
     try {
       // 添加详细的调试日志
-      console.log('Executing chain relationship query with params:', JSON.stringify(params, null, 2));
+      //console.log('Executing chain relationship query with params:', JSON.stringify(params, null, 2));
 
       const response = await fetch('http://localhost:8000/match_query/', {
         method: 'POST',
@@ -801,7 +801,7 @@ export class QueryManager {
 
       // 添加响应调试日志
       const data = await response.json();
-      console.log('Chain query response:', JSON.stringify(data, null, 2));
+      //console.log('Chain query response:', JSON.stringify(data, null, 2));
 
       if (!data.success) {
         throw new Error(data.error || 'Chain relationship query failed');
@@ -921,7 +921,7 @@ export class QueryParamsGenerator {
 
   // 生成路径查询
   generatePathQuery(startLabel, endLabel, pathProperties) {
-    console.log('generatePathQuery inputs:', { startLabel, endLabel, pathProperties });  // 添加日志
+    //console.log('generatePathQuery inputs:', { startLabel, endLabel, pathProperties });  // 添加日志
     return {
       type: 'path',  // 确保包含 type
       params: {

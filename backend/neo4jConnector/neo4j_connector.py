@@ -103,8 +103,8 @@ class CypherQueryBuilder:
                 # 合并所有参数
                 params = {**start_props, **end_props}
                 
-                print(f"Generated query: {query}")  # 调试日志
-                print(f"Query parameters: {params}")  # 调试日志
+                # print(f"Generated query: {query}")  # 调试日志
+                # print(f"Query parameters: {params}")  # 调试日志
                 
                 return query, params
         
@@ -168,8 +168,8 @@ class CypherQueryBuilder:
             # 返回完整路径
             query += " RETURN p"
             
-            print(f"Generated path query: {query}")  # 调试日志
-            print(f"With params: {params}")  # 调试日志
+            # print(f"Generated path query: {query}")  # 调试日志
+            # print(f"With params: {params}")  # 调试日志
             
             return query, params
         
@@ -255,8 +255,8 @@ class CypherQueryBuilder:
             all_rels = [f"r{i}" for i in range(len(relationships))]
             query += f"\nRETURN {', '.join(all_vars)}, {', '.join(all_rels)}"
             
-            print(f"Generated query: {query}")  # 调试日志
-            print(f"Query parameters: {params}")  # 调试日志
+            # print(f"Generated query: {query}")  # 调试日志
+            # print(f"Query parameters: {params}")  # 调试日志
             
             return query, params
         
@@ -511,7 +511,7 @@ class Neo4jConnector:
     def execute_match_query(self, query_params):
         """执行match查询"""
         try:
-            print("Query params received:", query_params)  # 调试日志
+            # print("Query params received:", query_params)  # 调试日志
             
             match_type = query_params.get('matchType')
             if not match_type:
@@ -579,7 +579,7 @@ class Neo4jConnector:
                                         record_dict[key] = node
                             records.append(record_dict)
                         except Exception as e:
-                            print(f"Error processing record: {e}")  # 调试日志
+                            # print(f"Error processing record: {e}")  # 调试日志
                             continue
                     
                     return {
@@ -588,14 +588,14 @@ class Neo4jConnector:
                     }
                     
                 except Exception as e:
-                    print(f"Error executing query: {e}")  # 调试日志
+                    # print(f"Error executing query: {e}")  # 调试日志
                     return {
                         'success': False,
                         'error': f"Query execution error: {str(e)}"
                     }
                 
         except Exception as e:
-            print(f"Error in execute_match_query: {e}")  # 调试日志
+            # print(f"Error in execute_match_query: {e}")  # 调试日志
             return {
                 'success': False,
                 'error': str(e)

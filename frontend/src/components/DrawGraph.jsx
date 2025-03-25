@@ -12,9 +12,9 @@ const DrawGraph = ({ nodes, relationships, enableZoom = true, useNormalCanvas = 
     scale: 1
   });
 
-  console.log('GraphComponent rendered');
-  console.log('Nodes:', nodes);
-  console.log('Relationships:', relationships);
+  //console.log('GraphComponent rendered');
+  //console.log('Nodes:', nodes);
+  //console.log('Relationships:', relationships);
 
   useEffect(() => {
     return () => {
@@ -76,7 +76,7 @@ const DrawGraph = ({ nodes, relationships, enableZoom = true, useNormalCanvas = 
   );
 
   useEffect(() => {
-    console.log('Graph data updated');
+    //console.log('Graph data updated');
   }, [data]);
 
   // 处理鼠标按下

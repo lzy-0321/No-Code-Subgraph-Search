@@ -56,10 +56,10 @@ const SearchBox = ({
                 label: label
               });
               
-              console.log('Found matching node entity:', {
-                label,
-                displayValue: entity[0]
-              });
+              //console.log('Found matching node entity:', {
+              //   label,
+              //   displayValue: entity[0]
+              // });
             }
           });
         });
@@ -88,11 +88,11 @@ const SearchBox = ({
                 }
               });
               
-              console.log('Found matching relationship:', {
-                type,
-                startNode: startNode[0],
-                endNode: endNode[0]
-              });
+              //console.log('Found matching relationship:', {
+              //   type,
+              //   startNode: startNode[0],
+              //   endNode: endNode[0]
+              // });
             }
           });
         });
@@ -118,7 +118,7 @@ const SearchBox = ({
             items: propertyResults
           });
           
-          console.log('Found matching property keys:', propertyResults);
+          //console.log('Found matching property keys:', propertyResults);
         }
       }
 

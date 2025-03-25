@@ -364,7 +364,7 @@ def match_query(request):
             connector = neo4j_session_manager.get_session()
             if not connector:
                 error_msg = 'No active Neo4j session found'
-                print(error_msg)  # 调试日志
+                # print(error_msg)  # 调试日志
                 return JsonResponse({
                     'success': False,
                     'error': error_msg
@@ -372,12 +372,12 @@ def match_query(request):
                 
             # 解析请求体
             query_params = json.loads(request.body)
-            print(f"Received query params: {query_params}")  # 调试日志
+            # print(f"Received query params: {query_params}")  # 调试日志
             
             # 验证必要的参数
             if 'matchType' not in query_params:
                 error_msg = 'matchType is required'
-                print(error_msg)  # 调试日志
+                # print(error_msg)  # 调试日志
                 return JsonResponse({
                     'success': False,
                     'error': error_msg
@@ -385,7 +385,7 @@ def match_query(request):
             
             # 执行查询
             result = connector.execute_match_query(query_params)
-            print(f"Query result: {result}")  # 调试日志
+            # print(f"Query result: {result}")  # 调试日志
             
             if result['success']:
                 return JsonResponse(result)
@@ -394,7 +394,7 @@ def match_query(request):
             
         except json.JSONDecodeError as e:
             error_msg = f'Invalid JSON format: {str(e)}'
-            print(error_msg)  # 调试日志
+            # print(error_msg)  # 调试日志
             return JsonResponse({
                 'success': False,
                 'error': error_msg
@@ -402,7 +402,7 @@ def match_query(request):
             
         except Exception as e:
             error_msg = f"Error in match_query view: {str(e)}"
-            print(error_msg)  # 调试日志
+            # print(error_msg)  # 调试日志
             traceback.print_exc()  # 打印完整的错误堆栈
             return JsonResponse({
                 'success': False,

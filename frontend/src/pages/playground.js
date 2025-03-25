@@ -168,7 +168,7 @@ export default function Playground() {
   const queryManager = new QueryManager();
 
   const handleQueryGenerated = async (queryData) => {
-    console.log('handleQueryGenerated received:', queryData);
+    //console.log('handleQueryGenerated received:', queryData);
     try {
       const result = await queryManager.executeQuery(queryData);
       if (result) {
@@ -240,7 +240,7 @@ export default function Playground() {
       }
     };
 
-    console.log('Generating query for node:', queryData);
+    //console.log('Generating query for node:', queryData);
     handleQueryGenerated(queryData);
 
     // 清除搜索框
@@ -286,7 +286,7 @@ export default function Playground() {
       }
     };
 
-    console.log('Generating query for relationship:', queryData);
+    //console.log('Generating query for relationship:', queryData);
     handleQueryGenerated(queryData);
   };
 
@@ -430,16 +430,16 @@ export default function Playground() {
   const handleDatabaseInfoFetch = (dbInfo) => {
     try {
       // 打印完整的数据库信息以便调试
-      console.log('Received database info:', {
-        'Labels': dbInfo.labels,
-        'Node Display Info': dbInfo.nodeDisplayInfo,
-        'Node Prime Entities': dbInfo.nodePrimeEntities,
-        'Node Entities': dbInfo.nodeEntities,
-        'Relationship Types': dbInfo.relationshipTypes,
-        'Relationship Prime Entities': dbInfo.relationshipPrimeEntities,
-        'Relationship Entities': dbInfo.relationshipEntities,
-        'Property Keys': dbInfo.propertyKeys
-      });
+      //console.log('Received database info:', {
+      //   'Labels': dbInfo.labels,
+      //   'Node Display Info': dbInfo.nodeDisplayInfo,
+      //   'Node Prime Entities': dbInfo.nodePrimeEntities,
+      //   'Node Entities': dbInfo.nodeEntities,
+      //   'Relationship Types': dbInfo.relationshipTypes,
+      //   'Relationship Prime Entities': dbInfo.relationshipPrimeEntities,
+      //   'Relationship Entities': dbInfo.relationshipEntities,
+      //   'Property Keys': dbInfo.propertyKeys
+      // });
 
       // 更新节点信息
       setNodeLabels(dbInfo.labels || []);
@@ -676,16 +676,16 @@ export default function Playground() {
 
   useEffect(() => {
     // 添加调试日志
-    console.log('Checking first visit status');
+    //console.log('Checking first visit status');
     const hasVisited = sessionStorage.getItem('hasVisitedPlayground');
-    console.log('hasVisited:', hasVisited);
+    //console.log('hasVisited:', hasVisited);
     if (hasVisited) {
       setIsFirstVisit(false);
     }
   }, []);
 
   // 在渲染前添加调试日志
-  console.log('Current isFirstVisit state:', isFirstVisit);
+  //console.log('Current isFirstVisit state:', isFirstVisit);
 
   const handleTourComplete = () => {
     sessionStorage.setItem('hasVisitedPlayground', 'true');

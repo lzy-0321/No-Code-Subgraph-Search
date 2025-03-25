@@ -84,7 +84,7 @@ const OnboardingTour = ({ isFirstVisit, onComplete }) => {
     // 延迟设置 mounted 状态，确保 DOM 已完全加载
     const timer = setTimeout(() => {
       setMounted(true);
-      console.log('Component mounted');
+      //console.log('Component mounted');
     }, 100);
     
     return () => clearTimeout(timer);
@@ -204,17 +204,17 @@ const OnboardingTour = ({ isFirstVisit, onComplete }) => {
   }, [isFirstVisit]);
 
   // 添加调试日志
-  console.log('OnboardingTour rendered with isFirstVisit:', isFirstVisit);
-  console.log('Current mounted state:', mounted);
-  console.log('Current isVisible state:', isVisible);
-  console.log('Current tooltipPosition:', tooltipPosition);
+  //console.log('OnboardingTour rendered with isFirstVisit:', isFirstVisit);
+  //console.log('Current mounted state:', mounted);
+  //console.log('Current isVisible state:', isVisible);
+  //console.log('Current tooltipPosition:', tooltipPosition);
 
   if (!isVisible || !mounted || !tooltipPosition) {
-    console.log('Component not rendering due to:', {
-      isVisible,
-      mounted,
-      hasTooltipPosition: !!tooltipPosition
-    });
+    // console.log('Component not rendering due to:', {
+    //   isVisible,
+    //   mounted,
+    //   hasTooltipPosition: !!tooltipPosition
+    // });
     return null;
   }
 

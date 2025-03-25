@@ -59,7 +59,7 @@ export default function DocsPage() {
       const docName = path.split('/').pop();
       // 修正文档路径，从 /assets/docs/ 目录加载
       const fullPath = `/assets/docs/${docName}.md`;
-      console.log('Loading document:', fullPath);
+      //console.log('Loading document:', fullPath);
       
       const response = await fetch(fullPath);
       
@@ -200,33 +200,33 @@ export default function DocsPage() {
 
   useEffect(() => {
     const { pathname, query } = router;
-    console.log('路由变化:', {
-      pathname,
-      query,
-      docId: query.docId,
-      asPath: router.asPath
-    });
+    //console.log('路由变化:', {
+    //   pathname,
+    //   query,
+    //   docId: query.docId,
+    //   asPath: router.asPath
+    // });
   }, [router]);
 
   useEffect(() => {
     if (currentDoc) {
-      console.log('文档加载状态:', {
-        docLength: currentDoc.length,
-        docType: typeof currentDoc,
-        loading
-      });
+      //console.log('文档加载状态:', {
+      //   docLength: currentDoc.length,
+      //   docType: typeof currentDoc,
+      //   loading
+      // });
     }
   }, [currentDoc, loading]);
 
   useEffect(() => {
     if (currentDoc) {
-      console.log('文档内容类型:', typeof currentDoc);
-      console.log('文档内容前20个字符:', typeof currentDoc === 'string' ? currentDoc.substring(0, 20) : 'not a string');
+      //console.log('文档内容类型:', typeof currentDoc);
+      //console.log('文档内容前20个字符:', typeof currentDoc === 'string' ? currentDoc.substring(0, 20) : 'not a string');
       
       // 试图找出可能的问题
       try {
         JSON.stringify(currentDoc);
-        console.log('文档可以被JSON序列化');
+        //console.log('文档可以被JSON序列化');
       } catch (e) {
         console.error('文档无法被JSON序列化:', e);
       }

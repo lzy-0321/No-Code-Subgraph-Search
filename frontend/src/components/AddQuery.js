@@ -145,7 +145,7 @@ const AddQuery = ({
   };
 
   const handleAddPath = () => {
-    console.log('Starting handleAddPath');  // 添加日志
+    // //console.log('Starting handleAddPath');  // 添加日志
     
     // 过滤掉空属性
     const startNodeProps = Object.fromEntries(
@@ -179,7 +179,7 @@ const AddQuery = ({
       }
     };
     
-    console.log('Generated queryParams:', queryParams);  // 添加日志
+    //console.log('Generated queryParams:', queryParams);  // 添加日志
     
     if (selectedStartLabel && selectedEndLabel) {
       onQueryGenerated(queryParams);
@@ -204,7 +204,7 @@ const AddQuery = ({
       }
     };
 
-    console.log('Node query params:', queryParams); // 添加日志
+    //console.log('Node query params:', queryParams); // 添加日志
 
     onQueryGenerated(queryParams);
     handleClosePopup();
@@ -502,8 +502,8 @@ const AddQuery = ({
         ];
 
         // 添加调试日志
-        console.log('Chain relationships:', relationships);
-        console.log('Available nodes:', Array.from(availableNodes.entries()));
+        //console.log('Chain relationships:', relationships);
+        //console.log('Available nodes:', Array.from(availableNodes.entries()));
 
         const queryParams = {
           type: 'chainRelationship',
@@ -514,7 +514,7 @@ const AddQuery = ({
         };
 
         // 添加调试日志
-        console.log('Generated chain query params:', queryParams);
+        //console.log('Generated chain query params:', queryParams);
 
         onQueryGenerated(queryParams);
       } else {
@@ -560,7 +560,7 @@ const AddQuery = ({
         }
       };
 
-      console.log('Relationship query params:', queryParams); // 添加日志
+      //console.log('Relationship query params:', queryParams); // 添加日志
 
       onQueryGenerated(queryParams);
     }

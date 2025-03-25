@@ -140,11 +140,11 @@ const DatabaseManager = ({
           const data = await response.json();
           if (data.success) {
             // 调试日志：检查返回的数据结构
-            console.log(`Relationship entities data for type ${type}:`, {
-              'Prime Entities': data.relationshipEntities[0]?.slice(0, 3),
-              'Display Info': data.relationshipEntities[2]?.[type],
-              'Raw Response': data.relationshipEntities
-            });
+            //console.log(`Relationship entities data for type ${type}:`, {
+            //   'Prime Entities': data.relationshipEntities[0]?.slice(0, 3),
+            //   'Display Info': data.relationshipEntities[2]?.[type],
+            //   'Raw Response': data.relationshipEntities
+            // });
 
             fullDbInfo.relationshipPrimeEntities[type] = data.relationshipEntities[0];  // [[start_display, start_id], [end_display, end_id]] 对的列表
             fullDbInfo.relationshipEntities[type] = data.relationshipEntities[1];       // 属性名列表
@@ -159,14 +159,14 @@ const DatabaseManager = ({
       await Promise.all([...nodePromises, ...relationshipPromises]);
 
       // 最终调试日志：检查完整的数据结构
-      console.log('Final database info:', {
-        'Labels': fullDbInfo.labels,
-        'Sample Node Prime Entities': Object.fromEntries(
-          Object.entries(fullDbInfo.nodePrimeEntities)
-            .map(([label, entities]) => [label, entities?.slice(0, 3)])
-        ),
-        'Node Display Info': fullDbInfo.nodeDisplayInfo,
-      });
+      //console.log('Final database info:', {
+      //   'Labels': fullDbInfo.labels,
+      //   'Sample Node Prime Entities': Object.fromEntries(
+      //     Object.entries(fullDbInfo.nodePrimeEntities)
+      //       .map(([label, entities]) => [label, entities?.slice(0, 3)])
+      //   ),
+      //   'Node Display Info': fullDbInfo.nodeDisplayInfo,
+      // });
 
       // 更新数据库选择状态
       onDatabaseSelect(url, activeTab);

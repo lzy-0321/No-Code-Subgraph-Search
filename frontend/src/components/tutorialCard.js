@@ -7,7 +7,7 @@ const features = [
     Icon: TbCrosshair,
     name: "Add node or relationship in match",
     description: "Add a node or relationship to your match query.",
-    href: "/tutorial/AddNodeRelationship",
+    href: "/docs/add-node-relationship",
     cta: "Learn more",
     background: null,
     className: "lg:row-start-1 lg:row-end-5 lg:col-start-2 lg:col-end-3", // 调整行高
@@ -16,7 +16,7 @@ const features = [
     Icon: TbDatabasePlus,
     name: "Link databases",
     description: "Link your Neo4j databases to your account.",
-    href: "/",
+    href: "/docs/database-connection",
     cta: "Learn more",
     background: null,
     className: "lg:col-start-1 lg:col-end-2 lg:row-start-1 lg:row-end-4", // 调整行高
@@ -25,7 +25,7 @@ const features = [
     Icon: TbInputSearch,
     name: "Search globally",
     description: "Search through all your node and relationship data.",
-    href: "/",
+    href: "/docs/global-search",
     cta: "Learn more",
     background: null,
     className: "lg:col-start-1 lg:col-end-2 lg:row-start-4 lg:row-end-5", // 调整行高
@@ -34,7 +34,7 @@ const features = [
     Icon: TbFilterPlus,
     name: "Filter by date",
     description: "Filter your graph data by date.",
-    href: "/",
+    href: "/docs/data-filter",
     cta: "Learn more",
     background: null,
     className: "lg:col-start-3 lg:col-end-3 lg:row-start-1 lg:row-end-3", // 调整行高
@@ -43,7 +43,7 @@ const features = [
     Icon: TbSettingsSearch,
     name: "Query configuration",
     description: "Adjust each query",
-    href: "/",
+    href: "/docs/query-configuration",
     cta: "Learn more",
     background: null,
     className: "lg:col-start-3 lg:col-end-3 lg:row-start-3 lg:row-end-4", // 调整行高
@@ -52,7 +52,7 @@ const features = [
     Icon: TbTrash,
     name: "Clean Up",
     description: "Clean up your graph by removing unused nodes and relationships.",
-    href: "/",
+    href: "/docs/clean-up",
     cta: "Learn more",
     background: null,
     className: "lg:col-start-3 lg:col-end-3 lg:row-start-4 lg:row-end-5", // 调整行高

@@ -257,31 +257,82 @@ const AddQuery = ({
     if (!selectedLabel || !selectedStartLabel || !selectedEndLabel) return true;
     
     return !chainQueries.some(query => {
-      // 获取开始节点的实际标签
-      const existingStartLabel = query.startNodeRef ? 
-        chainQueries[parseInt(query.startNodeRef.split('.')[0])].startNodeLabel : 
-        query.startNodeLabel;
+      // 修复节点引用解析逻辑
+      let existingStartLabel;
+      let existingEndLabel;
       
-      // 获取结束节点的实际标签
-      const existingEndLabel = query.endNodeRef ? 
-        chainQueries[parseInt(query.endNodeRef.split('.')[0])].endNodeLabel : 
-        query.endNodeLabel;
+      // 安全解析开始节点引用
+      if (query.startNodeRef) {
+        if (query.startNodeRef.length === 1) {
+          existingStartLabel = query.startNodeLabel;
+        } else {
+          try {
+            const refIndex = parseInt(query.startNodeRef.split('.')[0]);
+            existingStartLabel = chainQueries[refIndex] ? chainQueries[refIndex].startNodeLabel : query.startNodeLabel;
+          } catch (e) {
+            existingStartLabel = query.startNodeLabel;
+          }
+        }
+      } else {
+        existingStartLabel = query.startNodeLabel;
+      }
+      
+      // 安全解析结束节点引用
+      if (query.endNodeRef) {
+        if (query.endNodeRef.length === 1) {
+          existingEndLabel = query.endNodeLabel;
+        } else {
+          try {
+            const refIndex = parseInt(query.endNodeRef.split('.')[0]);
+            existingEndLabel = chainQueries[refIndex] ? chainQueries[refIndex].endNodeLabel : query.endNodeLabel;
+          } catch (e) {
+            existingEndLabel = query.endNodeLabel;
+          }
+        }
+      } else {
+        existingEndLabel = query.endNodeLabel;
+      }
       
       // 获取当前选择的开始节点的实际标签
-      const newStartLabel = selectedStartLabel.startsWith('ref:') ? 
-        chainQueries[parseInt(selectedStartLabel.substring(4).split('.')[0])].startNodeLabel : 
-        selectedStartLabel;
+      let newStartLabel;
+      if (selectedStartLabel.startsWith('ref:')) {
+        try {
+          const refKey = selectedStartLabel.substring(4);
+          if (refKey.includes('.')) {
+            const refIndex = parseInt(refKey.split('.')[0]);
+            newStartLabel = chainQueries[refIndex] ? chainQueries[refIndex].startNodeLabel : selectedStartLabel;
+          } else {
+            const node = Array.from(availableNodes.entries()).find(([k, n]) => k === refKey)?.[1];
+            newStartLabel = node ? node.label : selectedStartLabel;
+          }
+        } catch (e) {
+          newStartLabel = selectedStartLabel;
+        }
+      } else {
+        newStartLabel = selectedStartLabel;
+      }
       
-      // 获取当前选择的结束节点的实际标签
-      const newEndLabel = selectedEndLabel.startsWith('ref:') ? 
-        chainQueries[parseInt(selectedEndLabel.substring(4).split('.')[0])].endNodeLabel : 
-        selectedEndLabel;
-      
-      // 检查节点标签组合和关系类型是否重复
-      const isSameNodes = existingStartLabel === newStartLabel && existingEndLabel === newEndLabel;
-      const isSameRelationType = query.relationType === selectedLabel;
+      let newEndLabel;
+      if (selectedEndLabel.startsWith('ref:')) {
+        try {
+          const refKey = selectedEndLabel.substring(4);
+          if (refKey.includes('.')) {
+            const refIndex = parseInt(refKey.split('.')[0]);
+            newEndLabel = chainQueries[refIndex] ? chainQueries[refIndex].endNodeLabel : selectedEndLabel;
+          } else {
+            const node = Array.from(availableNodes.entries()).find(([k, n]) => k === refKey)?.[1];
+            newEndLabel = node ? node.label : selectedEndLabel;
+          }
+        } catch (e) {
+          newEndLabel = selectedEndLabel;
+        }
+      } else {
+        newEndLabel = selectedEndLabel;
+      }
 
-      return isSameNodes && isSameRelationType;
+      return existingStartLabel === newStartLabel && 
+             existingEndLabel === newEndLabel && 
+             query.relationType === selectedLabel;
     });
   };
 
@@ -289,18 +340,78 @@ const AddQuery = ({
   const getErrorMessage = () => {
     if (!isValidCombination()) {
       const duplicateQuery = chainQueries.find(query => {
-        const existingStartLabel = query.startNodeRef ? 
-          chainQueries[parseInt(query.startNodeRef.split('.')[0])].startNodeLabel : 
-          query.startNodeLabel;
-        const existingEndLabel = query.endNodeRef ? 
-          chainQueries[parseInt(query.endNodeRef.split('.')[0])].endNodeLabel : 
-          query.endNodeLabel;
-        const newStartLabel = selectedStartLabel.startsWith('ref:') ? 
-          chainQueries[parseInt(selectedStartLabel.substring(4).split('.')[0])].startNodeLabel : 
-          selectedStartLabel;
-        const newEndLabel = selectedEndLabel.startsWith('ref:') ? 
-          chainQueries[parseInt(selectedEndLabel.substring(4).split('.')[0])].endNodeLabel : 
-          selectedEndLabel;
+        // 使用与 isValidCombination 相同的安全解析逻辑
+        let existingStartLabel;
+        let existingEndLabel;
+        
+        // 安全解析开始节点引用
+        if (query.startNodeRef) {
+          if (query.startNodeRef.length === 1) {
+            existingStartLabel = query.startNodeLabel;
+          } else {
+            try {
+              const refIndex = parseInt(query.startNodeRef.split('.')[0]);
+              existingStartLabel = chainQueries[refIndex] ? chainQueries[refIndex].startNodeLabel : query.startNodeLabel;
+            } catch (e) {
+              existingStartLabel = query.startNodeLabel;
+            }
+          }
+        } else {
+          existingStartLabel = query.startNodeLabel;
+        }
+        
+        // 安全解析结束节点引用
+        if (query.endNodeRef) {
+          if (query.endNodeRef.length === 1) {
+            existingEndLabel = query.endNodeLabel;
+          } else {
+            try {
+              const refIndex = parseInt(query.endNodeRef.split('.')[0]);
+              existingEndLabel = chainQueries[refIndex] ? chainQueries[refIndex].endNodeLabel : query.endNodeLabel;
+            } catch (e) {
+              existingEndLabel = query.endNodeLabel;
+            }
+          }
+        } else {
+          existingEndLabel = query.endNodeLabel;
+        }
+        
+        // 处理当前选择的节点
+        let newStartLabel;
+        if (selectedStartLabel.startsWith('ref:')) {
+          try {
+            const refKey = selectedStartLabel.substring(4);
+            if (refKey.includes('.')) {
+              const refIndex = parseInt(refKey.split('.')[0]);
+              newStartLabel = chainQueries[refIndex] ? chainQueries[refIndex].startNodeLabel : selectedStartLabel;
+            } else {
+              const node = Array.from(availableNodes.entries()).find(([k, n]) => k === refKey)?.[1];
+              newStartLabel = node ? node.label : selectedStartLabel;
+            }
+          } catch (e) {
+            newStartLabel = selectedStartLabel;
+          }
+        } else {
+          newStartLabel = selectedStartLabel;
+        }
+        
+        let newEndLabel;
+        if (selectedEndLabel.startsWith('ref:')) {
+          try {
+            const refKey = selectedEndLabel.substring(4);
+            if (refKey.includes('.')) {
+              const refIndex = parseInt(refKey.split('.')[0]);
+              newEndLabel = chainQueries[refIndex] ? chainQueries[refIndex].endNodeLabel : selectedEndLabel;
+            } else {
+              const node = Array.from(availableNodes.entries()).find(([k, n]) => k === refKey)?.[1];
+              newEndLabel = node ? node.label : selectedEndLabel;
+            }
+          } catch (e) {
+            newEndLabel = selectedEndLabel;
+          }
+        } else {
+          newEndLabel = selectedEndLabel;
+        }
 
         return existingStartLabel === newStartLabel && 
                existingEndLabel === newEndLabel && 
@@ -308,7 +419,7 @@ const AddQuery = ({
       });
 
       const queryIndex = chainQueries.indexOf(duplicateQuery) + 1;
-      return `This relationship pattern already exists in Query ${queryIndex}. Please choose a different combination.`;
+      return `此关系模式已存在于查询 ${queryIndex}。请选择不同的组合。`;
     }
     return null;
   };

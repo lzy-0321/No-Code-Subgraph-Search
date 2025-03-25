@@ -1,0 +1,448 @@
+/* docs.module.css - Apple 风格设计系统 */
+.docsContainer {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background-color: #f5f5f7;
+}
+
+/* 顶部导航栏 */
+.header {
+  height: 64px;
+  background-color: rgba(255, 255, 255, 0.98);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.headerContent {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 0 32px;
+}
+
+.brandContainer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logoImage {
+  width: 28px;
+  height: 28px;
+  opacity: 0.8;
+}
+
+.brandTextContainer {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.brandName {
+  font-size: 20px;
+  font-weight: 600;
+  color: #1d1d1f;
+  letter-spacing: 2.5px;
+  line-height: 1.2;
+  margin: 0;
+}
+
+.brandStudio {
+  font-size: 16px;
+  font-weight: 500;
+  color: #86868b;
+  letter-spacing: 2px;
+  line-height: 1.2;
+  margin: 0;
+}
+
+.navLinks {
+  display: flex;
+  gap: 48px;
+  margin-left: 48px;
+}
+
+.navLink {
+  font-size: 16px;
+  font-weight: 500;
+  color: #1d1d1f;
+  text-decoration: none;
+  transition: color 0.2s ease;
+  padding: 8px 0;
+}
+
+.navLink:hover {
+  color: #0071e3;
+}
+
+.activeLink {
+  color: #0071e3;
+}
+
+/* 主要内容区域 */
+.contentWrapper {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* 侧边栏 */
+.sidebar {
+  width: 280px;
+  background-color: rgba(250, 250, 250, 0.95);
+  border-right: 1px solid rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.searchContainer {
+  padding: 16px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.searchBox {
+  display: flex;
+  align-items: center;
+  background-color: rgba(0, 0, 0, 0.05);
+  border-radius: 8px;
+  padding: 0 12px;
+  height: 36px;
+}
+
+.searchIcon {
+  color: rgba(0, 0, 0, 0.4);
+  margin-right: 8px;
+}
+
+.searchInput {
+  border: none;
+  background: transparent;
+  width: 100%;
+  font-size: 14px;
+  color: #1d1d1f;
+  outline: none;
+}
+
+.searchInput::placeholder {
+  color: rgba(0, 0, 0, 0.4);
+}
+
+.docTree {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+}
+
+.folderItem {
+  margin-bottom: 4px;
+}
+
+.folderHeader {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.folderHeader:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+}
+
+.folderIcon {
+  color: rgba(0, 0, 0, 0.6);
+  margin-right: 8px;
+}
+
+.folderChevron {
+  color: rgba(0, 0, 0, 0.4);
+  margin-right: 6px;
+  transition: transform 0.2s ease;
+}
+
+.folderChevronOpen {
+  transform: rotate(90deg);
+}
+
+.folderName {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1d1d1f;
+}
+
+.folderChildren {
+  margin-left: 16px;
+  margin-top: 4px;
+}
+
+.documentItem {
+  display: flex;
+  align-items: center;
+  padding: 6px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.documentItem:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+}
+
+.documentItemActive {
+  background-color: rgba(0, 113, 227, 0.08);
+}
+
+.documentIcon {
+  color: rgba(0, 0, 0, 0.5);
+  margin-right: 8px;
+}
+
+.documentName {
+  font-size: 13px;
+  color: #1d1d1f;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 搜索结果 */
+.searchResults {
+  padding: 8px 0;
+}
+
+.searchResultsHeader {
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.4);
+  letter-spacing: 0.5px;
+}
+
+.searchResultItem {
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  margin: 2px 0;
+}
+
+.searchResultItem:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+}
+
+.searchResultItemActive {
+  background-color: rgba(0, 113, 227, 0.08);
+}
+
+.resultName {
+  font-size: 13px;
+  color: #1d1d1f;
+  margin-bottom: 4px;
+}
+
+.resultPath {
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.4);
+}
+
+.highlightMatch {
+  background-color: rgba(255, 204, 0, 0.3);
+  padding: 0 2px;
+  border-radius: 2px;
+}
+
+/* 文档内容区域 */
+.mainContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: white;
+  overflow: hidden;
+}
+
+.docHeader {
+  height: 48px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+}
+
+.docTitle {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1d1d1f;
+}
+
+.docContent {
+  flex: 1;
+  overflow-y: auto;
+  padding: 32px;
+}
+
+.markdownContainer {
+  max-width: 800px;
+  margin: 0 auto;
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+  padding: 40px;
+}
+
+/* 修改标题样式，使其更加明显 */
+.markdownContainer h1 {
+  font-size: 2.2em;
+  margin-top: 0;
+  margin-bottom: 0.67em;
+  font-weight: 700;
+  color: #1d1d1f;
+  border-bottom: 1px solid #eaecef;
+  padding-bottom: 0.3em;
+  letter-spacing: -0.02em;
+}
+
+.markdownContainer h2 {
+  font-size: 1.6em;
+  margin-top: 1.2em;
+  margin-bottom: 0.5em;
+  font-weight: 600;
+  color: #1d1d1f;
+  border-bottom: 1px solid #eaecef;
+  padding-bottom: 0.3em;
+  letter-spacing: -0.01em;
+}
+
+.markdownContainer h3 {
+  font-size: 1.3em;
+  margin-top: 1em;
+  margin-bottom: 0.5em;
+  font-weight: 600;
+  color: #1d1d1f;
+}
+
+.markdownContainer h4 {
+  font-size: 1.1em;
+  margin-top: 1em;
+  margin-bottom: 0.5em;
+  font-weight: 600;
+  color: #1d1d1f;
+}
+
+/* 增强其他元素的对比度 */
+.markdownContainer strong {
+  font-weight: 600;
+  color: #1d1d1f;
+}
+
+.markdownContainer a {
+  color: #0071e3;
+  text-decoration: none;
+}
+
+.markdownContainer a:hover {
+  text-decoration: underline;
+}
+
+/* 代码样式更新 */
+.markdownContainer code {
+  background-color: rgba(27, 31, 35, 0.05);
+  border-radius: 4px;
+  font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 85%;
+  padding: 0.2em 0.4em;
+  color: #d81b60; /* 更鲜明的代码颜色 */
+}
+
+.markdownContainer p, .markdownContainer li {
+  font-size: 16px;
+  line-height: 1.6;
+  margin-bottom: 1em;
+  color: #24292e;
+}
+
+.markdownContainer ul, .markdownContainer ol {
+  padding-left: 2em;
+  margin-bottom: 1em;
+}
+
+.markdownContainer pre {
+  background-color: #f6f8fa;
+  border-radius: 6px;
+  padding: 16px;
+  overflow: auto;
+  font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+  font-size: 14px;
+  line-height: 1.4;
+  margin-bottom: 1em;
+}
+
+.markdownContainer pre code {
+  background-color: transparent;
+  padding: 0;
+}
+
+.markdownContainer blockquote {
+  padding: 0 1em;
+  color: #6a737d;
+  border-left: 0.25em solid #dfe2e5;
+  margin: 0 0 1em 0;
+}
+
+.markdownContainer table {
+  border-collapse: collapse;
+  margin-bottom: 1em;
+  width: 100%;
+  overflow: auto;
+}
+
+.markdownContainer table th,
+.markdownContainer table td {
+  padding: 6px 13px;
+  border: 1px solid #dfe2e5;
+}
+
+.markdownContainer table tr {
+  background-color: #fff;
+  border-top: 1px solid #c6cbd1;
+}
+
+.markdownContainer table tr:nth-child(2n) {
+  background-color: #f6f8fa;
+}
+
+/* 加载状态 */
+.loadingContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
+.loadingSpinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(0, 0, 0, 0.05);
+  border-radius: 50%;
+  border-top-color: #0071e3;
+  animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* 空状态 */
+.emptyState {
+  text-align: center;
+  color: rgba(0, 0, 0, 0.4);
+  padding: 40px;
+} 

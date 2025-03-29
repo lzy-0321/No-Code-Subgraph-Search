@@ -103,6 +103,174 @@ const AddQuery = ({
   const [isChainMode, setIsChainMode] = useState(false);
   const [availableNodes, setAvailableNodes] = useState(new Map());
   const [toastMessage, setToastMessage] = useState(null);
+  const [nodePropertyOperators, setNodePropertyOperators] = useState({});
+  const [relationshipPropertyOperators, setRelationshipPropertyOperators] = useState({});
+  const [startNodePropertyOperators, setStartNodePropertyOperators] = useState({});
+  const [endNodePropertyOperators, setEndNodePropertyOperators] = useState({});
+  const [pathStartNodePropertyOperators, setPathStartNodePropertyOperators] = useState({});
+  const [pathEndNodePropertyOperators, setPathEndNodePropertyOperators] = useState({});
+
+  const propertyOperators = [
+    { value: "=", label: "  =  " },
+    { value: "!=", label: "  !=  " },
+    { value: ">", label: "  >  " },
+    { value: "<", label: "  <  " },
+    { value: ">=", label: "  >=  " },
+    { value: "<=", label: "  <=  " },
+    { value: "CONTAINS", label: "contains" },
+    { value: "STARTS WITH", label: "starts with" },
+    { value: "ENDS WITH", label: "ends with" }
+  ];
+
+  const handleNodePropertyChange = (property, value, operator = "=") => {
+    const newProperties = { ...nodeProperties };
+    
+    if (operator !== "=") {
+      newProperties[property] = {
+        value: value,
+        operator: operator
+      };
+    } else {
+      newProperties[property] = value;
+    }
+    
+    setNodeProperties(newProperties);
+    
+    setNodePropertyOperators({
+      ...nodePropertyOperators,
+      [property]: operator
+    });
+  };
+
+  const handleRelationshipPropertyChange = (property, value, operator = "=") => {
+    const newProperties = { ...relationshipProperties };
+    
+    if (operator !== "=") {
+      newProperties.relationship = {
+        ...newProperties.relationship,
+        [property]: {
+          value: value,
+          operator: operator
+        }
+      };
+    } else {
+      newProperties.relationship = {
+        ...newProperties.relationship,
+        [property]: value
+      };
+    }
+    
+    setRelationshipProperties(newProperties);
+    
+    setRelationshipPropertyOperators({
+      ...relationshipPropertyOperators,
+      [property]: operator
+    });
+  };
+
+  const handleStartNodePropertyChange = (property, value, operator = "=") => {
+    const newProperties = { ...relationshipProperties };
+    
+    if (operator !== "=") {
+      newProperties.startNode = {
+        ...newProperties.startNode,
+        [property]: {
+          value: value,
+          operator: operator
+        }
+      };
+    } else {
+      newProperties.startNode = {
+        ...newProperties.startNode,
+        [property]: value
+      };
+    }
+    
+    setRelationshipProperties(newProperties);
+    
+    setStartNodePropertyOperators({
+      ...startNodePropertyOperators,
+      [property]: operator
+    });
+  };
+
+  const handleEndNodePropertyChange = (property, value, operator = "=") => {
+    const newProperties = { ...relationshipProperties };
+    
+    if (operator !== "=") {
+      newProperties.endNode = {
+        ...newProperties.endNode,
+        [property]: {
+          value: value,
+          operator: operator
+        }
+      };
+    } else {
+      newProperties.endNode = {
+        ...newProperties.endNode,
+        [property]: value
+      };
+    }
+    
+    setRelationshipProperties(newProperties);
+    
+    setEndNodePropertyOperators({
+      ...endNodePropertyOperators,
+      [property]: operator
+    });
+  };
+
+  const handlePathStartNodePropertyChange = (property, value, operator = "=") => {
+    const newProperties = { ...pathProperties };
+    
+    if (operator !== "=") {
+      newProperties.startNode = {
+        ...newProperties.startNode,
+        [property]: {
+          value: value,
+          operator: operator
+        }
+      };
+    } else {
+      newProperties.startNode = {
+        ...newProperties.startNode,
+        [property]: value
+      };
+    }
+    
+    setPathProperties(newProperties);
+    
+    setPathStartNodePropertyOperators({
+      ...pathStartNodePropertyOperators,
+      [property]: operator
+    });
+  };
+
+  const handlePathEndNodePropertyChange = (property, value, operator = "=") => {
+    const newProperties = { ...pathProperties };
+    
+    if (operator !== "=") {
+      newProperties.endNode = {
+        ...newProperties.endNode,
+        [property]: {
+          value: value,
+          operator: operator
+        }
+      };
+    } else {
+      newProperties.endNode = {
+        ...newProperties.endNode,
+        [property]: value
+      };
+    }
+    
+    setPathProperties(newProperties);
+    
+    setPathEndNodePropertyOperators({
+      ...pathEndNodePropertyOperators,
+      [property]: operator
+    });
+  };
 
   const handleOpenPopup = (e) => {
     e.stopPropagation(); // 阻止事件冒泡
@@ -653,7 +821,7 @@ const AddQuery = ({
               </button>
             </div>
 
-            <div className={styles.tabContent}>
+            <div className={`${styles.tabContent} ${showAdvanced ? styles.showingAdvanced : ''}`}>
               {activeAddTab === "addNode" && (
                 <div>
                   {step === 1 && (
@@ -698,59 +866,98 @@ const AddQuery = ({
                   {step === 2 && (
                     <div className={styles.stepTwo}>
                       <div className={styles.headerContainer}>
-                        <h3 className={styles.headerText}>Set {selectedLabel} Properties</h3>
-                        <button 
-                          className={styles.advancedButton} 
-                          onClick={() => setShowAdvanced(!showAdvanced)}
-                        >
-                          {showAdvanced ? 'Hide Advanced' : 'Show Advanced'}
-                        </button>
+                        <h3 className={styles.headerText}> Set {selectedLabel} Properties </h3>
+                          <button 
+                            className={styles.advancedButton} 
+                            onClick={() => setShowAdvanced(!showAdvanced)}
+                          >
+                            {showAdvanced ? 'Hide Advanced' : 'Show Advanced'}
+                          </button>
+
                       </div>
                       
-                      <div className={styles.scrollContainer}>
+
+                      <div className={styles.tabContent}>
                         {/* 节点属性部分 */}
-                        <div className={styles.propertyContainer}>
+                        <div className={styles.propertiesSection}>
+                          <h4 className={styles.propertiesSectionTitle}>Node Properties</h4>
                           {nodeEntities[selectedLabel]?.map((property, index) => (
-                            <div key={index} className={styles.propertyRow}>
+                            <div key={index} className={styles.propertyRowWithOperator}>
                               <span className={styles.propertyLabel}>{property}</span>
-                              <span className={styles.propertyIcon}>=</span>
-                              <input
-                                type="text"
-                                placeholder={`Search for ${property}`}
-                                className={styles.propertyInput}
-                                onChange={(e) => {
-                                  const newProperties = { ...nodeProperties };
-                                  newProperties[property] = e.target.value;
-                                  setNodeProperties(newProperties);
-                                }}
-                              />
+                              
+                              <div className={styles.propertyComparisonContainer}>
+                                <select
+                                  className={styles.propertyOperatorSelect}
+                                  value={nodePropertyOperators[property] || "="}
+                                  onChange={(e) => {
+                                    const newOperator = e.target.value;
+                                    setNodePropertyOperators({
+                                      ...nodePropertyOperators,
+                                      [property]: newOperator
+                                    });
+                                    
+                                    if (nodeProperties[property]) {
+                                      const currentValue = typeof nodeProperties[property] === 'object' 
+                                        ? nodeProperties[property].value 
+                                        : nodeProperties[property];
+                                      
+                                      handleNodePropertyChange(property, currentValue, newOperator);
+                                    }
+                                  }}
+                                >
+                                  {propertyOperators.map(op => (
+                                    <option key={op.value} value={op.value}>{op.label}</option>
+                                  ))}
+                                </select>
+                                
+                                <input
+                                  type="text"
+                                  placeholder={`Search for ${property}`}
+                                  className={`${styles.propertyInput} ${styles.propertyInputWithOperator}`}
+                                  onChange={(e) => handleNodePropertyChange(
+                                    property, 
+                                    e.target.value,
+                                    nodePropertyOperators[property] || "="
+                                  )}
+                                />
+                              </div>
                             </div>
                           ))}
+                          {(!nodeEntities[selectedLabel] || nodeEntities[selectedLabel]?.length === 0) && (
+                            <div className={styles.emptyMessage}>No properties available for this node type</div>
+                          )}
                         </div>
-
-                        {/* 高级选项部分 */}
+                        
+                        {/* 高级选项 */}
                         {showAdvanced && (
                           <div className={styles.advancedSection}>
-                            <div className={styles.propertyRow}>
-                              <span className={styles.propertyLabel}>Limit</span>
-                              <span className={styles.propertyIcon}>=</span>
-                              <input
-                                type="number"
-                                min="1"
-                                placeholder="Enter Number"
-                                className={styles.propertyInput}
-                                onChange={(e) => setLimit(e.target.value)}
-                              />
+                            <div className={styles.propertiesSection}>
+                              <h4 className={styles.propertiesSectionTitle}>Advanced Options</h4>
+                              <div className={styles.propertyRow}>
+                                <span className={styles.propertyLabel}>Limit results</span>
+                                <span className={styles.propertyEquals}>=</span>
+                                <input
+                                  type="number"
+                                  min="1"
+                                  placeholder="Enter limit number"
+                                  className={styles.propertyInput}
+                                  onChange={(e) => setLimit(e.target.value)}
+                                />
+                              </div>
                             </div>
                           </div>
                         )}
                       </div>
 
+                      
                       <div className={styles.buttonContainer}>
                         <button className={styles.backButton} onClick={() => setStep(1)}>
                           Back
                         </button>
-                        <button className={styles.addButton} onClick={handleAddNode}>
+                        <button 
+                          className={styles.addButton} 
+                          onClick={handleAddNode}
+                        >
                           Add
                         </button>
                       </div>
@@ -891,30 +1098,53 @@ const AddQuery = ({
                       </div>
                       
                       <div className={styles.scrollContainer}>
-                        {/* Relationship Properties - 只在有属性时显示 */}
-                        {relationshipEntities[selectedLabel]?.length > 0 && (
-                          <div className={styles.propertiesSection}>
-                            <h4>Relationship Properties</h4>
-                            {relationshipEntities[selectedLabel].map((property, index) => (
-                              <div key={index} className={styles.propertyRow}>
-                                <span className={styles.propertyLabel}>{property}</span>
-                                <span className={styles.propertyIcon}>=</span>
+                        {/* 关系属性部分 */}
+                        <div className={styles.propertiesSection}>
+                          <h4 className={styles.propertiesSectionTitle}>Relationship Properties</h4>
+                          {relationshipEntities[selectedLabel]?.map((property, index) => (
+                            <div key={index} className={styles.propertyRowWithOperator}>
+                              <span className={styles.propertyLabel}>{property}</span>
+                              
+                              <div className={styles.propertyComparisonContainer}>
+                                <select
+                                  className={styles.propertyOperatorSelect}
+                                  value={relationshipPropertyOperators[property] || "="}
+                                  onChange={(e) => {
+                                    const newOperator = e.target.value;
+                                    setRelationshipPropertyOperators({
+                                      ...relationshipPropertyOperators,
+                                      [property]: newOperator
+                                    });
+                                    
+                                    // 更新现有属性值以使用新操作符
+                                    if (relationshipProperties.relationship && relationshipProperties.relationship[property]) {
+                                      const currentValue = typeof relationshipProperties.relationship[property] === 'object' 
+                                        ? relationshipProperties.relationship[property].value 
+                                        : relationshipProperties.relationship[property];
+                                      
+                                      handleRelationshipPropertyChange(property, currentValue, newOperator);
+                                    }
+                                  }}
+                                >
+                                  {propertyOperators.map(op => (
+                                    <option key={op.value} value={op.value}>{op.label}</option>
+                                  ))}
+                                </select>
+                                
                                 <input
                                   type="text"
                                   placeholder={`Enter ${property}`}
-                                  className={styles.propertyInput}
-                                  onChange={(e) => setRelationshipProperties(prev => ({
-                                    ...prev,
-                                    relationship: {
-                                      ...prev.relationship,
-                                      [property]: e.target.value
-                                    }
-                                  }))}
+                                  className={`${styles.propertyInput} ${styles.propertyInputWithOperator}`}
+                                  onChange={(e) => handleRelationshipPropertyChange(
+                                    property, 
+                                    e.target.value,
+                                    relationshipPropertyOperators[property] || "="
+                                  )}
                                 />
                               </div>
-                            ))}
-                          </div>
-                        )}
+                            </div>
+                          ))}
+                        </div>
 
                         {/* Advanced Settings */}
                         {showAdvanced && (
@@ -922,22 +1152,44 @@ const AddQuery = ({
                             {/* Start Node Properties */}
                             {selectedStartLabel && !selectedStartLabel.startsWith('ref:') && (
                               <div className={styles.propertiesSection}>
-                                <h4>Start Node ({selectedStartLabel}) Properties</h4>
+                                <h4 className={styles.propertiesSectionTitle}>Start Node ({selectedStartLabel}) Properties</h4>
                                 {nodeEntities[selectedStartLabel]?.map((property, index) => (
-                                  <div key={index} className={styles.propertyRow}>
+                                  <div key={index} className={styles.propertyRowWithOperator}>
                                     <span className={styles.propertyLabel}>{property}</span>
-                                    <span className={styles.propertyIcon}>=</span>
+                                    <div className={styles.propertyComparisonContainer}>
+                                      <select
+                                        className={styles.propertyOperatorSelect}
+                                        value={startNodePropertyOperators[property] || "="}
+                                        onChange={(e) => {
+                                          const newOperator = e.target.value;
+                                          setStartNodePropertyOperators({
+                                            ...startNodePropertyOperators,
+                                            [property]: newOperator
+                                          });
+                                          
+                                          if (relationshipProperties.startNode && relationshipProperties.startNode[property]) {
+                                            const currentValue = typeof relationshipProperties.startNode[property] === 'object'
+                                              ? relationshipProperties.startNode[property].value
+                                              : relationshipProperties.startNode[property];
+                                            
+                                            handleStartNodePropertyChange(property, currentValue, newOperator);
+                                          }
+                                        }}
+                                      >
+                                        {propertyOperators.map(op => (
+                                          <option key={op.value} value={op.value}>{op.label}</option>
+                                        ))}
+                                      </select>
+                                    </div>
                                     <input
                                       type="text"
                                       placeholder={`Enter ${property}`}
-                                      className={styles.propertyInput}
-                                      onChange={(e) => setRelationshipProperties(prev => ({
-                                        ...prev,
-                                        startNode: {
-                                          ...prev.startNode,
-                                          [property]: e.target.value
-                                        }
-                                      }))}
+                                      className={`${styles.propertyInput} ${styles.propertyInputWithOperator}`}
+                                      onChange={(e) => handleStartNodePropertyChange(
+                                        property, 
+                                        e.target.value,
+                                        startNodePropertyOperators[property] || "="
+                                      )}
                                     />
                                   </div>
                                 ))}
@@ -945,29 +1197,51 @@ const AddQuery = ({
                             )}
 
                             {/* End Node Properties */}
-                            {selectedEndLabel && !selectedEndLabel.startsWith('ref:') && (
-                              <div className={styles.propertiesSection}>
-                                <h4>End Node ({selectedEndLabel}) Properties</h4>
-                                {nodeEntities[selectedEndLabel]?.map((property, index) => (
-                                  <div key={index} className={styles.propertyRow}>
-                                    <span className={styles.propertyLabel}>{property}</span>
-                                    <span className={styles.propertyIcon}>=</span>
+                            <div className={styles.propertiesSection}>
+                              <h4 className={styles.propertiesSectionTitle}>End Node ({selectedEndLabel}) Properties</h4>
+                              {nodeEntities[selectedEndLabel]?.map((property, index) => (
+                                <div key={index} className={styles.propertyRowWithOperator}>
+                                  <span className={styles.propertyLabel}>{property}</span>
+                                  
+                                  <div className={styles.propertyComparisonContainer}>
+                                    <select
+                                      className={styles.propertyOperatorSelect}
+                                      value={endNodePropertyOperators[property] || "="}
+                                      onChange={(e) => {
+                                        const newOperator = e.target.value;
+                                        setEndNodePropertyOperators({
+                                          ...endNodePropertyOperators,
+                                          [property]: newOperator
+                                        });
+                                        
+                                        if (relationshipProperties.endNode && relationshipProperties.endNode[property]) {
+                                          const currentValue = typeof relationshipProperties.endNode[property] === 'object' 
+                                            ? relationshipProperties.endNode[property].value 
+                                            : relationshipProperties.endNode[property];
+                                          
+                                          handleEndNodePropertyChange(property, currentValue, newOperator);
+                                        }
+                                      }}
+                                    >
+                                      {propertyOperators.map(op => (
+                                        <option key={op.value} value={op.value}>{op.label}</option>
+                                      ))}
+                                    </select>
+                                    
                                     <input
                                       type="text"
                                       placeholder={`Enter ${property}`}
-                                      className={styles.propertyInput}
-                                      onChange={(e) => setRelationshipProperties(prev => ({
-                                        ...prev,
-                                        endNode: {
-                                          ...prev.endNode,
-                                          [property]: e.target.value
-                                        }
-                                      }))}
+                                      className={`${styles.propertyInput} ${styles.propertyInputWithOperator}`}
+                                      onChange={(e) => handleEndNodePropertyChange(
+                                        property, 
+                                        e.target.value,
+                                        endNodePropertyOperators[property] || "="
+                                      )}
                                     />
                                   </div>
-                                ))}
-                              </div>
-                            )}
+                                </div>
+                              ))}
+                            </div>
                           </div>
                         )}
                       </div>
@@ -1037,66 +1311,116 @@ const AddQuery = ({
                     </div>
                   )}
                   {step === 2 && (
-                    <div className={styles.stepTwo}>
-                      <div className={styles.headerContainer}>
-                        <h3 className={styles.headerText}>Define Path Properties</h3>
-                      </div>
+                    <div className={styles.pathMatchStep}>
+                      <h3 className={styles.pathMatchTitle}>Define Path Properties</h3>
                       
-                      <div className={styles.scrollContainer}>
-                        <div className={styles.pathMatchContainer}>
-                          {/* Start Node Properties */}
-                          <div className={styles.nodeSection}>
-                            <h4>Start Node Properties ({selectedStartLabel})</h4>
+                      <div className={styles.pathMatchContent}>
+                        {/* 起始节点属性 */}
+                        <div className={styles.nodePropertyCard}>
+                          <h4 className={styles.nodePropertyTitle}>Start Node Properties ({selectedStartLabel})</h4>
+                          <div className={styles.nodePropertyList}>
                             {nodeEntities[selectedStartLabel]?.map((property, index) => (
-                              <div key={index} className={styles.propertyRow}>
-                                <span className={styles.propertyLabel}>{property}</span>
-                                <input
-                                  type="text"
-                                  placeholder={`Enter ${property}`}
-                                  className={styles.propertyInput}
-                                  onChange={(e) => setPathProperties(prev => ({
-                                    ...prev,
-                                    startNode: {
-                                      ...prev.startNode,
-                                      [property]: e.target.value
-                                    }
-                                  }))}
-                                />
-                              </div>
-                            ))}
-                          </div>
-
-                          {/* End Node Properties */}
-                          <div className={styles.nodeSection}>
-                            <h4>End Node Properties ({selectedEndLabel})</h4>
-                            {nodeEntities[selectedEndLabel]?.map((property, index) => (
-                              <div key={index} className={styles.propertyRow}>
-                                <span className={styles.propertyLabel}>{property}</span>
-                                <input
-                                  type="text"
-                                  placeholder={`Enter ${property}`}
-                                  className={styles.propertyInput}
-                                  onChange={(e) => setPathProperties(prev => ({
-                                    ...prev,
-                                    endNode: {
-                                      ...prev.endNode,
-                                      [property]: e.target.value
-                                    }
-                                  }))}
-                                />
-                              </div>
-                            ))}
-                          </div>
-
-                          {/* Path Properties Section */}
-                          <div className={styles.pathPropertiesSection}>
-                            {/* 现有的路径属性部分（关系类型选择和跳数设置） */}
-                              {/* Relationship Types Selection */}
-                            <div className={styles.propertyRow}>
-                              <span className={styles.propertyLabel}>Relationship types</span>
-                              <div className={styles.relationshipTypeSelect}>
+                              <div key={index} className={styles.propertyItem}>
+                                <span className={styles.propertyName}>{property}</span>
                                 <select
-                                  className={styles.propertyInput}
+                                  className={styles.operatorSelect}
+                                  value={pathStartNodePropertyOperators[property] || "="}
+                                  onChange={(e) => {
+                                    const newOperator = e.target.value;
+                                    setPathStartNodePropertyOperators({
+                                      ...pathStartNodePropertyOperators,
+                                      [property]: newOperator
+                                    });
+                                    
+                                    if (pathProperties.startNode && pathProperties.startNode[property]) {
+                                      const currentValue = typeof pathProperties.startNode[property] === 'object'
+                                        ? pathProperties.startNode[property].value
+                                        : pathProperties.startNode[property];
+                                      
+                                      handlePathStartNodePropertyChange(property, currentValue, newOperator);
+                                    }
+                                  }}
+                                >
+                                  {propertyOperators.map(op => (
+                                    <option key={op.value} value={op.value}>{op.label}</option>
+                                  ))}
+                                </select>
+                                <input
+                                  type="text"
+                                  placeholder={`Enter ${property}`}
+                                  className={styles.propertyValueInput}
+                                  onChange={(e) => handlePathStartNodePropertyChange(
+                                    property, 
+                                    e.target.value,
+                                    pathStartNodePropertyOperators[property] || "="
+                                  )}
+                                />
+                              </div>
+                            ))}
+                            {(!nodeEntities[selectedStartLabel] || nodeEntities[selectedStartLabel]?.length === 0) && (
+                              <div className={styles.emptyProperty}>No properties available</div>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* 结束节点属性 */}
+                        <div className={styles.nodePropertyCard}>
+                          <h4 className={styles.nodePropertyTitle}>End Node Properties ({selectedEndLabel})</h4>
+                          <div className={styles.nodePropertyList}>
+                            {nodeEntities[selectedEndLabel]?.map((property, index) => (
+                              <div key={index} className={styles.propertyItem}>
+                                <span className={styles.propertyName}>{property}</span>
+                                <select
+                                  className={styles.operatorSelect}
+                                  value={pathEndNodePropertyOperators[property] || "="}
+                                  onChange={(e) => {
+                                    const newOperator = e.target.value;
+                                    setPathEndNodePropertyOperators({
+                                      ...pathEndNodePropertyOperators,
+                                      [property]: newOperator
+                                    });
+                                    
+                                    if (pathProperties.endNode && pathProperties.endNode[property]) {
+                                      const currentValue = typeof pathProperties.endNode[property] === 'object'
+                                        ? pathProperties.endNode[property].value
+                                        : pathProperties.endNode[property];
+                                      
+                                      handlePathEndNodePropertyChange(property, currentValue, newOperator);
+                                    }
+                                  }}
+                                >
+                                  {propertyOperators.map(op => (
+                                    <option key={op.value} value={op.value}>{op.label}</option>
+                                  ))}
+                                </select>
+                                <input
+                                  type="text"
+                                  placeholder={`Enter ${property}`}
+                                  className={styles.propertyValueInput}
+                                  onChange={(e) => handlePathEndNodePropertyChange(
+                                    property, 
+                                    e.target.value,
+                                    pathEndNodePropertyOperators[property] || "="
+                                  )}
+                                />
+                              </div>
+                            ))}
+                            {(!nodeEntities[selectedEndLabel] || nodeEntities[selectedEndLabel]?.length === 0) && (
+                              <div className={styles.emptyProperty}>No properties available</div>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* 关系配置 */}
+                        <div className={styles.relationshipConfigCard}>
+                          <h4 className={styles.nodePropertyTitle}>Path Configuration</h4>
+                          
+                          <div className={styles.relationshipConfig}>
+                            <div className={styles.configItem}>
+                              <span className={styles.configLabel}>Relationship types</span>
+                              <div className={styles.relationshipTypeWrapper}>
+                                <select
+                                  className={styles.relationshipTypeSelect}
                                   value=""
                                   onChange={(e) => {
                                     if (e.target.value && !selectedRelationshipTypes.includes(e.target.value)) {
@@ -1109,32 +1433,36 @@ const AddQuery = ({
                                     <option key={type} value={type}>{type}</option>
                                   ))}
                                 </select>
-                                <div className={styles.selectedTypes}>
-                                  {selectedRelationshipTypes.map((type) => (
-                                    <div key={type} className={styles.typeTag}>
-                                      {type}
-                                      <button
-                                        className={styles.removeType}
-                                        onClick={() => setSelectedRelationshipTypes(
-                                          selectedRelationshipTypes.filter(t => t !== type)
-                                        )}
-                                      >
-                                        ×
-                                      </button>
-                                    </div>
-                                  ))}
-                                </div>
                               </div>
                             </div>
 
-                            {/* Min/Max hops */}
-                            <div className={styles.propertyRow}>
-                              <span className={styles.propertyLabel}>Min hops</span>
+                            {/* 添加已选择关系类型的显示区域 */}
+                            <div className={styles.selectedTypesContainer}>
+                              {selectedRelationshipTypes.map((type) => (
+                                <div key={type} className={styles.typeTag}>
+                                  {type}
+                                  <button
+                                    className={styles.removeTypeButton}
+                                    onClick={() => setSelectedRelationshipTypes(
+                                      selectedRelationshipTypes.filter(t => t !== type)
+                                    )}
+                                  >
+                                    ×
+                                  </button>
+                                </div>
+                              ))}
+                              {selectedRelationshipTypes.length === 0 && (
+                                <div className={styles.noTypesSelected}>No relationship types selected</div>
+                              )}
+                            </div>
+
+                            <div className={styles.configItem}>
+                              <span className={styles.configLabel}>Min hops</span>
                               <input
                                 type="number"
                                 min="1"
-                                placeholder="Minimum hops"
-                                className={styles.propertyInput}
+                                placeholder="1"
+                                className={styles.configInput}
                                 onChange={(e) => setPathProperties(prev => ({
                                   ...prev,
                                   relationship: {
@@ -1144,13 +1472,14 @@ const AddQuery = ({
                                 }))}
                               />
                             </div>
-                            <div className={styles.propertyRow}>
-                              <span className={styles.propertyLabel}>Max hops</span>
+                            
+                            <div className={styles.configItem}>
+                              <span className={styles.configLabel}>Max hops</span>
                               <input
                                 type="number"
                                 min="1"
-                                placeholder="Maximum hops (optional)"
-                                className={styles.propertyInput}
+                                placeholder="Optional"
+                                className={styles.configInput}
                                 onChange={(e) => setPathProperties(prev => ({
                                   ...prev,
                                   relationship: {

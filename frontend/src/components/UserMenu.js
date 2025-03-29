@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
-import API_ENDPOINTS from '../config/apiConfig';
+import API_ENDPOINTS from '../services/apiConfig';
 
 const UserMenu = ({ user }) => {
   const [menuVisible, setMenuVisible] = useState(false);

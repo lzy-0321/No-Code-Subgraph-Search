@@ -3,28 +3,30 @@ from neo4j import GraphDatabase, basic_auth
 
 class Neo4jSessionManager:
     def __init__(self):
-        self.session = None  # 只有一个 session
+        self.sessions = {}  # 用字典存储，键为用户ID，值为连接器
 
-    def add_session(self, neo4j_connector):
-        # 将 Neo4jConnector 与当前会话关联
-        self.session = neo4j_connector
+    def add_session(self, user_id, neo4j_connector):
+        # 添加会话时验证用户ID合法性
+        if not isinstance(user_id, int) or user_id <= 0:
+            raise ValueError("无效的用户ID")
+        self.sessions[user_id] = neo4j_connector
 
-    def get_session(self):
-        # 获取当前的 session
-        return self.session
+    def get_session(self, user_id):
+        # 获取会话时验证用户ID
+        if not isinstance(user_id, int) or user_id <= 0:
+            return None
+        return self.sessions.get(user_id)
 
-    def close_session(self):
-        # 关闭并删除当前的 session
-        if self.session:
-            self.session.close()
-            self.session = None
+    def close_session(self, user_id):
+        # 关闭并删除特定用户的 session
+        if user_id in self.sessions:
+            self.sessions[user_id].close()
+            del self.sessions[user_id]
 
-    def print_session(self):
-        # 打印当前存储的 session 信息，包括 URL、服务器用户名和密码
-        if self.session:
-            print(f"Current session - URL: {self.session.uri}, ServerUser: {self.session.server_username}, Password: {self.session.password}")
-        else:
-            print("No active session")
+    def print_sessions(self):
+        # 打印所有会话信息
+        for user_id, connector in self.sessions.items():
+            print(f"User {user_id} - URL: {connector.uri}, ServerUser: {connector.server_username}")
 
 class CypherQueryBuilder:
     """用于构建Cypher查询的辅助类"""
@@ -58,8 +60,42 @@ class CypherQueryBuilder:
                 props_list = []
                 for key, value in properties.items():
                     param_name = f"prop_{key}"
-                    props_list.append(f"n.{key} = ${param_name}")
-                    params[param_name] = value
+                    
+                    # 检查是否是带有操作符的属性条件
+                    if isinstance(value, dict) and 'value' in value and 'operator' in value:
+                        operator = value['operator']
+                        param_value = value['value']
+                        
+                        # 对数值比较操作符进行类型转换
+                        if operator in ['>', '<', '>=', '<=', '=', '!=']:
+                            try:
+                                # 尝试转换为数值类型
+                                if isinstance(param_value, str):
+                                    if '.' in param_value:
+                                        param_value = float(param_value)
+                                    else:
+                                        param_value = int(param_value)
+                            except (ValueError, TypeError):
+                                # 转换失败时保持原值
+                                pass
+                        
+                        params[param_name] = param_value
+                        
+                        # 处理字符串操作符
+                        if operator == 'CONTAINS':
+                            props_list.append(f"n.{key} CONTAINS ${param_name}")
+                        elif operator == 'STARTS WITH':
+                            props_list.append(f"n.{key} STARTS WITH ${param_name}")
+                        elif operator == 'ENDS WITH':
+                            props_list.append(f"n.{key} ENDS WITH ${param_name}")
+                        else:
+                            # 处理标准比较操作符
+                            props_list.append(f"n.{key} {operator} ${param_name}")
+                    else:
+                        # 处理默认等于操作符
+                        props_list.append(f"n.{key} = ${param_name}")
+                        params[param_name] = value
+                
                 if props_list:
                     query += " WHERE " + " AND ".join(props_list)
             
@@ -75,36 +111,70 @@ class CypherQueryBuilder:
             rel_type = query_details.get('relationType')
             start_props = query_details.get('startNodeProps', {})
             end_props = query_details.get('endNodeProps', {})
-            start_label = query_details.get('startNodeLabel', '')  # 获取起始节点标签
-            end_label = query_details.get('endNodeLabel', '')      # 获取结束节点标签
+            start_label = query_details.get('startNodeLabel', '')
+            end_label = query_details.get('endNodeLabel', '')
             exact_match = query_details.get('exactMatch', False)
 
             if exact_match:
-                # 构建节点属性条件
-                start_props_str = '{' + ', '.join(f"{k}: ${k}" for k in start_props.keys()) + '}'
-                end_props_str = '{' + ', '.join(f"{k}: ${k}" for k in end_props.keys()) + '}'
+                # 处理节点属性条件
+                params = {}
+                start_where_conditions = []
+                end_where_conditions = []
                 
-                # 构建节点标签部分（只在有标签时添加）
+                # 处理起始节点属性
+                for key, value in start_props.items():
+                    param_name = f"start_{key}"
+                    
+                    if isinstance(value, dict) and 'value' in value and 'operator' in value:
+                        operator = value['operator']
+                        params[param_name] = value['value']
+                        
+                        if operator == 'CONTAINS':
+                            start_where_conditions.append(f"a.{key} CONTAINS ${param_name}")
+                        elif operator == 'STARTS WITH':
+                            start_where_conditions.append(f"a.{key} STARTS WITH ${param_name}")
+                        elif operator == 'ENDS WITH':
+                            start_where_conditions.append(f"a.{key} ENDS WITH ${param_name}")
+                        else:
+                            start_where_conditions.append(f"a.{key} {operator} ${param_name}")
+                    else:
+                        start_where_conditions.append(f"a.{key} = ${param_name}")
+                        params[param_name] = value
+                
+                # 处理终止节点属性
+                for key, value in end_props.items():
+                    param_name = f"end_{key}"
+                    
+                    if isinstance(value, dict) and 'value' in value and 'operator' in value:
+                        operator = value['operator']
+                        params[param_name] = value['value']
+                        
+                        if operator == 'CONTAINS':
+                            end_where_conditions.append(f"b.{key} CONTAINS ${param_name}")
+                        elif operator == 'STARTS WITH':
+                            end_where_conditions.append(f"b.{key} STARTS WITH ${param_name}")
+                        elif operator == 'ENDS WITH':
+                            end_where_conditions.append(f"b.{key} ENDS WITH ${param_name}")
+                        else:
+                            end_where_conditions.append(f"b.{key} {operator} ${param_name}")
+                    else:
+                        end_where_conditions.append(f"b.{key} = ${param_name}")
+                        params[param_name] = value
+                
+                # 构建节点标签部分
                 start_label_str = f":{start_label}" if start_label else ""
                 end_label_str = f":{end_label}" if end_label else ""
                 
-                # 构建查询，根据是否有属性决定是否添加属性条件
-                start_node = f"(a{start_label_str}"
-                start_node += f" {start_props_str}" if start_props else ""
-                start_node += ")"
+                # 构建查询
+                query = f"MATCH (a{start_label_str})-[r:{rel_type}]->(b{end_label_str})"
                 
-                end_node = f"(b{end_label_str}"
-                end_node += f" {end_props_str}" if end_props else ""
-                end_node += ")"
+                # 添加WHERE子句
+                where_conditions = start_where_conditions + end_where_conditions
+                if where_conditions:
+                    query += " WHERE " + " AND ".join(where_conditions)
                 
-                # 组装完整查询
-                query = f"MATCH {start_node}-[r:{rel_type}]->{end_node} RETURN a, r, b"
-                
-                # 合并所有参数
-                params = {**start_props, **end_props}
-                
-                # print(f"Generated query: {query}")  # 调试日志
-                # print(f"Query parameters: {params}")  # 调试日志
+                # 完成查询
+                query += " RETURN a, r, b"
                 
                 return query, params
         
@@ -114,7 +184,6 @@ class CypherQueryBuilder:
             relationship = query_params.get('relationship', {})
             
             # 构建查询
-            query_parts = []
             params = {}
             
             # 起始节点
@@ -133,15 +202,27 @@ class CypherQueryBuilder:
             # 构建基本查询
             query = f"MATCH p=(start:{start_label})"
             
-            # 添加起始节点属性条件
+            # 处理起始节点属性条件
+            start_where_conditions = []
             if start_props:
-                conditions = []
                 for key, value in start_props.items():
                     param_name = f"start_{key}"
-                    conditions.append(f"start.{key} = ${param_name}")
-                    params[param_name] = value
-                if conditions:
-                    query += " WHERE " + " AND ".join(conditions)
+                    
+                    if isinstance(value, dict) and 'value' in value and 'operator' in value:
+                        operator = value['operator']
+                        params[param_name] = value['value']
+                        
+                        if operator == 'CONTAINS':
+                            start_where_conditions.append(f"start.{key} CONTAINS ${param_name}")
+                        elif operator == 'STARTS WITH':
+                            start_where_conditions.append(f"start.{key} STARTS WITH ${param_name}")
+                        elif operator == 'ENDS WITH':
+                            start_where_conditions.append(f"start.{key} ENDS WITH ${param_name}")
+                        else:
+                            start_where_conditions.append(f"start.{key} {operator} ${param_name}")
+                    else:
+                        start_where_conditions.append(f"start.{key} = ${param_name}")
+                        params[param_name] = value
             
             # 构建关系部分
             rel_type_str = "|".join(f"`{t}`" for t in rel_types) if rel_types else ""
@@ -155,21 +236,35 @@ class CypherQueryBuilder:
             # 添加关系和终止节点
             query += f"-[r{rel_type_part}{length_part}]->(end:{end_label})"
             
-            # 添加终止节点属性条件
+            # 处理终止节点属性条件
+            end_where_conditions = []
             if end_props:
-                end_conditions = []
                 for key, value in end_props.items():
                     param_name = f"end_{key}"
-                    end_conditions.append(f"end.{key} = ${param_name}")
-                    params[param_name] = value
-                if end_conditions:
-                    query += " AND " + " AND ".join(end_conditions)
+                    
+                    if isinstance(value, dict) and 'value' in value and 'operator' in value:
+                        operator = value['operator']
+                        params[param_name] = value['value']
+                        
+                        if operator == 'CONTAINS':
+                            end_where_conditions.append(f"end.{key} CONTAINS ${param_name}")
+                        elif operator == 'STARTS WITH':
+                            end_where_conditions.append(f"end.{key} STARTS WITH ${param_name}")
+                        elif operator == 'ENDS WITH':
+                            end_where_conditions.append(f"end.{key} ENDS WITH ${param_name}")
+                        else:
+                            end_where_conditions.append(f"end.{key} {operator} ${param_name}")
+                    else:
+                        end_where_conditions.append(f"end.{key} = ${param_name}")
+                        params[param_name] = value
+            
+            # 添加WHERE子句
+            where_conditions = start_where_conditions + end_where_conditions
+            if where_conditions:
+                query += " WHERE " + " AND ".join(where_conditions)
             
             # 返回完整路径
             query += " RETURN p"
-            
-            # print(f"Generated path query: {query}")  # 调试日志
-            # print(f"With params: {params}")  # 调试日志
             
             return query, params
         
@@ -254,9 +349,6 @@ class CypherQueryBuilder:
             all_vars = list(used_vars.keys())  # 使用字母变量
             all_rels = [f"r{i}" for i in range(len(relationships))]
             query += f"\nRETURN {', '.join(all_vars)}, {', '.join(all_rels)}"
-            
-            # print(f"Generated query: {query}")  # 调试日志
-            # print(f"Query parameters: {params}")  # 调试日志
             
             return query, params
         

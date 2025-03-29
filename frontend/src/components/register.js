@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/router';
 import styles from '../styles/Page1.module.css';
-import API_ENDPOINTS from '../config/apiConfig';
+import authService from '../services/authService';  // 导入authService
 
 export default function Register() {
   const [protocol, setProtocol] = useState('bolt://');
@@ -14,6 +14,7 @@ export default function Register() {
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
 
   const handleProtocolChange = (e) => {
@@ -29,54 +30,53 @@ export default function Register() {
 
   const handleRegister = async (e) => {
     e.preventDefault();
+    setLoading(true);
+    setError('');
 
     const fullUrl = isCustomProtocol ? customProtocol + url : protocol + url;
 
-    const res = await fetch(API_ENDPOINTS.register, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRFToken': getCsrfToken()  // 获取 CSRF Token
-      },
-      body: JSON.stringify({
-        fullUrl: fullUrl,
-        serverUser: serverUser,
-        serverPassword: serverPassword,
-        username: username,
-        password: password
-      }),
-      credentials: 'include',  // 关键：确保 Cookies 被传递到后端
-    });
-
-    const data = await res.json();
-
-    if (data.success) {
-      // 注册成功，跳转到 playground 页面
-      alert('Registration successful!');
-      router.push('/playground');
-    } else {
-      setError(data.error);  // 显示错误消息
-      alert(`Registration failed: ${data.error}`);
+    try {
+      // 使用authService进行注册
+      const response = await authService.register(
+        username, 
+        password, 
+        fullUrl, 
+        serverUser, 
+        serverPassword
+      );
+      
+      // 注册成功后自动登录
+      if (response.access) {
+        // 存储用户信息
+        localStorage.setItem('user', JSON.stringify(response));
+        
+        // 跳转到playground页面
+        router.push('/playground');
+      }
+    } catch (error) {
+      setError(error.response?.data?.error || 'Registration failed, please try again later');
+    } finally {
+      setLoading(false);
     }
-  };
-
-  const getCsrfToken = () => {
-    const csrfToken = document.cookie.match(/csrftoken=([^;]+)/);
-    return csrfToken ? csrfToken[1] : '';
   };
 
   return (
     <div id="registerForm" className={styles['tab-content active']}>
+      {error && <div className={styles.errorMessage}>{error}</div>}
       <form id="registerFormSubmit" onSubmit={handleRegister}>
-      <div className={styles['input-group']}>
+        <div className={styles['input-group']}>
           <label htmlFor="registerProtocol">Connect URL</label>
           <div className={styles['input-flex']}>
-            <select id="registerProtocol" value={isCustomProtocol ? 'custom' : protocol} onChange={handleProtocolChange}>
+            <select 
+              id="registerProtocol" 
+              value={isCustomProtocol ? 'custom' : protocol} 
+              onChange={handleProtocolChange}
+            >
               <option value="neo4j://">neo4j://</option>
               <option value="bolt://">bolt://</option>
               <option value="neo4j+s://">neo4j+s://</option>
               <option value="bolt+s://">bolt+s://</option>
-              <option value="custom">custom</option>
+              <option value="custom">Custom</option>
             </select>
             {isCustomProtocol && (
               <input
@@ -98,7 +98,7 @@ export default function Register() {
           </div>
         </div>
         <div className={styles['input-group']}>
-          <label htmlFor="registerServerUsername">Server Username</label>
+          <label htmlFor="registerServerUsername">Server username</label>
           <input
             type="text"
             id="registerServerUsername"
@@ -109,7 +109,7 @@ export default function Register() {
           />
         </div>
         <div className={styles['input-group']}>
-          <label htmlFor="registerServerPassword">Server Password</label>
+          <label htmlFor="registerServerPassword">Server password</label>
           <input
             type="password"
             id="registerServerPassword"
@@ -147,9 +147,15 @@ export default function Register() {
             checked={rememberMe}
             onChange={(e) => setRememberMe(e.target.checked)}
           />
-          <label htmlFor="registerRememberMe">Remember Me For 30 Days</label>
+          <label htmlFor="registerRememberMe">Remember me for 30 days</label>
         </div>
-        <button type="submit" className={styles['submit-btn']}>Log In</button>
+        <button 
+          type="submit" 
+          className={styles['submit-btn']} 
+          disabled={loading}
+        >
+          {loading ? 'Registering...' : 'Register'}
+        </button>
       </form>
     </div>
   );

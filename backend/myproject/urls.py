@@ -20,6 +20,12 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from myapp import views  # 确保导入路径正确
+from myapp.jwt_views import (
+    MyTokenObtainPairView, 
+    TokenRefreshView, 
+    register_user,
+    get_user_info  # 新增
+)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -30,12 +36,24 @@ urlpatterns = [
     path('test_neo4j_and_signup/', views.test_neo4j_and_signup, name='test_neo4j_and_signup'),
     path('test_neo4j_and_login/', views.login_view, name='test_neo4j_and_login'),  # Login view
     path('logout/', views.logout_view, name='logout'),
-    path('get_user_databases/', views.get_user_databases, name='get_user_databases'),
-    path('add_database/', views.add_database, name='add_database'),  # Add database view
-    path('delete_database/', views.delete_database, name='delete_database'),
-    path('select_database/', views.select_database, name='select_database'),
-    path('get_database_info/', views.get_database_info, name='get_database_info'),  # get database info
-    path('get_nodeEntities/', views.get_nodeEntities, name='get_nodeEntities'),
-    path('get_relationshipEntities/', views.get_relationshipEntities, name='get_relationshipEntities'),
-    path('match_query/', views.match_query, name='match_query'),
+    path('api/token/', MyTokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('api/register/', register_user, name='register'),
+    path('api/user/info/', get_user_info, name='user_info'),  # 新增
+    path('api/databases/', views.get_user_databases, name='get_user_databases'),
+    path('api/database/select/', views.select_database, name='select_database'),
+    path('api/database/info/', views.get_database_info, name='get_database_info'),
+    path('api/database/nodes/', views.get_nodeEntities, name='get_nodeEntities'),
+    path('api/database/relationships/', views.get_relationshipEntities, name='get_relationshipEntities'),
+    path('api/database/delete/', views.delete_database, name='delete_database'),
+    path('api/database/add/', views.add_database, name='add_database'),
+    path('api/database/query/', views.match_query, name='match_query'),
+    path('get_user_databases/', views.get_user_databases, name='get_user_databases_old'),
+    path('select_database/', views.select_database, name='select_database_old'),
+    path('get_database_info/', views.get_database_info, name='get_database_info_old'),
+    path('get_nodeEntities/', views.get_nodeEntities, name='get_nodeEntities_old'),
+    path('get_relationshipEntities/', views.get_relationshipEntities, name='get_relationshipEntities_old'),
+    path('delete_database/', views.delete_database, name='delete_database_old'),
+    path('add_database/', views.add_database, name='add_database_old'),
+    path('match_query/', views.match_query, name='match_query_old'),
 ]

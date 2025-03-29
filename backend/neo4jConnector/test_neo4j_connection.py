@@ -14,27 +14,27 @@ success, message = connector.test_connection()
 if success:
     print("Connection successful!")
 
-    # Test fetching node labels
-    labels = connector.get_node_labels()
-    print(f"Node Labels: {labels}")
+    # # Test fetching node labels
+    # labels = connector.get_node_labels()
+    # print(f"Node Labels: {labels}")
 
-    # Test fetching relationship types
-    relationship_types = connector.get_relationship_types()
-    print(f"Relationship Types: {relationship_types}")
+    # # Test fetching relationship types
+    # relationship_types = connector.get_relationship_types()
+    # print(f"Relationship Types: {relationship_types}")
 
-    # Test fetching property keys
-    property_keys = connector.get_property_keys()
-    print(f"Property Keys: {property_keys}")
+    # # Test fetching property keys
+    # property_keys = connector.get_property_keys()
+    # print(f"Property Keys: {property_keys}")
 
-    # Test fetching node entities for a specific label (e.g., "Person")
-    test_label = "Person"  # Replace with an actual label in your database
-    node_entities = connector.get_node_entities(test_label)
-    print(f"Entities with label '{test_label}': {node_entities}")
+    # # Test fetching node entities for a specific label (e.g., "Person")
+    # test_label = "Person"  # Replace with an actual label in your database
+    # node_entities = connector.get_node_entities(test_label)
+    # print(f"Entities with label '{test_label}': {node_entities}")
 
-    # Test fetching relationship entities for a specific type (e.g., "FRIEND_OF")
-    test_type = "ACTED_IN"  # Replace with an actual relationship type in your database
-    relationship_entities = connector.get_relationship_entities(test_type)
-    print(f"Entities with relationship type '{test_type}': {relationship_entities}")
+    # # Test fetching relationship entities for a specific type (e.g., "FRIEND_OF")
+    # test_type = "ACTED_IN"  # Replace with an actual relationship type in your database
+    # relationship_entities = connector.get_relationship_entities(test_type)
+    # print(f"Entities with relationship type '{test_type}': {relationship_entities}")
 
 else:
     print(f"Connection failed: {message}")

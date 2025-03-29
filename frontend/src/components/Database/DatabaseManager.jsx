@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import styles from '../../styles/DatabaseManager.module.css';
-import API_ENDPOINTS from '../../config/apiConfig';
+import API_ENDPOINTS from '../../services/apiConfig';
+import apiService from '../../services/apiService';
 
 const DatabaseManager = ({ 
   onDatabaseSelect, 
@@ -30,20 +31,12 @@ const DatabaseManager = ({
 
   const fetchDatabases = async () => {
     try {
-      const response = await fetch(API_ENDPOINTS.getUserDatabases, {
-        method: 'GET',
-        credentials: 'include',
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch databases');
-      }
-
-      const data = await response.json();
-      if (data.success) {
-        setDatabases(data.databases);
+      const response = await apiService.get(API_ENDPOINTS.getUserDatabases);
+      
+      if (response.data.success) {
+        setDatabases(response.data.databases);
       } else {
-        console.error(data.error);
+        console.error(response.data.error);
       }
     } catch (error) {
       console.error('Error fetching databases:', error);
@@ -64,51 +57,26 @@ const DatabaseManager = ({
   // 选择数据库
   const handleDatabaseSelection = async (url) => {
     try {
-      const csrfToken = document.cookie
-        .split('; ')
-        .find((row) => row.startsWith('csrftoken='))
-        ?.split('=')[1];
-
-      // 第一步：选择数据库
-      const response = await fetch(API_ENDPOINTS.selectDatabase, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRFToken': csrfToken,
-        },
-        body: JSON.stringify({ selectedUrl: url }),
-        credentials: 'include',
+      const result = await apiService.post(API_ENDPOINTS.selectDatabase, {
+        selectedUrl: url
       });
-
-      if (!response.ok) {
-        throw new Error('Failed to connect to database');
+      
+      if (!result.data.success) {
+        throw new Error(result.data.error || 'Failed to select database');
       }
 
-      const result = await response.json();
-      if (!result.success) {
-        throw new Error(result.error || 'Failed to select database');
-      }
-
-      // 第二步：获取数据库信息
-      const dbInfoResponse = await fetch(API_ENDPOINTS.getDatabaseInfo, {
-        method: 'GET',
-        credentials: 'include',
-      });
-
-      if (!dbInfoResponse.ok) {
-        throw new Error('Failed to fetch database info');
-      }
-
-      const dbInfo = await dbInfoResponse.json();
-      if (!dbInfo.success) {
-        throw new Error(dbInfo.error || 'Failed to get database info');
+      // 获取数据库信息
+      const dbInfo = await apiService.get(API_ENDPOINTS.getDatabaseInfo);
+      
+      if (!dbInfo.data.success) {
+        throw new Error(dbInfo.data.error || 'Failed to get database info');
       }
 
       // 创建一个状态对象来累积所有数据
       let fullDbInfo = {
-        labels: dbInfo.labels || [],
-        relationshipTypes: dbInfo.relationship_types || [],
-        propertyKeys: dbInfo.property_keys || [],
+        labels: dbInfo.data.labels || [],
+        relationshipTypes: dbInfo.data.relationship_types || [],
+        propertyKeys: dbInfo.data.property_keys || [],
         nodePrimeEntities: {},
         nodeEntities: {},
         nodeDisplayInfo: {},  // 新增: 存储显示属性信息
@@ -118,18 +86,13 @@ const DatabaseManager = ({
       };
 
       // 第三步：获取实体信息
-      const nodePromises = (dbInfo.labels || []).map(async (label) => {
+      const nodePromises = (dbInfo.data.labels || []).map(async (label) => {
         try {
-          const response = await fetch(API_ENDPOINTS.getNodeEntities, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ label }),
-            credentials: 'include',
+          const response = await apiService.post(API_ENDPOINTS.getNodeEntities, {
+            label
           });
           
-          const data = await response.json();
+          const data = response.data;
           if (data.success) {
             fullDbInfo.nodePrimeEntities[label] = data.nodeEntities[0];  // [display_value, id_value] 对的列表
             fullDbInfo.nodeEntities[label] = data.nodeEntities[1];       // 属性名列表
@@ -140,18 +103,13 @@ const DatabaseManager = ({
         }
       });
 
-      const relationshipPromises = (dbInfo.relationship_types || []).map(async (type) => {
+      const relationshipPromises = (dbInfo.data.relationship_types || []).map(async (type) => {
         try {
-          const response = await fetch(API_ENDPOINTS.getRelationshipEntities, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ type }),
-            credentials: 'include',
+          const response = await apiService.post(API_ENDPOINTS.getRelationshipEntities, {
+            type
           });
           
-          const data = await response.json();
+          const data = response.data;
           if (data.success) {
             // 调试日志：检查返回的数据结构
             //console.log(`Relationship entities data for type ${type}:`, {

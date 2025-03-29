@@ -1,4 +1,5 @@
-import API_ENDPOINTS from '../config/apiConfig';
+import API_ENDPOINTS from '../services/apiConfig';
+import apiService from '../services/apiService';
 
 // 查询示例:
 
@@ -467,38 +468,27 @@ export class QueryManager {
   // 执行标签查询
   async executeLabelQuery(params) {
     try {
-      //console.log('Executing label query with params:', params);
+      // console.log('Executing label query with params:', params);
 
       const requestBody = {
         matchType: 'labelMatch',
         label: params.label,
         properties: params.properties || {},
         limit: params.limit,
-        exactMatch: false  // 添加这个参数来获取所有匹配的节点
+        exactMatch: false
       };
       
-      //console.log('Request body:', requestBody);
-
-      const response = await fetch(API_ENDPOINTS.matchQuery, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify(requestBody)
-      });
-
-      //console.log('Response status:', response.status);
-      const data = await response.json();
-      //console.log('Response data:', data);
-
-      if (!data.success) {
-        throw new Error(data.error || 'Query failed');
+      // console.log('Request body:', requestBody);
+      
+      const response = await apiService.post(API_ENDPOINTS.matchQuery, requestBody);
+      // console.log('Response:', response);
+      
+      if (!response.data.success) {
+        throw new Error(response.data.error || 'Query failed');
       }
-
-      // 确保所有节点都被正确处理
+      
       const uniqueNodes = new Map();
-      data.data.forEach(record => {
+      response.data.data.forEach(record => {
         const node = record.n;
         if (!uniqueNodes.has(node.id)) {
           uniqueNodes.set(node.id, {
@@ -522,8 +512,6 @@ export class QueryManager {
   // 执行关系查询
   async executeRelationshipQuery(params) {
     try {
-      //console.log('Executing relationship query with params:', params);
-
       const requestBody = {
         matchType: 'relationshipMatch',
         query: {
@@ -541,50 +529,34 @@ export class QueryManager {
             })
           }),
           exactMatch: true,
-          // 将 limit 移到 query 对象内部
           limit: params.limit ? parseInt(params.limit) : undefined
         }
       };
 
-      //console.log('Request body:', requestBody);
+      const response = await apiService.post(API_ENDPOINTS.matchQuery, requestBody);
 
-      const response = await fetch(API_ENDPOINTS.matchQuery, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify(requestBody)
-      });
-
-      const data = await response.json();
-      if (!data.success) {
-        throw new Error(data.error || 'Query failed');
+      if (!response.data.success) {
+        throw new Error(response.data.error || 'Query failed');
       }
 
-      // 直接处理返回的精确结果
       const nodes = new Map();
       const relationships = [];
 
-      // 只处理限制数量内的结果
-      const limitedData = params.limit ? data.data.slice(0, params.limit) : data.data;
+      const limitedData = params.limit ? response.data.data.slice(0, params.limit) : response.data.data;
 
       limitedData.forEach(record => {
-        // 添加起始节点
         nodes.set(record.a.id, {
           id: record.a.id,
           nodeLabel: record.a.labels[0],
           properties: record.a.properties
         });
 
-        // 添加终止节点
         nodes.set(record.b.id, {
           id: record.b.id,
           nodeLabel: record.b.labels[0],
           properties: record.b.properties
         });
 
-        // 添加关系
         relationships.push({
           startNode: record.a.id,
           endNode: record.b.id,
@@ -607,9 +579,6 @@ export class QueryManager {
   // 执行路径查询
   async executePathQuery(params) {
     try {
-      //console.log('Executing path query with params:', params);
-
-      // 过滤掉空的属性对象
       const startNodeProps = Object.keys(params.startNode.properties || {}).length > 0 
         ? params.startNode.properties 
         : {};
@@ -635,30 +604,18 @@ export class QueryManager {
         }
       };
 
-      //console.log('Request body:', requestBody);
+      const response = await apiService.post(API_ENDPOINTS.matchQuery, requestBody);
 
-      const response = await fetch(API_ENDPOINTS.matchQuery, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify(requestBody)
-      });
-
-      const data = await response.json();
-      if (!data.success) {
-        throw new Error(data.message || 'Query failed');
+      if (!response.data.success) {
+        throw new Error(response.data.message || 'Query failed');
       }
 
-      // 解析路径结果
       const nodes = new Map();
       const relationships = new Set();
 
-      data.data.forEach(record => {
+      response.data.data.forEach(record => {
         const path = record.p;
         
-        // 处理节点
         path.nodes.forEach(node => {
           if (!nodes.has(node.id)) {
             nodes.set(node.id, {
@@ -669,7 +626,6 @@ export class QueryManager {
           }
         });
 
-        // 处理关系
         path.relationships.forEach(rel => {
           relationships.add({
             startNode: rel.startNode,
@@ -694,9 +650,7 @@ export class QueryManager {
   async executeQuery(queryIdOrParams) {
     try {
       let params;
-      //console.log('executeQuery received:', queryIdOrParams);
       
-      // 检查是否传入的是查询ID还是直接的参数
       if (typeof queryIdOrParams === 'string') {
         const queryState = this.queries.get(queryIdOrParams);
         if (!queryState) return null;
@@ -705,9 +659,6 @@ export class QueryManager {
         params = queryIdOrParams;
       }
 
-      //console.log('Processed params:', params);
-
-      // 根据type决定使用哪个查询执行方法
       let result;
       if (!params.type) {
         console.error('Missing type in params:', params);
@@ -778,7 +729,6 @@ export class QueryManager {
   }
 
   createGetLabelsQuery() {
-    // 创建获取所有标签的 Cypher 查询
     const query = 'CALL db.labels()';
     return this.addQuery(query);
   }
@@ -786,37 +736,21 @@ export class QueryManager {
   // 执行链式关系查询
   async executeChainRelationshipQuery(params) {
     try {
-      // 添加详细的调试日志
-      //console.log('Executing chain relationship query with params:', JSON.stringify(params, null, 2));
-
-      const response = await fetch(API_ENDPOINTS.matchQuery, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify({
-          matchType: 'chainRelationshipMatch',
-          relationships: params.relationships
-        })
+      const response = await apiService.post(API_ENDPOINTS.matchQuery, {
+        matchType: 'chainRelationshipMatch',
+        relationships: params.relationships
       });
 
-      // 添加响应调试日志
-      const data = await response.json();
-      //console.log('Chain query response:', JSON.stringify(data, null, 2));
-
-      if (!data.success) {
-        throw new Error(data.error || 'Chain relationship query failed');
+      if (!response.data.success) {
+        throw new Error(response.data.error || 'Chain relationship query failed');
       }
 
-      // 处理返回的结果
       const nodes = new Map();
       const relationships = new Set();
 
-      data.data.forEach(record => {
-        // 处理所有返回的节点
+      response.data.data.forEach(record => {
         Object.values(record).forEach(value => {
-          if (value && value.labels) { // 是节点
+          if (value && value.labels) {
             if (!nodes.has(value.id)) {
               nodes.set(value.id, {
                 id: value.id,
@@ -824,7 +758,7 @@ export class QueryManager {
                 properties: value.properties
               });
             }
-          } else if (value && value.type) { // 是关系
+          } else if (value && value.type) {
             relationships.add({
               startNode: value.startNode,
               endNode: value.endNode,
@@ -923,9 +857,8 @@ export class QueryParamsGenerator {
 
   // 生成路径查询
   generatePathQuery(startLabel, endLabel, pathProperties) {
-    //console.log('generatePathQuery inputs:', { startLabel, endLabel, pathProperties });  // 添加日志
     return {
-      type: 'path',  // 确保包含 type
+      type: 'path',
       params: {
         matchType: 'pathMatch',
         startNode: {
@@ -952,7 +885,7 @@ export class QueryParamsGenerator {
       type: 'chainRelationship',
       params: {
         matchType: 'chainRelationshipMatch',
-        relationships: relationships  // 直接使用传入的 relationships
+        relationships: relationships
       }
     };
   }

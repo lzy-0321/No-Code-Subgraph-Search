@@ -544,24 +544,6 @@ export default function Playground() {
     setExpandedRelationship(expandedRelationship === type ? null : type); // Toggle between expanded and collapsed
   };
 
-  // 处理节点标签点击
-  const handleLabelClick = async (label) => {
-    try {
-      const data = await response.json();
-      if (data.success) {
-        // 更新图形显示
-        const newNodes = data.data.map(record => ({
-          id: record.n.properties.id || Math.random(),
-          nodeLabel: Array.isArray(record.n.labels) ? record.n.labels[0] : record.n.labels,
-          properties: record.n.properties
-        }));
-        setGraphNodes(prevNodes => [...prevNodes, ...newNodes]);
-      }
-    } catch (error) {
-      console.error('Error executing query:', error);
-    }
-  };
-
   // 修改处理关系类型点击的函数
   const handleRelationshipClick = async (relationType, entity) => {
     if (!entity) return;
@@ -830,7 +812,6 @@ export default function Playground() {
                             className={styles.labelItem} 
                             onClick={() => {
                               toggleExpandedLabel(label);
-                              handleLabelClick(label);
                             }}
                           >
                             {label}

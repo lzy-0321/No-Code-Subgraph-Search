@@ -1,63 +1,44 @@
 import { useState } from 'react';
 import { useRouter } from 'next/router';
 import styles from '../styles/Page1.module.css';
-import API_ENDPOINTS from '../config/apiConfig';
+import authService from '../services/authService';
 
 export default function Login() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  const getCsrfToken = () => {
-    const csrfToken = document.cookie.match(/csrftoken=([^;]+)/);
-    return csrfToken ? csrfToken[1] : '';
-  };
-
   const handleLogin = async (e) => {
-    e.preventDefault();  // 阻止默认表单提交
-
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+    
     try {
-        const res = await fetch(API_ENDPOINTS.login, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': getCsrfToken(),  // 获取并传递 CSRF Token
-            },
-            body: JSON.stringify({
-                username: username,
-                password: password,
-                rememberMe: rememberMe
-            }),
-            credentials: 'include',  // 关键：确保 Cookies 被传递到后端
-        });
-
-        const data = await res.json();
-
-        if (data.success) {
-            // alert('Login successful!');
-            window.location.href = '/playground';  // 登录成功后重定向
-        } else {
-            alert('Login failed: ' + data.error);
-        }
-    } catch (error) {
-        console.error('Error:', error);
-        alert('Something went wrong. Please try again later.');
+      await authService.login(username, password, rememberMe);
+      router.push('/playground');
+    } catch (err) {
+      setError(err.response?.data?.detail || 'Login failed, please check the user name and password');
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <div id="loginForm" className={styles['tab-content active']}>
+      {error && <div className={styles.errorMessage}>{error}</div>}
       <form id="loginFormSubmit" onSubmit={handleLogin}>
         <div className={styles['input-group']}>
           <label htmlFor="loginUsername">Username</label>
           <input
             type="text"
             id="loginUsername"
-            placeholder="Enter username"
+            placeholder="Please enter your username"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
+            required
           />
         </div>
         <div className={styles['input-group']}>
@@ -65,9 +46,10 @@ export default function Login() {
           <input
             type="password"
             id="loginPassword"
-            placeholder="Enter password"
+            placeholder="Please enter your password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            required
           />
         </div>
         <div className={styles['remember-me']}>
@@ -77,9 +59,15 @@ export default function Login() {
             checked={rememberMe}
             onChange={(e) => setRememberMe(e.target.checked)}
           />
-          <label htmlFor="loginRememberMe">Remember Me For 30 Days</label>
+          <label htmlFor="loginRememberMe">Remember me for 30 days</label>
         </div>
-        <button type="submit" className={styles['submit-btn']}>Log In</button>
+        <button 
+          type="submit" 
+          className={styles['submit-btn']} 
+          disabled={loading}
+        >
+          {loading ? 'Logging in...' : 'Login'}
+        </button>
       </form>
     </div>
   );

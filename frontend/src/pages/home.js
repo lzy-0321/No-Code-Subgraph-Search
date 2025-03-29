@@ -9,7 +9,8 @@ import dynamic from 'next/dynamic';
 import { TutorialCard } from '../components/tutorialCard';  // 更新导入
 import PulsatingButton from "../components/ui/pulsating-button";
 import BoxReveal from "../components/ui/box-reveal";
-import API_ENDPOINTS from '../config/apiConfig';
+import API_ENDPOINTS from '../services/apiConfig';
+import authService from '../services/authService';
 const DrawGraph = dynamic(() => import('../components/DrawGraph'), { ssr: false });
 
 export default function Home() {
@@ -52,25 +53,25 @@ export default function Home() {
     return csrfToken ? csrfToken[1] : '';
   };
 
-  // 获取用户登录状态
+  // 添加新的JWT认证检查
   useEffect(() => {
-    const checkLoginStatus = async () => {
-      try {
-        const response = await fetch(API_ENDPOINTS.checkLoginStatus, {
-          credentials: 'include',  // 确保携带 Cookie
-        });
-        const data = await response.json();
-        if (data.is_logged_in) {
-          setUser({ username: data.username });  // 用户已登录，设置用户名
-        } else {
-          setUser(null);  // 用户未登录
+    const checkAuthStatus = async () => {
+      if (authService.isLoggedIn()) {
+        try {
+          // 获取用户信息
+          const userInfo = await authService.getUserInfo();
+          setUser({ username: userInfo.username });
+        } catch (error) {
+          // 如果获取用户信息失败，清除本地存储
+          authService.logout();
+          setUser(null);
         }
-      } catch (error) {
-        console.error('Error checking login status:', error);
+      } else {
+        setUser(null);
       }
     };
-
-    checkLoginStatus();  // 组件加载时执行
+    
+    checkAuthStatus();
   }, []);
 
   // 头像点击时，显示或隐藏用户菜单
@@ -88,23 +89,14 @@ export default function Home() {
     return () => document.removeEventListener('click', handleClickOutside);  // 清除事件监听
   }, [menuVisible]);
 
-  // 处理登出逻辑
+  // 修改注销处理函数
   const handleLogout = async () => {
-    const res = await fetch(API_ENDPOINTS.logout, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRFToken': getCsrfToken(),  // 获取并传递 CSRF Token
-      },
-      credentials: 'include',  // 关键：确保 Cookies 被传递到后端
-    });
-
-    const data = await res.json();
-    if (data.success) {
-      setUser(null);  // 清除用户状态
-      router.push('/');  // 跳转到首页
-    } else {
-      alert('Logout failed: ' + data.error);
+    try {
+      await authService.logout();
+      setUser(null);
+      router.push('/');
+    } catch (error) {
+      console.error('注销失败:', error);
     }
   };
 

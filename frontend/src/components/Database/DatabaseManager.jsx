@@ -17,6 +17,8 @@ const DatabaseManager = ({
   
   // 连接配置状态
   const [protocol, setProtocol] = useState('bolt://');
+  const [isCustomProtocol, setIsCustomProtocol] = useState(false);
+  const [customProtocol, setCustomProtocol] = useState('');
   const [connectUrl, setConnectUrl] = useState('');
   const [serverUsername, setServerUsername] = useState('');
   const [serverPassword, setServerPassword] = useState('');
@@ -45,6 +47,17 @@ const DatabaseManager = ({
       }
     } catch (error) {
       console.error('Error fetching databases:', error);
+    }
+  };
+
+  const handleProtocolChange = (e) => {
+    const value = e.target.value;
+    if (value === 'custom') {
+      setIsCustomProtocol(true);
+      setProtocol('');
+    } else {
+      setIsCustomProtocol(false);
+      setProtocol(value);
     }
   };
 
@@ -242,7 +255,7 @@ const DatabaseManager = ({
   // 添加新数据库
   const handleFormSubmit = async (e) => {
     e.preventDefault();
-    const fullUrl = `${protocol}${connectUrl}`;
+    const fullUrl = isCustomProtocol ? customProtocol + connectUrl : protocol + connectUrl;
 
     try {
       const response = await fetch(API_ENDPOINTS.addDatabase, {
@@ -366,19 +379,31 @@ const DatabaseManager = ({
                   <label>Connect URL</label>
                   <div className={styles.inputFlex}>
                     <select
-                      value={protocol}
-                      onChange={(e) => setProtocol(e.target.value)}
+                      value={isCustomProtocol ? 'custom' : protocol}
+                      onChange={handleProtocolChange}
                     >
                       <option value="neo4j://">neo4j://</option>
                       <option value="bolt://">bolt://</option>
                       <option value="neo4j+s://">neo4j+s://</option>
                       <option value="bolt+s://">bolt+s://</option>
+                      <option value="custom">custom</option>
                     </select>
+                    {isCustomProtocol && (
+                      <input
+                        type="text"
+                        value={customProtocol}
+                        onChange={(e) => setCustomProtocol(e.target.value)}
+                        placeholder="Custom protocol"
+                        className={styles.customProtocolInput}
+                        style={{marginRight: '5px'}}
+                      />
+                    )}
                     <input
                       type="text"
                       value={connectUrl}
                       onChange={(e) => setConnectUrl(e.target.value)}
                       placeholder="192.168.0.54:7687"
+                      className={isCustomProtocol ? styles.customActive : ''}
                       required
                     />
                   </div>

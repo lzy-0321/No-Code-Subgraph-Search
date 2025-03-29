@@ -240,8 +240,10 @@
 
 .inputFlex {
   display: flex;
-  gap: 8px;
+  gap: 4px;
   align-items: stretch;
+  width: 100%;
+  flex-wrap: wrap;
 }
 
 /* 输入框和选择框样式 */
@@ -318,4 +320,16 @@
 .submitBtn:active {
   background-color: #006EDB;
   transform: scale(0.98);
+}
+
+/* 为自定义协议输入框添加特定样式 */
+.customProtocolInput {
+  flex: 0.5;
+  min-width: 100px;
+  max-width: 140px;
+}
+
+/* 当显示自定义协议输入框时调整数据库URL输入框宽度 */
+.customActive {
+  flex: 1.5;
 } 

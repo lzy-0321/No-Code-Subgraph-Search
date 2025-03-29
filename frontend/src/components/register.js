@@ -5,6 +5,8 @@ import API_ENDPOINTS from '../config/apiConfig';
 
 export default function Register() {
   const [protocol, setProtocol] = useState('bolt://');
+  const [isCustomProtocol, setIsCustomProtocol] = useState(false);
+  const [customProtocol, setCustomProtocol] = useState('');
   const [url, setUrl] = useState('');
   const [serverUser, setServerUser] = useState('');
   const [serverPassword, setServerPassword] = useState('');
@@ -14,10 +16,21 @@ export default function Register() {
   const [error, setError] = useState('');
   const router = useRouter();
 
+  const handleProtocolChange = (e) => {
+    const value = e.target.value;
+    if (value === 'custom') {
+      setIsCustomProtocol(true);
+      setProtocol('');
+    } else {
+      setIsCustomProtocol(false);
+      setProtocol(value);
+    }
+  };
+
   const handleRegister = async (e) => {
     e.preventDefault();
 
-    const fullUrl = protocol + url;
+    const fullUrl = isCustomProtocol ? customProtocol + url : protocol + url;
 
     const res = await fetch(API_ENDPOINTS.register, {
       method: 'POST',
@@ -58,12 +71,23 @@ export default function Register() {
       <div className={styles['input-group']}>
           <label htmlFor="registerProtocol">Connect URL</label>
           <div className={styles['input-flex']}>
-            <select id="registerProtocol" value={protocol} onChange={(e) => setProtocol(e.target.value)}>
+            <select id="registerProtocol" value={isCustomProtocol ? 'custom' : protocol} onChange={handleProtocolChange}>
               <option value="neo4j://">neo4j://</option>
               <option value="bolt://">bolt://</option>
               <option value="neo4j+s://">neo4j+s://</option>
               <option value="bolt+s://">bolt+s://</option>
+              <option value="custom">custom</option>
             </select>
+            {isCustomProtocol && (
+              <input
+                type="text"
+                id="customProtocol"
+                placeholder="Custom protocol"
+                value={customProtocol}
+                onChange={(e) => setCustomProtocol(e.target.value)}
+                style={{marginRight: '5px'}}
+              />
+            )}
             <input
               type="text"
               id="registerConnectUrl"

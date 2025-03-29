@@ -328,10 +328,13 @@ const DatabaseManager = ({
                 {openSettingsIndex === index && (
                   <div className={styles.settingsMenu}>
                     <button
-                      className={styles.settingsMenuItem}
-                      onClick={() => handleDeleteDatabase(db.url)}
+                      className={`${styles.settingsMenuItem} ${styles.danger}`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteDatabase(db.url);
+                      }}
                     >
-                      Delete Database
+                      Delete database
                     </button>
                   </div>
                 )}

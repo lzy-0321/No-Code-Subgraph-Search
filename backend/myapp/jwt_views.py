@@ -8,6 +8,8 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from rest_framework_simplejwt.tokens import RefreshToken
+from django.core.cache import cache
+from django.conf import settings
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     @classmethod
@@ -95,4 +97,48 @@ def get_user_info(request):
         'username': user.username,
         'email': user.email,
         'is_staff': user.is_staff
-    }) 
+    })
+
+class RateLimitedTokenObtainPairView(TokenObtainPairView):
+    """
+    带有登录尝试限制的JWT令牌获取视图
+    """
+    def post(self, request, *args, **kwargs):
+        # 获取用户名和IP
+        username = request.data.get('username', '')
+        ip_address = self.get_client_ip(request)
+        cache_key = f"login_attempts:{username}:{ip_address}"
+        
+        # 检查尝试次数
+        attempts = cache.get(cache_key, 0)
+        max_attempts = getattr(settings, 'MAX_LOGIN_ATTEMPTS', 5)
+        
+        if attempts >= max_attempts:
+            return Response(
+                {"detail": "账户已被临时锁定，请稍后再试"},
+                status=status.HTTP_429_TOO_MANY_REQUESTS
+            )
+        
+        # 尝试获取token
+        response = super().post(request, *args, **kwargs)
+        
+        # 如果失败，增加尝试计数
+        if response.status_code != 200:
+            cache.set(
+                cache_key, 
+                attempts + 1, 
+                getattr(settings, 'LOGIN_ATTEMPTS_TIMEOUT', 300)
+            )
+        else:
+            # 登录成功，清除尝试计数
+            cache.delete(cache_key)
+            
+        return response
+    
+    def get_client_ip(self, request):
+        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+        if x_forwarded_for:
+            ip = x_forwarded_for.split(',')[0]
+        else:
+            ip = request.META.get('REMOTE_ADDR')
+        return ip 

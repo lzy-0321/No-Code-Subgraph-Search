@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/router';
 import styles from '../styles/Page1.module.css';
 import authService from '../services/authService';  // 导入authService
+import ErrorNotification from './ErrorNotification';
 
 export default function Register() {
   const [protocol, setProtocol] = useState('bolt://');
@@ -62,7 +63,7 @@ export default function Register() {
 
   return (
     <div id="registerForm" className={styles['tab-content active']}>
-      {error && <div className={styles.errorMessage}>{error}</div>}
+      {error && <ErrorNotification message={error} onClose={() => setError('')} />}
       <form id="registerFormSubmit" onSubmit={handleRegister}>
         <div className={styles['input-group']}>
           <label htmlFor="registerProtocol">Connect URL</label>

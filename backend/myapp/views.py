@@ -186,7 +186,8 @@ def select_database(request):
         # 获取选中的数据库信息
         neo4j_server = Neo4jServer.objects.get(user=request.user, url=selected_url)
         server_username = neo4j_server.server_username
-        server_password = neo4j_server.server_password
+        # 使用解密方法获取密码
+        server_password = neo4j_server.get_password()
         
         # 创建新的 Neo4j 连接
         neo4j_connector = Neo4jConnector(selected_url, server_username, server_password)

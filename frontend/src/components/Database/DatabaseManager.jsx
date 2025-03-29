@@ -1,8 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import styles from '../../styles/DatabaseManager.module.css';
 import API_ENDPOINTS from '../../services/apiConfig';
 import apiService from '../../services/apiService';
+import ErrorNotification from '../ErrorNotification';
+import SuccessNotification from '../SuccessNotification';
 
 const DatabaseManager = ({ 
   onDatabaseSelect, 
@@ -23,6 +25,9 @@ const DatabaseManager = ({
   const [connectUrl, setConnectUrl] = useState('');
   const [serverUsername, setServerUsername] = useState('');
   const [serverPassword, setServerPassword] = useState('');
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const menuRef = useRef(null);
 
   // 初始化加载数据库列表
   useEffect(() => {
@@ -36,10 +41,11 @@ const DatabaseManager = ({
       if (response.data.success) {
         setDatabases(response.data.databases);
       } else {
-        console.error(response.data.error);
+        setError(response.data.error);
       }
     } catch (error) {
-      console.error('Error fetching databases:', error);
+      // console.error('Error fetching databases:', error);
+      setError(error.message || 'Failed to fetch databases');
     }
   };
 
@@ -146,12 +152,15 @@ const DatabaseManager = ({
       // 更新数据库信息
       onDatabaseInfoFetch(fullDbInfo);
       
-      // 成功后关闭数据库菜单
+      // 关闭数据库菜单
       setIsDatabaseMenuOpen(false);
+      
+      // 添加成功提示信息
+      setSuccess('Database connected successfully');
 
     } catch (error) {
-      console.error('Error selecting database:', error);
-      alert('Error: ' + error.message);
+      // console.error('Error selecting database:', error);
+      setError(error.message || 'Failed to select database');
     }
   };
 
@@ -160,7 +169,7 @@ const DatabaseManager = ({
     // 检查剩余的不重复数据库数量
     const uniqueDatabases = new Set(databases.map(db => db.url));
     if (uniqueDatabases.size <= 1) {
-      alert('You must have at least one database.');
+      setError('You must have at least one database.');
       return;
     }
 
@@ -198,15 +207,15 @@ const DatabaseManager = ({
           return newTabDatabases;
         });
         
-        alert('Database deleted successfully.');
+        setSuccess('Database deleted successfully');
         setOpenSettingsIndex(null);
         fetchDatabases();
       } else {
-        alert('Error: ' + result.error);
+        setError('Error: ' + result.error);
       }
     } catch (error) {
-      console.error('Error deleting database:', error);
-      alert('Error deleting database: ' + error.message);
+      // console.error('Error deleting database:', error);
+      setError(error.message || 'Failed to delete database');
     }
   };
 
@@ -235,7 +244,7 @@ const DatabaseManager = ({
 
       const result = await response.json();
       if (result.success) {
-        alert('Database added successfully!');
+        setSuccess('Database added successfully');
         setIsModalOpen(false);
         setConnectUrl('');
         setServerUsername('');
@@ -243,16 +252,18 @@ const DatabaseManager = ({
         fetchDatabases();
       } else {
         // 显示具体的错误信息
-        alert(result.error || 'Failed to add database');
+        setError(result.error || 'Failed to add database');
       }
     } catch (error) {
-      console.error('Error adding database:', error);
-      alert('Error adding database: ' + error.message);
+      // console.error('Error adding database:', error);
+      setError(error.message || 'Failed to add database');
     }
   };
 
   return (
     <div {...props} className={styles.databaseManager}>
+      {error && <ErrorNotification message={error} onClose={() => setError('')} />}
+      {success && <SuccessNotification message={success} onClose={() => setSuccess('')} />}
       <div className={styles.flexRowInfoDatabase}>
         <div 
           className={styles.flexRowDatabaseImages} 

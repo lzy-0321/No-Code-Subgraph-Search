@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/router';
 import styles from '../styles/Page1.module.css';
 import authService from '../services/authService';
+import ErrorNotification from './ErrorNotification';
 
 export default function Login() {
   const [username, setUsername] = useState('');
@@ -28,7 +29,7 @@ export default function Login() {
 
   return (
     <div id="loginForm" className={styles['tab-content active']}>
-      {error && <div className={styles.errorMessage}>{error}</div>}
+      {error && <ErrorNotification message={error} onClose={() => setError('')} />}
       <form id="loginFormSubmit" onSubmit={handleLogin}>
         <div className={styles['input-group']}>
           <label htmlFor="loginUsername">Username</label>

@@ -11,11 +11,13 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 from pathlib import Path
-
-STATIC_URL = '/static/'
 import os
+from cryptography.fernet import Fernet
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+STATIC_URL = '/static/'
 
 STATICFILES_DIRS = [
     BASE_DIR / 'myproject' / 'static',
@@ -25,10 +27,24 @@ STATICFILES_DIRS = [
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-ovmy&v9rc$lmf!3lx-je)ane7a!h1$s3q4nl!l4jt7v%@#x3t^'
+ENCRYPTION_KEY_FILE = os.path.join(BASE_DIR, 'encryption.key')
+if not os.path.exists(ENCRYPTION_KEY_FILE):
+    # 第一次运行时生成密钥
+    encryption_key = Fernet.generate_key()
+    with open(ENCRYPTION_KEY_FILE, 'wb') as key_file:
+        key_file.write(encryption_key)
+    ENCRYPTION_KEY = encryption_key
+else:
+    # 读取已存在的密钥
+    with open(ENCRYPTION_KEY_FILE, 'rb') as key_file:
+        ENCRYPTION_KEY = key_file.read()
+
+# 确保密钥文件不加入版本控制
+# 将 encryption.key 添加到 .gitignore 文件
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-ovmy&v9rc$lmf!3lx-je)ane7a!h1$s3q4nl!l4jt7v%@#x3t^')
+DEBUG = os.environ.get('DJANGO_DEBUG', '') != 'False'
 
 ALLOWED_HOSTS = []
 
@@ -172,3 +188,13 @@ SIMPLE_JWT = {
 
     'JTI_CLAIM': 'jti',
 }
+
+# 登录尝试限制设置
+MAX_LOGIN_ATTEMPTS = 5  # 最大尝试次数
+LOGIN_ATTEMPTS_TIMEOUT = 300  # 锁定时间（秒）
+
+# 添加自定义认证后端
+AUTHENTICATION_BACKENDS = [
+    'myapp.backends.RateLimitedAuthBackend',
+    'django.contrib.auth.backends.ModelBackend',
+]

@@ -668,6 +668,23 @@ export default function Playground() {
 
   // 修改清除所有处理函数
   const handleClearAll = () => {
+    // 清空图表数据
+    setGraphNodes([]);
+    setGraphRelationships([]);
+    
+    // 同时清空缓冲区数据
+    setGraphNodesBuffer([]);
+    setGraphRelationshipsBuffer([]);
+    
+    // 重置过滤器状态
+    setFilterState({
+      activeFilterTab: "relationship",
+      hiddenTypes: {},
+      selectedNodes: [],
+      relationshipTypeOrder: []
+    });
+    
+    // 更新tab状态
     updateGraphData([], []);
   };
 
@@ -1029,6 +1046,7 @@ export default function Playground() {
                     <DrawGraph
                       nodes={graphNodes}
                       relationships={graphRelationships}
+                      resetKey={activeTab}
                     />
                   )}
                 </div>

@@ -77,7 +77,6 @@ MIDDLEWARE = [
 
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
-    'https://your-frontend-domain.com',  # 生产环境前端域名
     'http://localhost:3000',  # 本地开发保留
 ]
 CSRF_TRUSTED_ORIGINS = [

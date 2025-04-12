@@ -22,21 +22,88 @@ const Filter = ({
   const [hiddenTypes, setHiddenTypes] = useState(initialFilterState?.hiddenTypes || {});
   const [selectedNodes, setSelectedNodes] = useState(new Set(initialFilterState?.selectedNodes || []));
   const [relationshipTypeOrder, setRelationshipTypeOrder] = useState(initialFilterState?.relationshipTypeOrder || []);
+  
+  // 保存所有见过的关系类型，确保不会因为隐藏而丢失
+  const [allSeenTypes, setAllSeenTypes] = useState(new Set(initialFilterState?.relationshipTypeOrder || []));
+
+  // 使用ref跟踪之前的数据状态，用于检测清除操作
+  const prevDataState = useRef({
+    nodesLength: nodes.length,
+    relationshipsLength: relationships.length,
+    bufferNodesLength: graphNodesBuffer.length,
+    bufferRelationshipsLength: graphRelationshipsBuffer.length
+  });
 
   // Group nodes by their labels
   const nodeLabels = [...new Set(nodes.map((node) => node.nodeLabel))];
   
-  // Group relationships by type
-  const groupedRelationships = groupRelationshipsByType(relationships.concat(graphRelationshipsBuffer));
+  // Group relationships by type - 同时包含显示的和缓冲区中的关系
+  const allRelationships = relationships.concat(graphRelationshipsBuffer);
+  const groupedRelationships = groupRelationshipsByType(allRelationships);
 
   // 检查是否有数据
   const hasData = nodes.length > 0 || relationships.length > 0 || graphNodesBuffer.length > 0 || graphRelationshipsBuffer.length > 0;
   
-  // 检查是否有关系数据
-  const hasRelationships = relationships.length > 0 || graphRelationshipsBuffer.length > 0;
+  // 检查是否有关系数据 - 修改为检查所有关系（包括缓冲区）以及历史类型
+  const hasRelationships = allRelationships.length > 0 || allSeenTypes.size > 0;
 
   // 检查是否有节点数据
   const hasNodes = nodes.length > 0 || graphNodesBuffer.length > 0;
+
+  // 重置过滤器状态 - 当图表被清除时调用
+  const resetFilterState = () => {
+    // 重置状态变量
+    setHiddenTypes({});
+    setSelectedNodes(new Set());
+    setAllSeenTypes(new Set());
+    setRelationshipTypeOrder([]);
+    
+    // 重要：同时清空缓冲区
+    setGraphNodesBuffer([]);
+    setGraphRelationshipsBuffer([]);
+    
+    // 通知父组件过滤器状态已重置
+    if (onFilterStateChange) {
+      onFilterStateChange({
+        activeFilterTab: "relationship",
+        hiddenTypes: {},
+        selectedNodes: [],
+        relationshipTypeOrder: []
+      });
+    }
+    
+    console.log("过滤器状态和缓冲区已完全重置");
+  };
+
+  // 使用更可靠的方法检测清除操作 - 比较前后数据状态变化
+  useEffect(() => {
+    const currentState = {
+      nodesLength: nodes.length,
+      relationshipsLength: relationships.length,
+      bufferNodesLength: graphNodesBuffer.length,
+      bufferRelationshipsLength: graphRelationshipsBuffer.length
+    };
+    
+    // 检查是否从有数据变为无数据 - 这表示发生了清除操作
+    const hadData = prevDataState.current.nodesLength > 0 || 
+                    prevDataState.current.relationshipsLength > 0 ||
+                    prevDataState.current.bufferNodesLength > 0 ||
+                    prevDataState.current.bufferRelationshipsLength > 0;
+                    
+    const hasNoData = currentState.nodesLength === 0 && 
+                      currentState.relationshipsLength === 0 &&
+                      currentState.bufferNodesLength === 0 &&
+                      currentState.bufferRelationshipsLength === 0;
+    
+    // 如果之前有数据，现在没有数据，则视为清除操作
+    if (hadData && hasNoData) {
+      console.log("图表已清除，重置过滤器状态");
+      resetFilterState();
+    }
+    
+    // 更新前一状态
+    prevDataState.current = currentState;
+  }, [nodes.length, relationships.length, graphNodesBuffer.length, graphRelationshipsBuffer.length]);
 
   // 当活动的Tab ID变化时，通知父组件保存当前过滤器状态
   useEffect(() => {
@@ -46,16 +113,14 @@ const Filter = ({
         activeFilterTab: activeTab,
         hiddenTypes,
         selectedNodes: [...selectedNodes],
-        relationshipTypeOrder,
+        relationshipTypeOrder: [...allSeenTypes], // 使用allSeenTypes确保保存所有类型
       });
     }
-  }, [activeTab, hiddenTypes, selectedNodes, relationshipTypeOrder, activeTabId]);
+  }, [activeTab, hiddenTypes, selectedNodes, relationshipTypeOrder, allSeenTypes, activeTabId]);
 
   // 只在初始化和数据类型变化时更新激活的标签页
   useEffect(() => {
-    // 只在以下情况更新activeTab：
-    // 1. 当前选中的标签页不可用（比如选中relationship但没有关系数据）
-    // 2. 当前没有选中的标签页
+    // 修改逻辑：无论是否有显示的关系，只要总体上有关系数据就保留relationship标签
     const isCurrentTabInvalid = 
       (activeTab === "relationship" && !hasRelationships) || 
       (activeTab !== "relationship" && !nodeLabels.includes(activeTab));
@@ -69,28 +134,42 @@ const Filter = ({
     }
   }, [hasRelationships, hasNodes, nodeLabels, activeTab]);
 
-  // 修改 useEffect 来正确更新关系类型顺序
+  // 每当发现新的关系类型，更新allSeenTypes
   useEffect(() => {
     // 获取当前所有关系类型
     const allRelationships = relationships.concat(graphRelationshipsBuffer);
     const currentTypes = Object.keys(groupRelationshipsByType(allRelationships));
     
-    // 检查是否有新类型被添加或需要更新顺序
-    if (currentTypes.length > 0) {
-      // 1. 保留现有顺序中仍然存在的类型
-      const existingOrderedTypes = relationshipTypeOrder.filter(type => 
-        currentTypes.includes(type)
-      );
-      
-      // 2. 找出新添加的类型（在当前类型中但不在现有顺序中）
-      const newTypes = currentTypes.filter(type => 
-        !relationshipTypeOrder.includes(type)
-      );
-      
-      // 3. 合并保留的顺序和新类型
-      if (newTypes.length > 0 || existingOrderedTypes.length !== relationshipTypeOrder.length) {
-        setRelationshipTypeOrder([...existingOrderedTypes, ...newTypes]);
+    // 检查是否有新的关系类型
+    let hasNewTypes = false;
+    const updatedSeenTypes = new Set(allSeenTypes);
+    
+    currentTypes.forEach(type => {
+      if (!updatedSeenTypes.has(type)) {
+        updatedSeenTypes.add(type);
+        hasNewTypes = true;
       }
+    });
+    
+    // 如果发现新类型，更新allSeenTypes
+    if (hasNewTypes) {
+      setAllSeenTypes(updatedSeenTypes);
+    }
+    
+    // 更新关系类型顺序，确保包含所有类型（无论是否当前显示）
+    const updatedOrder = [...relationshipTypeOrder];
+    let orderChanged = false;
+    
+    // 添加新类型到末尾
+    updatedSeenTypes.forEach(type => {
+      if (!updatedOrder.includes(type)) {
+        updatedOrder.push(type);
+        orderChanged = true;
+      }
+    });
+    
+    if (orderChanged) {
+      setRelationshipTypeOrder(updatedOrder);
     }
   }, [relationships, graphRelationshipsBuffer]);
 
@@ -111,6 +190,11 @@ const Filter = ({
     if (!isHidden) {
       // 隐藏关系和管理节点
       const relationshipsToToggle = groupRelationshipsByType(relationships)[type];
+      if (!relationshipsToToggle || relationshipsToToggle.length === 0) {
+        // 没有要隐藏的关系，直接返回
+        return;
+      }
+      
       const updatedRelationships = relationships.filter(
         (rel) => rel.type !== type
       );
@@ -126,14 +210,14 @@ const Filter = ({
         const startNode = nodes.find((node) => node.id === rel.startNode);
         const endNode = nodes.find((node) => node.id === rel.endNode);
 
-        if (isIsolated(rel.startNode, updatedRelationships)) {
+        if (startNode && isIsolated(rel.startNode, updatedRelationships)) {
           await setGraphNodesBuffer((prev) => [...prev, startNode]);
           await setGraphNodes((prev) =>
             prev.filter((node) => node.id !== rel.startNode)
           );
         }
 
-        if (isIsolated(rel.endNode, updatedRelationships)) {
+        if (endNode && isIsolated(rel.endNode, updatedRelationships)) {
           await setGraphNodesBuffer((prev) => [...prev, endNode]);
           await setGraphNodes((prev) =>
             prev.filter((node) => node.id !== rel.endNode)
@@ -143,6 +227,11 @@ const Filter = ({
     } else {
       // 显示关系和相关节点
       const relationshipsToToggle = groupRelationshipsByType(graphRelationshipsBuffer)[type];
+      if (!relationshipsToToggle || relationshipsToToggle.length === 0) {
+        // 没有要显示的关系，直接返回
+        return;
+      }
+      
       await setGraphRelationships((prev) => [...prev, ...relationshipsToToggle]);
 
       await setGraphRelationshipsBuffer((prev) =>
@@ -302,19 +391,22 @@ const Filter = ({
               <>
                 {activeTab === "relationship" && hasRelationships && (
                   <div className={styles.relationshipContent}>
-                    {relationshipTypeOrder.map((type) => {
-                      const relationships = groupedRelationships[type] || [];
+                    {[...allSeenTypes].map((type) => {
+                      // 获取显示的和隐藏的所有关系
+                      const typeRelationships = allRelationships.filter(rel => rel.type === type);
+                      const isTypeHidden = hiddenTypes[type];
+                      
                       return (
                         <div key={type} className={styles.relationshipRow}>
                           <span className={styles.relationshipType}>{type}</span>
                           <span className={styles.relationshipCount}>
-                            ({relationships.length})
+                            ({typeRelationships.length})
                           </span>
                           <button
                             className={styles.toggleVisibilityButton}
                             onClick={() => toggleVisibilityByType(type)}
                           >
-                            {hiddenTypes[type] ? <TbEyeOff /> : <TbEye />}
+                            {isTypeHidden ? <TbEyeOff /> : <TbEye />}
                           </button>
                         </div>
                       );

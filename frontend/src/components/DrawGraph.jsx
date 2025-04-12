@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { ForceGraph2D } from 'react-force-graph';
 
-const DrawGraph = ({ nodes, relationships, enableZoom = true, useNormalCanvas = false }) => {
+const DrawGraph = ({ nodes, relationships, enableZoom = true, useNormalCanvas = false, resetKey }) => {
   const containerRef = useRef(null);
   const graphRef = useRef(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -169,7 +169,7 @@ const DrawGraph = ({ nodes, relationships, enableZoom = true, useNormalCanvas = 
         scale: 1
       });
     }
-  }, [useNormalCanvas]);
+  }, [useNormalCanvas, resetKey]);
 
   // 监听数据变化，当节点和关系都为空时重置画布位置
   useEffect(() => {

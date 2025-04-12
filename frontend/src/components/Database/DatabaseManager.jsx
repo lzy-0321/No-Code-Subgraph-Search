@@ -174,24 +174,10 @@ const DatabaseManager = ({
     }
 
     try {
-      // 获取 CSRF token
-      const csrfToken = document.cookie
-        .split('; ')
-        .find((row) => row.startsWith('csrftoken='))
-        ?.split('=')[1];
+      // 使用 apiService 替代直接的 fetch 调用
+      const response = await apiService.post(API_ENDPOINTS.deleteDatabase, { url });
 
-      const response = await fetch(API_ENDPOINTS.deleteDatabase, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRFToken': csrfToken,
-        },
-        body: JSON.stringify({ url }),
-        credentials: 'include',
-      });
-
-      const result = await response.json();
-      if (result.success) {
+      if (response.data.success) {
         setDatabases(prevDatabases => 
           prevDatabases.filter((db) => db.url !== url)
         );
@@ -211,10 +197,9 @@ const DatabaseManager = ({
         setOpenSettingsIndex(null);
         fetchDatabases();
       } else {
-        setError('Error: ' + result.error);
+        setError('Error: ' + response.data.error);
       }
     } catch (error) {
-      // console.error('Error deleting database:', error);
       setError(error.message || 'Failed to delete database');
     }
   };
@@ -225,24 +210,14 @@ const DatabaseManager = ({
     const fullUrl = isCustomProtocol ? customProtocol + connectUrl : protocol + connectUrl;
 
     try {
-      const response = await fetch(API_ENDPOINTS.addDatabase, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRFToken': document.cookie
-            .split('; ')
-            .find((row) => row.startsWith('csrftoken='))
-            ?.split('=')[1],
-        },
-        credentials: 'include',
-        body: JSON.stringify({
-          fullUrl,
-          serverUsername,
-          serverPassword,
-        }),
+      // 使用 apiService 替代直接的 fetch 调用
+      const response = await apiService.post(API_ENDPOINTS.addDatabase, {
+        fullUrl,
+        serverUsername,
+        serverPassword,
       });
 
-      const result = await response.json();
+      const result = response.data;
       if (result.success) {
         setSuccess('Database added successfully');
         setIsModalOpen(false);
@@ -255,7 +230,6 @@ const DatabaseManager = ({
         setError(result.error || 'Failed to add database');
       }
     } catch (error) {
-      // console.error('Error adding database:', error);
       setError(error.message || 'Failed to add database');
     }
   };
